@@ -1,0 +1,134 @@
+class Course < ApplicationRecord
+  # Associations
+  has_many :holes, dependent: :destroy
+  has_many :rounds, dependent: :destroy
+
+  # Validations
+  validates :name, presence: true, length: { minimum: 2, maximum: 100 }
+  validates :latitude, presence: true, numericality: { 
+    greater_than_or_equal_to: -90.0, 
+    less_than_or_equal_to: 90.0 
+  }
+  validates :longitude, presence: true, numericality: { 
+    greater_than_or_equal_to: -180.0, 
+    less_than_or_equal_to: 180.0 
+  }
+  
+  validates :course_rating, numericality: { 
+    greater_than: 60.0, 
+    less_than: 90.0 
+  }, allow_nil: true
+  
+  validates :slope_rating, numericality: { 
+    greater_than_or_equal_to: 55, 
+    less_than_or_equal_to: 155 
+  }, allow_nil: true
+  
+  validates :par, numericality: { 
+    greater_than_or_equal_to: 54, 
+    less_than_or_equal_to: 90 
+  }, allow_nil: true
+  
+  validates :geofence_radius, numericality: { 
+    greater_than: 0, 
+    less_than_or_equal_to: 2000 
+  }
+
+  # Scopes
+  scope :active, -> { where(active: true) }
+  scope :public_courses, -> { where(private_course: false) }
+  scope :private_courses, -> { where(private_course: true) }
+  scope :near, ->(latitude, longitude, radius_km = 50) {
+    where(
+      "6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))) < ?",
+      latitude, longitude, latitude, radius_km
+    )
+  }
+
+  # Callbacks
+  before_save :calculate_course_stats
+  after_create :create_default_holes
+
+  def full_address
+    [address, city, state, postal_code].compact.join(', ')
+  end
+
+  def distance_from(latitude, longitude)
+    return nil unless latitude && longitude
+    
+    # Haversine formula to calculate distance in kilometers
+    rad_per_deg = Math::PI / 180
+    rkm = 6371 # Earth radius in kilometers
+    rm = rkm * 1000 # Earth radius in meters
+
+    dlat_rad = (self.latitude - latitude) * rad_per_deg
+    dlon_rad = (self.longitude - longitude) * rad_per_deg
+
+    lat1_rad = latitude * rad_per_deg
+    lat2_rad = self.latitude * rad_per_deg
+
+    a = Math.sin(dlat_rad/2)**2 + Math.cos(lat1_rad) * Math.cos(lat2_rad) * Math.sin(dlon_rad/2)**2
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+    rm * c # Distance in meters
+  end
+
+  def within_geofence?(latitude, longitude)
+    return false unless latitude && longitude
+    
+    distance = distance_from(latitude, longitude)
+    return false unless distance
+    
+    distance <= geofence_radius
+  end
+
+  def holes_count
+    holes.count
+  end
+
+  def average_rating
+    return course_rating if course_rating.present?
+    
+    # Calculate average based on holes if no course rating
+    return nil if holes.empty?
+    
+    holes.sum(:par) + 2.0 # Rough estimation
+  end
+
+  def recent_rounds(limit = 20)
+    rounds.includes(:user, :hole_scores)
+          .order(started_at: :desc)
+          .limit(limit)
+  end
+
+  def average_score
+    return nil if rounds.completed.empty?
+    
+    rounds.completed.average(:total_strokes)&.round(1)
+  end
+
+  private
+
+  def calculate_course_stats
+    if holes.any?
+      self.par = holes.sum(:par) if par.nil?
+      # Could calculate total_yardage, course_rating based on holes
+    end
+  end
+
+  def create_default_holes
+    return if holes.any?
+    
+    # Create 18 default holes with basic par structure
+    hole_pars = [4, 4, 3, 4, 5, 4, 3, 4, 4, 4, 4, 3, 5, 4, 3, 4, 4, 5]
+    
+    hole_pars.each_with_index do |par, index|
+      holes.create!(
+        number: index + 1,
+        par: par,
+        handicap: index + 1,
+        yardage_white: par == 3 ? 150 : (par == 4 ? 350 : 500)
+      )
+    end
+  end
+end
