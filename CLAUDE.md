@@ -15,17 +15,79 @@ The Verified Handicap is a mobile golf application that addresses the critical t
 
 ## Project Status
 
-This is an early-stage project currently in the planning phase. The codebase contains only documentation files (PRD.md and CLAUDE.md). No actual application code has been written yet.
+This project has a complete MVP foundation with both mobile app and API backend implemented. The core features include user authentication, course management, round tracking with GPS verification, and peer attestation system.
 
 ## Development Commands
 
-⚠️ **Note**: No build, test, or development scripts are currently configured. When setting up the project structure, ensure to include:
+### Backend (Rails API) - `fairway-api/`
+```bash
+# Install dependencies
+bundle install
 
-- Package management setup (for React Native: `npm install` or `yarn install`)
-- Rails backend setup commands (`bundle install`, `rails db:create`, `rails db:migrate`)
-- Test runners for both frontend and backend
-- Linting and formatting tools
-- Build and deployment scripts
+# Database setup
+rails db:create
+rails db:migrate
+rails db:seed
+
+# Run server (default: localhost:3000)
+rails server
+
+# Run tests
+rails test
+# or with RSpec (when configured)
+bundle exec rspec
+
+# Run linter
+bundle exec rubocop
+
+# Security scan
+bundle exec brakeman
+```
+
+### Frontend (React Native) - `fairway-mobile/`
+```bash
+# Install dependencies
+npm install
+# or
+yarn install
+
+# Start Metro bundler
+npm start
+# or
+yarn start
+
+# Run on iOS simulator
+npm run ios
+# or
+yarn ios
+
+# Run on Android emulator
+npm run android
+# or
+yarn android
+
+# Run tests
+npm test
+# or
+yarn test
+
+# Type checking
+npm run typecheck
+# or
+yarn typecheck
+
+# Lint code
+npm run lint
+# or
+yarn lint
+```
+
+### Full Stack Development
+```bash
+# From project root, start both servers
+cd fairway-api && rails server &
+cd fairway-mobile && npm start
+```
 
 ## Core Architecture
 
