@@ -16,10 +16,10 @@ class ApplicationController < ActionController::API
     return unauthorized_response unless token
 
     begin
-      decoded_token = JWT.decode(token, Rails.application.secret_key_base, true, { algorithm: 'HS256' })
-      user_id = decoded_token[0]['user_id']
-      @current_user = User.find(user_id)
-    rescue JWT::DecodeError, JWT::ExpiredSignature, ActiveRecord::RecordNotFound
+      payload = JwtService.decode_token(token, 'access')
+      @current_user = User.find(payload['user_id'])
+    rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::InvalidPayload, ActiveRecord::RecordNotFound => e
+      Rails.logger.warn "Authentication failed: #{e.message}"
       unauthorized_response
     end
   end
@@ -30,12 +30,14 @@ class ApplicationController < ActionController::API
     end
   end
 
+  def generate_jwt_tokens(user)
+    JwtService.generate_tokens(user)
+  end
+
+  # Legacy method for backward compatibility
   def generate_jwt_token(user)
-    payload = {
-      user_id: user.id,
-      exp: 30.days.from_now.to_i
-    }
-    JWT.encode(payload, Rails.application.secret_key_base, 'HS256')
+    tokens = generate_jwt_tokens(user)
+    tokens[:access_token]
   end
 
   def render_success(data = nil, message = nil, status = :ok)

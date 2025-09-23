@@ -11,6 +11,7 @@ Rails.application.routes.draw do
         post 'login', to: 'auth#login'
         post 'register', to: 'auth#register'
         post 'logout', to: 'auth#logout'
+        post 'refresh', to: 'auth#refresh_token'
         get 'profile', to: 'auth#profile'
         patch 'profile', to: 'auth#update_profile'
         post 'change_password', to: 'auth#change_password'

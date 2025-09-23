@@ -1,14 +1,26 @@
 class Api::V1::AuthController < ApplicationController
+  include InputSanitizer
+  
   skip_before_action :authenticate_user!, only: [:login, :register]
 
   def login
-    user = User.find_by(email: login_params[:email].downcase.strip)
+    return unless validate_required_params(params, [:email, :password])
     
-    if user&.authenticate(login_params[:password])
-      token = generate_jwt_token(user)
+    email = sanitize_email(params[:email])
+    password = params[:password]
+    
+    return render_error("Invalid email format", :bad_request) unless email
+    return render_error("Password too short", :bad_request) if password.length < 8
+
+    user = User.find_by(email: email)
+    
+    if user&.authenticate(password)
+      tokens = generate_jwt_tokens(user)
       render_success({
         user: user_response(user),
-        token: token
+        access_token: tokens[:access_token],
+        refresh_token: tokens[:refresh_token],
+        expires_in: tokens[:expires_in]
       }, "Login successful")
     else
       render_error("Invalid credentials", :unauthorized)
@@ -16,14 +28,32 @@ class Api::V1::AuthController < ApplicationController
   end
 
   def register
-    user = User.new(register_params)
-    user.email = user.email.downcase.strip if user.email
+    return unless validate_required_params(params, [:email, :password, :first_name, :last_name])
+    
+    # Sanitize inputs
+    sanitized_params = {
+      email: sanitize_email(params[:email]),
+      password: params[:password],
+      first_name: sanitize_string(params[:first_name]),
+      last_name: sanitize_string(params[:last_name]),
+      phone: sanitize_string(params[:phone])
+    }
+    
+    # Validate sanitized inputs
+    return render_error("Invalid email format", :bad_request) unless sanitized_params[:email]
+    return render_error("Password must be at least 8 characters", :bad_request) if sanitized_params[:password].length < 8
+    return render_error("First name is required", :bad_request) if sanitized_params[:first_name].blank?
+    return render_error("Last name is required", :bad_request) if sanitized_params[:last_name].blank?
+    
+    user = User.new(sanitized_params)
     
     if user.save
-      token = generate_jwt_token(user)
+      tokens = generate_jwt_tokens(user)
       render_success({
         user: user_response(user),
-        token: token
+        access_token: tokens[:access_token],
+        refresh_token: tokens[:refresh_token],
+        expires_in: tokens[:expires_in]
       }, "Registration successful", :created)
     else
       render_error("Registration failed", :unprocessable_entity, user.errors.full_messages)
@@ -54,8 +84,34 @@ class Api::V1::AuthController < ApplicationController
     end
   end
 
+  def refresh_token
+    refresh_token = params[:refresh_token]
+    return render_error("Refresh token required", :bad_request) unless refresh_token
+
+    begin
+      tokens = JwtService.refresh_access_token(refresh_token)
+      render_success({
+        access_token: tokens[:access_token],
+        expires_in: tokens[:expires_in]
+      }, "Token refreshed successfully")
+    rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::InvalidPayload => e
+      render_error("Invalid or expired refresh token", :unauthorized)
+    end
+  end
+
   def logout
-    # Since we're using JWT tokens, logout is handled client-side by removing the token
+    # Revoke refresh token if provided
+    refresh_token = params[:refresh_token]
+    
+    if refresh_token
+      begin
+        payload = JwtService.decode_token(refresh_token, 'refresh')
+        JwtService.revoke_refresh_token(payload['user_id'], payload['jti'])
+      rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::InvalidPayload
+        # Token already invalid, nothing to revoke
+      end
+    end
+    
     render_success(nil, "Logout successful")
   end
 

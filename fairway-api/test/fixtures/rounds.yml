@@ -1,0 +1,111 @@
+# Rounds fixture for testing
+
+current_round:
+  id: "550e8400-e29b-41d4-a716-446655440201"
+  user: one
+  course: pebble_beach
+  started_at: <%= 2.hours.ago %>
+  tee_color: "white"
+  course_rating: 74.5
+  slope_rating: 145
+  total_strokes: 85
+  total_putts: 32
+  score_differential: 9.0
+  weather_conditions: "Sunny"
+  temperature: 75
+  is_verified: false
+  is_provisional: true
+  verification_count: 0
+  fraud_risk_score: 15.5
+  location_verified: true
+  start_latitude: 36.5685
+  start_longitude: -121.9490
+  fairways_hit: 8
+  greens_in_regulation: 10
+  total_penalties: 2
+  created_at: <%= 2.hours.ago %>
+  updated_at: <%= 1.hour.ago %>
+
+completed_round:
+  id: "550e8400-e29b-41d4-a716-446655440202"
+  user: one
+  course: torrey_pines
+  started_at: <%= 1.week.ago %>
+  completed_at: <%= 1.week.ago + 4.hours %>
+  submitted_at: <%= 1.week.ago + 4.hours %>
+  tee_color: "blue"
+  course_rating: 75.1
+  slope_rating: 144
+  total_strokes: 88
+  total_putts: 30
+  score_differential: 10.1
+  weather_conditions: "Overcast"
+  temperature: 68
+  is_verified: true
+  is_provisional: false
+  verification_count: 2
+  fraud_risk_score: 8.2
+  location_verified: true
+  start_latitude: 32.8970
+  start_longitude: -117.2500
+  fairways_hit: 6
+  greens_in_regulation: 8
+  total_penalties: 1
+  created_at: <%= 1.week.ago %>
+  updated_at: <%= 1.week.ago + 4.hours %>
+
+high_fraud_round:
+  id: "550e8400-e29b-41d4-a716-446655440203"
+  user: two
+  course: municipal_course
+  started_at: <%= 3.days.ago %>
+  completed_at: <%= 3.days.ago + 1.hour %>
+  submitted_at: <%= 3.days.ago + 1.hour %>
+  tee_color: "white"
+  course_rating: 68.5
+  slope_rating: 115
+  total_strokes: 65
+  total_putts: 22
+  score_differential: -4.2
+  weather_conditions: "Windy"
+  temperature: 82
+  is_verified: false
+  is_provisional: true
+  verification_count: 0
+  fraud_risk_score: 85.7
+  location_verified: false
+  start_latitude: 34.0500
+  start_longitude: -118.2400
+  fairways_hit: 14
+  greens_in_regulation: 18
+  total_penalties: 0
+  created_at: <%= 3.days.ago %>
+  updated_at: <%= 3.days.ago + 1.hour %>
+
+scratch_round:
+  id: "550e8400-e29b-41d4-a716-446655440204"
+  user: scratch_golfer
+  course: augusta_national
+  started_at: <%= 2.weeks.ago %>
+  completed_at: <%= 2.weeks.ago + 4.5.hours %>
+  submitted_at: <%= 2.weeks.ago + 4.5.hours %>
+  tee_color: "black"
+  course_rating: 76.2
+  slope_rating: 137
+  total_strokes: 74
+  total_putts: 28
+  score_differential: -1.7
+  weather_conditions: "Perfect"
+  temperature: 72
+  is_verified: true
+  is_provisional: false
+  verification_count: 1
+  fraud_risk_score: 5.1
+  location_verified: true
+  start_latitude: 33.5032
+  start_longitude: -82.0195
+  fairways_hit: 11
+  greens_in_regulation: 13
+  total_penalties: 0
+  created_at: <%= 2.weeks.ago %>
+  updated_at: <%= 2.weeks.ago + 4.5.hours %>

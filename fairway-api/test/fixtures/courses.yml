@@ -1,0 +1,79 @@
+# Courses fixture for testing
+
+pebble_beach:
+  id: "550e8400-e29b-41d4-a716-446655440101"
+  name: "Pebble Beach Golf Links"
+  address: "1700 17-Mile Drive"
+  city: "Pebble Beach"
+  state: "CA"
+  country: "US"
+  postal_code: "93953"
+  latitude: 36.5681
+  longitude: -121.9494
+  course_rating: 74.5
+  slope_rating: 145
+  par: 72
+  total_yardage: 6828
+  geofence_radius: 500
+  active: true
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.month.ago %>
+
+torrey_pines:
+  id: "550e8400-e29b-41d4-a716-446655440102"
+  name: "Torrey Pines South Course"
+  address: "11480 N Torrey Pines Rd"
+  city: "La Jolla"
+  state: "CA"
+  country: "US"
+  postal_code: "92037"
+  latitude: 32.8969
+  longitude: -117.2506
+  course_rating: 75.1
+  slope_rating: 144
+  par: 72
+  total_yardage: 7698
+  geofence_radius: 750
+  active: true
+  created_at: <%= 1.year.ago %>
+  updated_at: <%= 1.month.ago %>
+
+augusta_national:
+  id: "550e8400-e29b-41d4-a716-446655440103"
+  name: "Augusta National Golf Club"
+  address: "2604 Washington Rd"
+  city: "Augusta"
+  state: "GA"
+  country: "US"
+  postal_code: "30904"
+  latitude: 33.5030
+  longitude: -82.0199
+  course_rating: 76.2
+  slope_rating: 137
+  par: 72
+  total_yardage: 7475
+  private_course: true
+  geofence_radius: 1000
+  active: true
+  created_at: <%= 2.years.ago %>
+  updated_at: <%= 6.months.ago %>
+
+municipal_course:
+  id: "550e8400-e29b-41d4-a716-446655440104"
+  name: "Municipal Golf Course"
+  address: "123 Main St"
+  city: "Anytown"
+  state: "CA"
+  country: "US"
+  postal_code: "90210"
+  latitude: 34.0522
+  longitude: -118.2437
+  course_rating: 68.5
+  slope_rating: 115
+  par: 70
+  total_yardage: 5800
+  private_course: false
+  geofence_radius: 300
+  active: true
+  created_at: <%= 6.months.ago %>
+  updated_at: <%= 1.week.ago %>
