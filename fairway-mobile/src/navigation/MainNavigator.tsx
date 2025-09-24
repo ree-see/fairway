@@ -1,0 +1,68 @@
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createStackNavigator } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
+
+import { DashboardScreen } from '../screens/DashboardScreen';
+import { CourseSelectScreen } from '../screens/CourseSelectScreen';
+import { ScorecardScreen } from '../screens/ScorecardScreen';
+import { ProfileScreen } from '../screens/ProfileScreen';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+const DashboardStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen 
+      name="Dashboard" 
+      component={DashboardScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen 
+      name="CourseSelect" 
+      component={CourseSelectScreen}
+      options={{ 
+        title: 'Select Course',
+        headerStyle: { backgroundColor: '#2E7D32' },
+        headerTintColor: '#FFFFFF'
+      }}
+    />
+    <Stack.Screen 
+      name="Scorecard" 
+      component={ScorecardScreen}
+      options={{ 
+        title: 'Scorecard',
+        headerStyle: { backgroundColor: '#2E7D32' },
+        headerTintColor: '#FFFFFF'
+      }}
+    />
+  </Stack.Navigator>
+);
+
+export const MainNavigator: React.FC = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap;
+
+          if (route.name === 'Home') {
+            iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Profile') {
+            iconName = focused ? 'person' : 'person-outline';
+          } else {
+            iconName = 'help-outline';
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: '#2E7D32',
+        tabBarInactiveTintColor: 'gray',
+        headerShown: false,
+      })}
+    >
+      <Tab.Screen name="Home" component={DashboardStack} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  );
+};

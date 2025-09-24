@@ -169,8 +169,13 @@ class HoleScore < ApplicationRecord
     if green_in_regulation?
       0
     else
-      # Up and down (approximate): made par or better after missing green
-      score_relative_to_par <= 0 ? 0.5 : -0.5
+      # Use actual up_and_down data if available, otherwise approximate
+      if up_and_down.present?
+        up_and_down? ? 0.5 : -0.5
+      else
+        # Fallback: approximate based on score
+        score_relative_to_par <= 0 ? 0.5 : -0.5
+      end
     end
   end
 

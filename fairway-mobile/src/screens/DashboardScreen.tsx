@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
-import { AuthService } from '../services/auth';
 
 interface UserStats {
   rounds_played: number;
@@ -27,14 +26,12 @@ interface UserStats {
   }>;
 }
 
-const DashboardScreen: React.FC = () => {
+export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const authService = new AuthService();
 
   useEffect(() => {
     loadStats();
@@ -42,8 +39,7 @@ const DashboardScreen: React.FC = () => {
 
   const loadStats = async () => {
     try {
-      // This would call the /api/v1/auth/stats endpoint
-      // For now, we'll use mock data
+      // Mock data - in real app this would call the API
       const mockStats: UserStats = {
         rounds_played: 12,
         verified_rounds: 8,
@@ -55,15 +51,22 @@ const DashboardScreen: React.FC = () => {
             id: '1',
             course_name: 'Pebble Beach Golf Links',
             total_strokes: 85,
-            started_at: '2023-12-20T10:00:00Z',
+            started_at: '2024-09-20T10:00:00Z',
             is_verified: true,
           },
           {
             id: '2',
             course_name: 'Torrey Pines South',
             total_strokes: 92,
-            started_at: '2023-12-15T09:30:00Z',
+            started_at: '2024-09-15T09:30:00Z',
             is_verified: false,
+          },
+          {
+            id: '3',
+            course_name: 'Augusta National',
+            total_strokes: 89,
+            started_at: '2024-09-10T08:00:00Z',
+            is_verified: true,
           },
         ],
       };
@@ -116,7 +119,7 @@ const DashboardScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>Loading your golf data...</Text>
       </View>
     );
   }
@@ -142,13 +145,13 @@ const DashboardScreen: React.FC = () => {
       {/* Quick Actions */}
       <View style={styles.quickActions}>
         <TouchableOpacity style={styles.primaryButton} onPress={navigateToNewRound}>
-          <Text style={styles.primaryButtonText}>Start New Round</Text>
+          <Text style={styles.primaryButtonText}>⛳ Start New Round</Text>
         </TouchableOpacity>
       </View>
 
       {/* Handicap Cards */}
       <View style={styles.handicapSection}>
-        <Text style={styles.sectionTitle}>Your Handicap</Text>
+        <Text style={styles.sectionTitle}>Your Handicap Index</Text>
         
         <View style={styles.handicapCards}>
           <View style={styles.handicapCard}>
@@ -156,6 +159,7 @@ const DashboardScreen: React.FC = () => {
             <Text style={styles.handicapValue}>
               {stats?.handicap_index?.toFixed(1) || '--'}
             </Text>
+            <Text style={styles.handicapNote}>Based on all rounds</Text>
           </View>
           
           <View style={[styles.handicapCard, styles.verifiedCard]}>
@@ -164,7 +168,7 @@ const DashboardScreen: React.FC = () => {
               {stats?.verified_handicap?.toFixed(1) || '--'}
             </Text>
             {stats?.verified_handicap && (
-              <Text style={styles.verifiedBadge}>✓ VERIFIED</Text>
+              <Text style={styles.verifiedBadge}>✅ VERIFIED</Text>
             )}
           </View>
         </View>
@@ -172,7 +176,7 @@ const DashboardScreen: React.FC = () => {
 
       {/* Stats Section */}
       <View style={styles.statsSection}>
-        <Text style={styles.sectionTitle}>Your Stats</Text>
+        <Text style={styles.sectionTitle}>Your Golf Stats</Text>
         
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
@@ -235,6 +239,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F5F5F5',
   },
   loadingText: {
     fontSize: 16,
@@ -246,6 +251,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#FFFFFF',
+    paddingTop: 60,
   },
   welcomeText: {
     fontSize: 16,
@@ -316,6 +322,11 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#2E7D32',
+  },
+  handicapNote: {
+    fontSize: 10,
+    color: '#999999',
+    marginTop: 4,
   },
   verifiedBadge: {
     fontSize: 10,
@@ -421,5 +432,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-
-export default DashboardScreen;

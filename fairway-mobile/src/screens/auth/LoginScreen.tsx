@@ -8,41 +8,29 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
 
-interface LoginFormData {
-  email: string;
-  password: string;
-}
-
-const LoginScreen: React.FC = () => {
+export const LoginScreen: React.FC = () => {
   const navigation = useNavigation();
   const { login } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginFormData>();
+  const handleLogin = async () => {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
 
-  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    
-    try {
-      const result = await login(data.email, data.password);
-      
-      if (!result.success) {
-        Alert.alert('Login Failed', result.error || 'Please check your credentials');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'An unexpected error occurred');
-    } finally {
-      setIsLoading(false);
+    const result = await login(email.trim().toLowerCase(), password);
+    setIsLoading(false);
+
+    if (!result.success) {
+      Alert.alert('Login Failed', result.message || 'Please check your credentials');
     }
   };
 
@@ -55,91 +43,51 @@ const LoginScreen: React.FC = () => {
       style={styles.container} 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Welcome to Fairway</Text>
-          <Text style={styles.subtitle}>The Verified Handicap</Text>
+      <View style={styles.content}>
+        <View style={styles.logoSection}>
+          <Text style={styles.logoText}>⛳</Text>
+          <Text style={styles.titleText}>The Verified Handicap</Text>
+          <Text style={styles.subtitleText}>Trust. Integrity. Fair Play.</Text>
         </View>
 
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: 'Email is required',
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: 'Invalid email address',
-              },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder="Email"
-                  placeholderTextColor="#9E9E9E"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {errors.email && (
-                  <Text style={styles.errorText}>{errors.email.message}</Text>
-                )}
-              </View>
-            )}
+        <View style={styles.formSection}>
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
           />
 
-          <Controller
-            control={control}
-            name="password"
-            rules={{
-              required: 'Password is required',
-              minLength: {
-                value: 8,
-                message: 'Password must be at least 8 characters',
-              },
-            }}
-            render={({ field: { onChange, onBlur, value } }) => (
-              <View style={styles.inputContainer}>
-                <TextInput
-                  style={[styles.input, errors.password && styles.inputError]}
-                  placeholder="Password"
-                  placeholderTextColor="#9E9E9E"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {errors.password && (
-                  <Text style={styles.errorText}>{errors.password.message}</Text>
-                )}
-              </View>
-            )}
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
           />
 
           <TouchableOpacity
-            style={[styles.button, isLoading && styles.buttonDisabled]}
-            onPress={handleSubmit(onSubmit)}
+            style={[styles.loginButton, isLoading && styles.disabledButton]}
+            onPress={handleLogin}
             disabled={isLoading}
           >
-            <Text style={styles.buttonText}>
+            <Text style={styles.loginButtonText}>
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+          <View style={styles.registerSection}>
+            <Text style={styles.registerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={navigateToRegister}>
-              <Text style={styles.linkText}>Sign Up</Text>
+              <Text style={styles.registerLink}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 };
@@ -149,87 +97,70 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  scrollContainer: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
     justifyContent: 'center',
-    padding: 20,
+    paddingHorizontal: 30,
   },
-  header: {
+  logoSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 50,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666666',
-    fontStyle: 'italic',
-  },
-  form: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  inputContainer: {
+  logoText: {
+    fontSize: 60,
     marginBottom: 20,
   },
+  titleText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  subtitleText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  formSection: {
+    width: '100%',
+  },
   input: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    borderRadius: 8,
-    padding: 16,
-    fontSize: 16,
-    backgroundColor: '#FAFAFA',
   },
-  inputError: {
-    borderColor: '#F44336',
-  },
-  errorText: {
-    color: '#F44336',
-    fontSize: 14,
-    marginTop: 5,
-  },
-  button: {
+  loginButton: {
     backgroundColor: '#2E7D32',
-    borderRadius: 8,
-    padding: 16,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 24,
   },
-  buttonDisabled: {
-    backgroundColor: '#A5D6A7',
+  disabledButton: {
+    opacity: 0.6,
   },
-  buttonText: {
+  loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
   },
-  footer: {
+  registerSection: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
   },
-  footerText: {
+  registerText: {
+    fontSize: 16,
     color: '#666666',
-    fontSize: 14,
   },
-  linkText: {
+  registerLink: {
+    fontSize: 16,
     color: '#2E7D32',
-    fontSize: 14,
     fontWeight: 'bold',
   },
 });
-
-export default LoginScreen;

@@ -1,14 +1,14 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import { AuthProvider } from './src/hooks/useAuth';
+import 'react-native-gesture-handler';
 
-const App: React.FC = () => {
+export default function App() {
   return (
-    <>
-      <StatusBar barStyle="light-content" backgroundColor="#2E7D32" />
+    <AuthProvider>
       <AppNavigator />
-    </>
+      <StatusBar style="light" backgroundColor="#2E7D32" />
+    </AuthProvider>
   );
-};
-
-export default App;
+}

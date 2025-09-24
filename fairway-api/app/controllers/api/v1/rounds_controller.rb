@@ -164,7 +164,7 @@ class Api::V1::RoundsController < ApplicationController
   end
 
   def hole_score_params
-    params.require(:hole_score).permit(:hole_number, :strokes, :putts, :fairway_hit, :green_in_regulation, :penalties, :drive_distance, :approach_distance)
+    params.require(:hole_score).permit(:hole_number, :strokes, :putts, :fairway_hit, :green_in_regulation, :up_and_down, :penalties, :drive_distance, :approach_distance)
   end
 
   def round_response(round)
@@ -216,6 +216,7 @@ class Api::V1::RoundsController < ApplicationController
       putts: score.putts,
       fairway_hit: score.fairway_hit,
       green_in_regulation: score.green_in_regulation,
+      up_and_down: score.up_and_down,
       penalties: score.penalties,
       drive_distance: score.drive_distance,
       approach_distance: score.approach_distance,
