@@ -34,17 +34,11 @@ export const DashboardScreen: React.FC = () => {
     try {
       setError(null);
       
-      // Clear cache to ensure fresh data
-      await ApiService.clearAllCache();
-      
       // Load statistics and recent rounds in parallel
       const [statsResponse, roundsResponse] = await Promise.all([
         ApiService.getRoundStatistics(),
         ApiService.getRecentRounds(3)
       ]);
-
-      // Debug: Log the recent rounds data
-      console.log('Dashboard recent rounds data:', roundsResponse.data?.rounds);
 
       if (statsResponse.success && roundsResponse.success) {
         setDashboardData({
@@ -94,7 +88,6 @@ export const DashboardScreen: React.FC = () => {
   };
 
   const navigateToRoundDetail = (roundId: string) => {
-    console.log('Navigating to round detail with roundId:', roundId);
     // Use push instead of navigate to force a new screen instance
     navigation.push('RoundDetail' as never, { roundId } as never);
   };
@@ -216,11 +209,7 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity 
               key={round.id} 
               style={styles.roundCard}
-              onPress={() => {
-                console.log('Round card pressed, round object:', round);
-                console.log('Round ID being passed:', round.id);
-                navigateToRoundDetail(round.id);
-              }}
+              onPress={() => navigateToRoundDetail(round.id)}
             >
               <View style={styles.roundHeader}>
                 <Text style={styles.courseName}>
