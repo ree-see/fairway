@@ -1,4 +1,5 @@
 class Api::V1::RoundsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_round, only: [:show, :update, :complete, :request_attestation, :hole_scores]
 
   def index

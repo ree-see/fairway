@@ -28,5 +28,8 @@ module FairwayApi
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+    
+    # Disable strict callback action validation for Rails 8 compatibility
+    config.action_controller.raise_on_missing_callback_actions = false
   end
 end

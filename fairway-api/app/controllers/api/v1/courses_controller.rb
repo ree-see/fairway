@@ -1,4 +1,5 @@
 class Api::V1::CoursesController < ApplicationController
+  # Course endpoints are public - no authentication required
   before_action :set_course, only: [:show, :holes]
 
   def index
@@ -144,13 +145,14 @@ class Api::V1::CoursesController < ApplicationController
       number: hole.number,
       par: hole.par,
       handicap: hole.handicap,
+      distance: hole.display_distance,  # Generic distance for mobile app display
       yardages: {
         black: hole.yardage_black,
         blue: hole.yardage_blue,
         white: hole.yardage_white,
         red: hole.yardage_red,
         gold: hole.yardage_gold
-      },
+      }.compact,  # Remove nil yardages
       coordinates: {
         tee: hole.tee_coordinates? ? { lat: hole.tee_latitude, lng: hole.tee_longitude } : nil,
         green: hole.green_coordinates? ? { lat: hole.green_latitude, lng: hole.green_longitude } : nil

@@ -1,7 +1,7 @@
 class Api::V1::AuthController < ApplicationController
   include InputSanitizer
   
-  skip_before_action :authenticate_user!, only: [:login, :register]
+  before_action :authenticate_user!, except: [:login, :register]
 
   def login
     return unless validate_required_params(params, [:email, :password])

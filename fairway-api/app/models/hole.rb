@@ -10,7 +10,8 @@ class Hole < ApplicationRecord
   validates :handicap, presence: true, numericality: { greater_than: 0, less_than_or_equal_to: 18 }
   validates :handicap, uniqueness: { scope: :course_id }
 
-  # Yardage validations
+  # Distance and yardage validations
+  validates :distance, numericality: { greater_than: 0, less_than: 1000 }, allow_nil: true
   validates :yardage_black, numericality: { greater_than: 0, less_than: 1000 }, allow_nil: true
   validates :yardage_blue, numericality: { greater_than: 0, less_than: 1000 }, allow_nil: true
   validates :yardage_white, numericality: { greater_than: 0, less_than: 1000 }, allow_nil: true
@@ -46,6 +47,9 @@ class Hole < ApplicationRecord
   scope :front_nine, -> { where(number: 1..9) }
   scope :back_nine, -> { where(number: 10..18) }
 
+  # Callbacks
+  before_save :ensure_distance_field
+
   def yardage_for_tee(tee_color)
     case tee_color.to_s.downcase
     when 'black'
@@ -61,6 +65,23 @@ class Hole < ApplicationRecord
     else
       yardage_white # default
     end
+  end
+
+  # Returns the best available distance for general display
+  # Priority: distance field, white tees, blue tees, any available tee
+  def display_distance
+    distance || yardage_white || yardage_blue || yardage_black || yardage_red || yardage_gold
+  end
+
+  # Get all available tee distances as a hash
+  def all_tee_distances
+    {
+      black: yardage_black,
+      blue: yardage_blue, 
+      white: yardage_white,
+      red: yardage_red,
+      gold: yardage_gold
+    }.compact
   end
 
   def distance_from_tee_to_green
@@ -117,6 +138,13 @@ class Hole < ApplicationRecord
   end
 
   private
+
+  # Ensure distance field is populated if not set
+  def ensure_distance_field
+    if distance.blank?
+      self.distance = yardage_white || yardage_blue || yardage_black || yardage_red || yardage_gold
+    end
+  end
 
   def calculate_distance(lat1, lon1, lat2, lon2)
     # Haversine formula to calculate distance in yards
