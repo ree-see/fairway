@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,55 +6,83 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Course {
-  id: string;
-  name: string;
-  location: string;
-  distance: string;
-  rating: number;
-  slope: number;
-}
-
-const mockCourses: Course[] = [
-  {
-    id: '1',
-    name: 'Pebble Beach Golf Links',
-    location: 'Pebble Beach, CA',
-    distance: '0.8 miles',
-    rating: 75.5,
-    slope: 145,
-  },
-  {
-    id: '2',
-    name: 'Torrey Pines South',
-    location: 'La Jolla, CA',
-    distance: '2.3 miles',
-    rating: 75.0,
-    slope: 129,
-  },
-  {
-    id: '3',
-    name: 'Spyglass Hill Golf Course',
-    location: 'Pebble Beach, CA',
-    distance: '1.2 miles',
-    rating: 75.4,
-    slope: 148,
-  },
-];
+import ApiService from '../services/ApiService';
+import { Course, ApiError } from '../types/api';
 
 export const CourseSelectScreen: React.FC = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
-  const [courses] = useState(mockCourses);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const filteredCourses = courses.filter(course =>
-    course.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    course.location.toLowerCase().includes(searchText.toLowerCase())
-  );
+  useEffect(() => {
+    loadCourses();
+  }, []);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchText, courses]);
+
+  const loadCourses = async () => {
+    try {
+      setIsLoading(true);
+      const response = await ApiService.getCourses();
+      
+      if (response.success && response.data) {
+        setCourses(response.data.courses);
+        setFilteredCourses(response.data.courses);
+      } else {
+        Alert.alert('Error', 'Failed to load courses');
+      }
+    } catch (error) {
+      console.error('Error loading courses:', error);
+      const apiError = error as ApiError;
+      Alert.alert('Error', apiError.message || 'Failed to load courses');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSearch = async () => {
+    if (!searchText.trim()) {
+      setFilteredCourses(courses);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await ApiService.searchCourses(searchText.trim());
+      
+      if (response.success && response.data) {
+        setFilteredCourses(response.data.courses);
+      } else {
+        // Fallback to local filtering if API search fails
+        const localFiltered = courses.filter(course =>
+          course.name.toLowerCase().includes(searchText.toLowerCase()) ||
+          course.full_address.toLowerCase().includes(searchText.toLowerCase()) ||
+          course.city.toLowerCase().includes(searchText.toLowerCase())
+        );
+        setFilteredCourses(localFiltered);
+      }
+    } catch (error) {
+      // Fallback to local filtering on error
+      const localFiltered = courses.filter(course =>
+        course.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        course.full_address.toLowerCase().includes(searchText.toLowerCase()) ||
+        course.city.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredCourses(localFiltered);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const selectCourse = (course: Course) => {
     navigation.navigate('Scorecard' as never, { course } as never);
@@ -64,17 +92,33 @@ export const CourseSelectScreen: React.FC = () => {
     <TouchableOpacity style={styles.courseCard} onPress={() => selectCourse(item)}>
       <View style={styles.courseHeader}>
         <Text style={styles.courseName}>{item.name}</Text>
-        <Text style={styles.courseDistance}>{item.distance}</Text>
+        {item.distance_meters && (
+          <Text style={styles.courseDistance}>
+            {(item.distance_meters * 0.000621371).toFixed(1)} mi
+          </Text>
+        )}
       </View>
-      <Text style={styles.courseLocation}>{item.location}</Text>
+      <Text style={styles.courseLocation}>{item.full_address}</Text>
       <View style={styles.courseStats}>
+        {item.course_rating && (
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Rating</Text>
+            <Text style={styles.statValue}>{item.course_rating}</Text>
+          </View>
+        )}
+        {item.slope_rating && (
+          <View style={styles.statItem}>
+            <Text style={styles.statLabel}>Slope</Text>
+            <Text style={styles.statValue}>{item.slope_rating}</Text>
+          </View>
+        )}
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Rating</Text>
-          <Text style={styles.statValue}>{item.rating}</Text>
+          <Text style={styles.statLabel}>Par</Text>
+          <Text style={styles.statValue}>{item.par}</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statLabel}>Slope</Text>
-          <Text style={styles.statValue}>{item.slope}</Text>
+          <Text style={styles.statLabel}>Holes</Text>
+          <Text style={styles.statValue}>{item.holes_count}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -91,16 +135,34 @@ export const CourseSelectScreen: React.FC = () => {
             value={searchText}
             onChangeText={setSearchText}
           />
+          {isSearching && (
+            <ActivityIndicator size="small" color="#2E7D32" style={styles.searchLoading} />
+          )}
         </View>
       </View>
 
-      <FlatList
-        data={filteredCourses}
-        renderItem={renderCourse}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.coursesList}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#2E7D32" />
+          <Text style={styles.loadingText}>Loading courses...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredCourses}
+          renderItem={renderCourse}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.coursesList}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="golf" size={48} color="#CCCCCC" />
+              <Text style={styles.emptyText}>
+                {searchText ? 'No courses found matching your search' : 'No courses available'}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 };
@@ -129,6 +191,33 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#333333',
+  },
+  searchLoading: {
+    marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    paddingHorizontal: 40,
   },
   coursesList: {
     padding: 20,
@@ -169,7 +258,9 @@ const styles = StyleSheet.create({
   },
   courseStats: {
     flexDirection: 'row',
-    gap: 24,
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'space-between',
   },
   statItem: {
     alignItems: 'center',

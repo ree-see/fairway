@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,49 +7,85 @@ import {
   TextInput,
   StyleSheet,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import ApiService from '../services/ApiService';
+import { Course, DetailedCourse, Hole, Round, HoleScore, ApiError } from '../types/api';
 
-interface Hole {
-  number: number;
-  par: number;
-  distance: number;
-  stroke?: number;
+interface ScoringHole extends Hole {
+  strokes?: number;
   putts?: number;
   fairway_hit?: boolean;
   green_in_regulation?: boolean;
   up_and_down?: boolean;
 }
 
-const mockHoles: Hole[] = [
-  { number: 1, par: 4, distance: 389 },
-  { number: 2, par: 5, distance: 502 },
-  { number: 3, par: 3, distance: 178 },
-  { number: 4, par: 4, distance: 408 },
-  { number: 5, par: 4, distance: 425 },
-  { number: 6, par: 3, distance: 198 },
-  { number: 7, par: 5, distance: 543 },
-  { number: 8, par: 4, distance: 392 },
-  { number: 9, par: 4, distance: 421 },
-  { number: 10, par: 4, distance: 378 },
-  { number: 11, par: 3, distance: 156 },
-  { number: 12, par: 5, distance: 567 },
-  { number: 13, par: 4, distance: 445 },
-  { number: 14, par: 4, distance: 412 },
-  { number: 15, par: 3, distance: 205 },
-  { number: 16, par: 5, distance: 589 },
-  { number: 17, par: 4, distance: 398 },
-  { number: 18, par: 4, distance: 443 },
-];
-
 export const ScorecardScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { course } = route.params as any;
-  const [holes, setHoles] = useState<Hole[]>(mockHoles);
-  const [currentHole, setCurrentHole] = useState(1);
+  const { course } = route.params as { course: Course };
+  
+  const [holes, setHoles] = useState<ScoringHole[]>([]);
+  const [currentRound, setCurrentRound] = useState<Round | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const updateHoleScore = (holeNumber: number, field: 'stroke' | 'putts', value: string) => {
+  useEffect(() => {
+    initializeRound();
+  }, []);
+
+  const initializeRound = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Get detailed course data with holes
+      const courseResponse = await ApiService.getCourse(course.id);
+      if (!courseResponse.success || !courseResponse.data) {
+        throw new Error('Failed to load course details');
+      }
+      
+      const detailedCourse = courseResponse.data.course;
+      const courseHoles: ScoringHole[] = detailedCourse.holes.map(hole => ({
+        ...hole,
+        strokes: undefined,
+        putts: undefined,
+        fairway_hit: false,
+        green_in_regulation: false,
+        up_and_down: false,
+      }));
+      
+      setHoles(courseHoles);
+      
+      // Create a new round
+      const roundData = {
+        course_id: course.id,
+        started_at: new Date().toISOString(),
+        tee_color: 'white', // Default to white tees
+        is_provisional: true,
+      };
+      
+      const roundResponse = await ApiService.createRound(roundData);
+      if (!roundResponse.success || !roundResponse.data) {
+        throw new Error('Failed to create round');
+      }
+      
+      setCurrentRound(roundResponse.data.round);
+      
+    } catch (error) {
+      console.error('Error initializing round:', error);
+      const apiError = error as ApiError;
+      Alert.alert(
+        'Error', 
+        apiError.message || 'Failed to start round',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateHoleScore = (holeNumber: number, field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
     setHoles(prev => prev.map(hole => 
       hole.number === holeNumber 
@@ -67,7 +103,7 @@ export const ScorecardScreen: React.FC = () => {
   };
 
   const getTotalScore = () => {
-    return holes.reduce((total, hole) => total + (hole.stroke || 0), 0);
+    return holes.reduce((total, hole) => total + (hole.strokes || 0), 0);
   };
 
   const getTotalPar = () => {
@@ -81,7 +117,7 @@ export const ScorecardScreen: React.FC = () => {
   };
 
   const submitRound = () => {
-    const completedHoles = holes.filter(hole => hole.stroke).length;
+    const completedHoles = holes.filter(hole => hole.strokes).length;
     if (completedHoles < 18) {
       Alert.alert(
         'Incomplete Round',
@@ -96,15 +132,55 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
-  const handleSubmit = () => {
-    Alert.alert(
-      'Round Submitted!',
-      `Total Score: ${getTotalScore()}\nScore to Par: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}`,
-      [{ text: 'OK', onPress: () => navigation.navigate('Home' as never) }]
-    );
+  const handleSubmit = async () => {
+    if (!currentRound) {
+      Alert.alert('Error', 'No active round found');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      // Calculate round statistics
+      const totalScore = getTotalScore();
+      const totalPutts = holes.reduce((total, hole) => total + (hole.putts || 0), 0);
+      const fairwaysHit = holes.filter(hole => hole.par >= 4 && hole.fairway_hit).length;
+      const greensInRegulation = holes.filter(hole => hole.green_in_regulation).length;
+      const totalPenalties = 0; // Could be enhanced to track penalties per hole
+
+      // Update round with completion data
+      const roundUpdateData = {
+        completed_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+        total_strokes: totalScore,
+        total_putts: totalPutts,
+        fairways_hit: fairwaysHit,
+        greens_in_regulation: greensInRegulation,
+        total_penalties: totalPenalties,
+      };
+
+      const response = await ApiService.updateRound(currentRound.id, roundUpdateData);
+      
+      if (response.success) {
+        Alert.alert(
+          'Round Submitted!',
+          `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
+          [{ text: 'OK', onPress: () => navigation.navigate('Dashboard' as never) }]
+        );
+      } else {
+        throw new Error(response.error || 'Failed to submit round');
+      }
+      
+    } catch (error) {
+      console.error('Error submitting round:', error);
+      const apiError = error as ApiError;
+      Alert.alert('Error', apiError.message || 'Failed to submit round');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const renderHole = (hole: Hole) => (
+  const renderHole = (hole: ScoringHole) => (
     <View key={hole.number} style={styles.holeCard}>
       <View style={styles.holeHeader}>
         <View style={styles.holeInfo}>
@@ -118,8 +194,8 @@ export const ScorecardScreen: React.FC = () => {
           <Text style={styles.inputLabel}>Strokes</Text>
           <TextInput
             style={styles.scoreInput}
-            value={hole.stroke?.toString() || ''}
-            onChangeText={(value) => updateHoleScore(hole.number, 'stroke', value)}
+            value={hole.strokes?.toString() || ''}
+            onChangeText={(value) => updateHoleScore(hole.number, 'strokes', value)}
             keyboardType="numeric"
             maxLength={2}
           />
@@ -176,6 +252,15 @@ export const ScorecardScreen: React.FC = () => {
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2E7D32" />
+        <Text style={styles.loadingText}>Starting your round...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -201,8 +286,16 @@ export const ScorecardScreen: React.FC = () => {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.submitButton} onPress={submitRound}>
-          <Text style={styles.submitButtonText}>Submit Round</Text>
+        <TouchableOpacity 
+          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
+          onPress={submitRound}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator size="small" color="#FFFFFF" />
+          ) : (
+            <Text style={styles.submitButtonText}>Submit Round</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -213,6 +306,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
   },
   header: {
     backgroundColor: '#FFFFFF',
@@ -335,6 +439,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  submitButtonDisabled: {
+    opacity: 0.6,
   },
   submitButtonText: {
     color: '#FFFFFF',

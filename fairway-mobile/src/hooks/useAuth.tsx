@@ -1,13 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-interface User {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  phone?: string;
-}
+import ApiService from '../services/ApiService';
+import { User, LoginRequest, RegisterRequest, ApiError } from '../types/api';
 
 interface AuthResult {
   success: boolean;
@@ -18,9 +12,10 @@ interface AuthResult {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<AuthResult>;
-  register: (userData: any) => Promise<AuthResult>;
+  register: (userData: RegisterRequest) => Promise<AuthResult>;
   logout: () => Promise<AuthResult>;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,10 +31,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadStoredAuth = async () => {
     try {
       const storedUser = await AsyncStorage.getItem('user');
-      const storedToken = await AsyncStorage.getItem('auth_token');
+      const storedToken = await AsyncStorage.getItem('access_token');
       
       if (storedUser && storedToken) {
         setUser(JSON.parse(storedUser));
+        
+        // Verify token is still valid by fetching fresh user data
+        try {
+          await refreshUser();
+        } catch (error) {
+          // Token expired or invalid, clear stored auth
+          console.log('Token validation failed, clearing stored auth');
+          await clearStoredAuth();
+        }
       }
     } catch (error) {
       console.error('Error loading stored auth:', error);
@@ -48,66 +52,98 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const login = async (email: string, password: string): Promise<AuthResult> => {
-    try {
-      // For now, use mock authentication
-      const mockUser: User = {
-        id: '1',
-        email: email,
-        first_name: 'John',
-        last_name: 'Doe',
-        phone: '+1234567890'
-      };
+  const clearStoredAuth = async () => {
+    await AsyncStorage.multiRemove(['user', 'access_token', 'refresh_token']);
+    setUser(null);
+  };
 
-      await AsyncStorage.setItem('user', JSON.stringify(mockUser));
-      await AsyncStorage.setItem('auth_token', 'mock_token_123');
-      
-      setUser(mockUser);
-      
-      return { success: true, user: mockUser };
+  const refreshUser = async () => {
+    try {
+      const response = await ApiService.getProfile();
+      if (response.success && response.data) {
+        const updatedUser = response.data.user;
+        await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, message: 'Login failed' };
+      throw error;
     }
   };
 
-  const register = async (userData: any): Promise<AuthResult> => {
+  const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
-      // Mock registration
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        phone: userData.phone
+      const credentials: LoginRequest = { email, password };
+      const response = await ApiService.login(credentials);
+      
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        return { 
+          success: true, 
+          user: response.data.user,
+          message: response.message 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: response.error || response.message || 'Login failed' 
+        };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      const apiError = error as ApiError;
+      return { 
+        success: false, 
+        message: apiError.message || 'Network error occurred' 
       };
+    }
+  };
 
-      await AsyncStorage.setItem('user', JSON.stringify(newUser));
-      await AsyncStorage.setItem('auth_token', 'mock_token_123');
+  const register = async (userData: RegisterRequest): Promise<AuthResult> => {
+    try {
+      const response = await ApiService.register(userData);
       
-      setUser(newUser);
-      
-      return { success: true, user: newUser };
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        return { 
+          success: true, 
+          user: response.data.user,
+          message: response.message 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: response.error || response.message || 'Registration failed' 
+        };
+      }
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, message: 'Registration failed' };
+      const apiError = error as ApiError;
+      return { 
+        success: false, 
+        message: apiError.message || 'Network error occurred' 
+      };
     }
   };
 
   const logout = async (): Promise<AuthResult> => {
     try {
-      await AsyncStorage.removeItem('user');
-      await AsyncStorage.removeItem('auth_token');
+      await ApiService.logout();
       setUser(null);
       return { success: true };
     } catch (error) {
       console.error('Logout error:', error);
-      return { success: false, message: 'Logout failed' };
+      // Even if API logout fails, clear local state
+      await clearStoredAuth();
+      const apiError = error as ApiError;
+      return { 
+        success: false, 
+        message: apiError.message || 'Logout failed' 
+      };
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
