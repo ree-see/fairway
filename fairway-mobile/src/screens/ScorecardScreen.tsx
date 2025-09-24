@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import ApiService from '../services/ApiService';
-import { Course, DetailedCourse, Hole, Round, HoleScore, ApiError } from '../types/api';
+import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiError } from '../types/api';
 
 interface ScoringHole extends Hole {
   strokes?: number;
@@ -141,6 +141,30 @@ export const ScorecardScreen: React.FC = () => {
     try {
       setIsSubmitting(true);
       
+      // First, save all hole scores to the backend
+      const holesWithScores = holes.filter(hole => hole.strokes && hole.strokes > 0);
+      
+      for (const hole of holesWithScores) {
+        const holeScoreData: HoleScoreInput = {
+          hole_number: hole.number,
+          strokes: hole.strokes!,
+          putts: hole.putts || null,
+          fairway_hit: hole.fairway_hit || false,
+          green_in_regulation: hole.green_in_regulation || false,
+          up_and_down: hole.up_and_down || false,
+          penalties: 0, // Could be enhanced to track penalties per hole
+          drive_distance: null,
+          approach_distance: null,
+        };
+
+        try {
+          await ApiService.addHoleScore(currentRound.id, holeScoreData);
+        } catch (error) {
+          console.error(`Failed to save hole ${hole.number} score:`, error);
+          // Continue with other holes even if one fails
+        }
+      }
+      
       // Calculate round statistics
       const totalScore = getTotalScore();
       const totalPutts = holes.reduce((total, hole) => total + (hole.putts || 0), 0);
@@ -226,16 +250,18 @@ export const ScorecardScreen: React.FC = () => {
         </View>
       )}
 
-      <View style={styles.booleanRow}>
-        <TouchableOpacity
-          style={[styles.boolButton, hole.green_in_regulation && styles.boolButtonActive]}
-          onPress={() => updateHoleBool(hole.number, 'green_in_regulation', !hole.green_in_regulation)}
-        >
-          <Text style={[styles.boolButtonText, hole.green_in_regulation && styles.boolButtonTextActive]}>
-            Green in Regulation
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {!hole.up_and_down && (
+        <View style={styles.booleanRow}>
+          <TouchableOpacity
+            style={[styles.boolButton, hole.green_in_regulation && styles.boolButtonActive]}
+            onPress={() => updateHoleBool(hole.number, 'green_in_regulation', !hole.green_in_regulation)}
+          >
+            <Text style={[styles.boolButtonText, hole.green_in_regulation && styles.boolButtonTextActive]}>
+              Green in Regulation
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {!hole.green_in_regulation && (
         <View style={styles.booleanRow}>

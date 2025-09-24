@@ -1,0 +1,18 @@
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+/Users/reesee/.rbenv/versions/3.3.0/bin/ruby extconf.rb
+creating Makefile
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-9ur7kc sitelibdir\=./.gem.20250924-31089-9ur7kc clean
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-9ur7kc sitelibdir\=./.gem.20250924-31089-9ur7kc
+compiling cparse.c
+linking shared-object racc/cparse.bundle
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-9ur7kc sitelibdir\=./.gem.20250924-31089-9ur7kc install
+/usr/bin/install -c -m 0755 cparse.bundle ./.gem.20250924-31089-9ur7kc/racc
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/racc-1.8.1/ext/racc/cparse
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-9ur7kc sitelibdir\=./.gem.20250924-31089-9ur7kc clean

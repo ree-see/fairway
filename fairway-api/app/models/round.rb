@@ -168,6 +168,8 @@ class Round < ApplicationRecord
   end
 
   def calculate_fraud_risk_score
-    FraudRiskCalculatorJob.perform_later(self)
+    # TODO: Implement fraud risk calculation job
+    # For now, set a default low risk score for new rounds
+    self.update_column(:fraud_risk_score, 0.0) if fraud_risk_score.nil?
   end
 end

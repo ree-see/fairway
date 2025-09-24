@@ -161,7 +161,9 @@ const ScorecardNine: React.FC<ScorecardNineProps> = ({ title, holeScores, totalL
 export const RoundDetailScreen: React.FC = () => {
   const route = useRoute<RoundDetailRouteProp>();
   const navigation = useNavigation();
+  console.log('RoundDetailScreen mounted with route params:', route.params);
   const { roundId } = route.params;
+  console.log('Extracted roundId from route params:', roundId);
   
   const [roundDetail, setRoundDetail] = useState<RoundDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -174,12 +176,18 @@ export const RoundDetailScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'statistics' | 'scorecard'>('statistics');
 
   useEffect(() => {
+    console.log('useEffect triggered with roundId:', roundId);
+    // Reset state when roundId changes to prevent stale data
+    setRoundDetail(null);
+    setError(null);
+    setIsLoading(true);
     loadRoundDetail();
   }, [roundId]);
 
   const loadRoundDetail = async () => {
     try {
       setError(null);
+      console.log('Loading round detail for roundId:', roundId);
       const response = await ApiService.getRoundDetails(roundId);
       
       if (response.success && response.data) {

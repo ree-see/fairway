@@ -1,0 +1,230 @@
+# Database Security Configuration
+
+# Prevent SQL injection by ensuring all queries are parameterized
+ActiveRecord::Base.connection.execute("SET sql_mode = 'TRADITIONAL,NO_AUTO_VALUE_ON_ZERO'") if ActiveRecord::Base.connection.adapter_name == 'Mysql2'
+
+# Configure connection security
+if Rails.env.production?
+  # Require SSL connections in production
+  ActiveRecord::Base.establish_connection(
+    Rails.application.config.database_configuration[Rails.env].merge(
+      'sslmode' => 'require',
+      'pool' => ENV.fetch('RAILS_MAX_THREADS', 10).to_i,
+      'timeout' => 5000,
+      'checkout_timeout' => 5,
+      'reaping_frequency' => 10
+    )
+  )
+end
+
+# Configure query timeout to prevent long-running queries
+if defined?(PG)
+  ActiveRecord::Base.connection.execute("SET statement_timeout = '30s'")
+  ActiveRecord::Base.connection.execute("SET lock_timeout = '10s'")
+end
+
+# Database query logging for security monitoring
+class SecurityQueryLogger
+  def initialize
+    @logger = Rails.logger
+  end
+
+  def call(event)
+    return unless Rails.env.production?
+    
+    sql = event.payload[:sql]
+    duration = event.duration
+
+    # Log potentially dangerous queries
+    if dangerous_query?(sql)
+      @logger.warn "SECURITY: Potentially dangerous query detected: #{sql.truncate(200)}"
+    end
+
+    # Log slow queries
+    if duration > 1000 # 1 second
+      @logger.warn "PERFORMANCE: Slow query detected (#{duration}ms): #{sql.truncate(200)}"
+    end
+
+    # Log queries without WHERE clauses on large tables
+    if missing_where_clause?(sql)
+      @logger.warn "PERFORMANCE: Query without WHERE clause on large table: #{sql.truncate(200)}"
+    end
+  end
+
+  private
+
+  def dangerous_query?(sql)
+    dangerous_patterns = [
+      /DROP\s+TABLE/i,
+      /DELETE\s+FROM\s+\w+\s*;?\s*$/i,  # DELETE without WHERE
+      /UPDATE\s+\w+\s+SET\s+.*;\s*$/i,   # UPDATE without WHERE
+      /UNION\s+SELECT/i,                 # Potential injection
+      /;\s*DELETE/i,                     # Multiple statements
+      /;\s*DROP/i,                       # Multiple statements
+      /;\s*INSERT/i,                     # Multiple statements
+      /--\s*$/,                          # SQL comments at end
+      /\/\*.*\*\//,                      # SQL block comments
+      /LOAD_FILE/i,                      # File operations
+      /INTO\s+OUTFILE/i                  # File operations
+    ]
+
+    dangerous_patterns.any? { |pattern| sql.match?(pattern) }
+  end
+
+  def missing_where_clause?(sql)
+    large_tables = %w[users rounds hole_scores courses]
+    
+    large_tables.any? do |table|
+      sql.match?(/(?:SELECT|UPDATE|DELETE).*FROM\s+#{table}(?:\s|$)/i) &&
+      !sql.match?(/WHERE/i) &&
+      !sql.match?(/LIMIT/i)
+    end
+  end
+end
+
+# Subscribe to SQL events for monitoring
+ActiveSupport::Notifications.subscribe('sql.active_record', SecurityQueryLogger.new)
+
+# Connection pool monitoring
+class ConnectionPoolMonitor
+  def self.monitor
+    return unless Rails.env.production?
+
+    pool = ActiveRecord::Base.connection_pool
+    
+    if pool.size - pool.available_connection_count > pool.size * 0.8
+      Rails.logger.warn "CONNECTION_POOL: High connection usage - #{pool.size - pool.available_connection_count}/#{pool.size} connections in use"
+    end
+  end
+end
+
+# Schedule connection pool monitoring
+if Rails.env.production?
+  Thread.new do
+    loop do
+      sleep 60 # Check every minute
+      ConnectionPoolMonitor.monitor
+    rescue => e
+      Rails.logger.error "Connection pool monitor error: #{e.message}"
+    end
+  end
+end
+
+# Database health check
+class DatabaseHealthCheck
+  def self.check
+    start_time = Time.current
+    
+    begin
+      ActiveRecord::Base.connection.execute('SELECT 1')
+      response_time = ((Time.current - start_time) * 1000).round
+      
+      if response_time > 1000
+        Rails.logger.warn "DATABASE: Slow health check response (#{response_time}ms)"
+      end
+      
+      true
+    rescue => e
+      Rails.logger.error "DATABASE: Health check failed - #{e.message}"
+      false
+    end
+  end
+end
+
+# Prepared statement configuration for performance and security
+if Rails.env.production?
+  ActiveRecord::Base.connection.execute("SET max_prepared_transactions = 100") if defined?(PG)
+  
+  # Enable query plan caching
+  ActiveRecord::Base.connection.execute("SET plan_cache_mode = 'auto'") if defined?(PG)
+end
+
+# Database encryption configuration
+Rails.application.configure do
+  # Configure encryption for sensitive fields
+  config.active_record.encryption.encrypt_fixtures = true if Rails.env.test?
+  config.active_record.encryption.store_key_references = true
+  
+  # Use different encryption keys for different environments
+  config.active_record.encryption.primary_key = Rails.application.credentials.dig(:active_record_encryption, :primary_key)
+  config.active_record.encryption.deterministic_key = Rails.application.credentials.dig(:active_record_encryption, :deterministic_key)
+  config.active_record.encryption.key_derivation_salt = Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt)
+end
+
+# Query optimization settings
+module QueryOptimization
+  extend ActiveSupport::Concern
+  
+  included do
+    # Default scope to prevent N+1 queries
+    scope :with_associations, -> { includes(:course, :hole_scores) } if self.name == 'Round'
+    scope :with_user, -> { includes(:user) } if self.name == 'Round'
+    
+    # Optimize batch operations
+    def self.find_in_batches_optimized(batch_size: 1000)
+      find_in_batches(batch_size: batch_size) do |batch|
+        ActiveRecord::Associations::Preloader.new.preload(batch, associations_to_preload)
+        yield batch
+      end
+    end
+    
+    private
+    
+    def self.associations_to_preload
+      case self.name
+      when 'Round'
+        [:user, :course, :hole_scores, :round_attestations]
+      when 'User'
+        [:rounds]
+      when 'Course'
+        [:holes]
+      else
+        []
+      end
+    end
+  end
+end
+
+# Include optimization in models - only after models are loaded
+# [Round, User, Course].each do |model_class|
+#   model_class.include(QueryOptimization) if defined?(model_class)
+# end
+
+# Database maintenance tasks
+namespace :db do
+  desc "Analyze database performance"
+  task :analyze_performance => :environment do
+    puts "Analyzing database performance..."
+    
+    # Check for missing indexes
+    queries = [
+      "SELECT schemaname, tablename, attname, n_distinct, correlation FROM pg_stats WHERE tablename IN ('users', 'rounds', 'courses', 'hole_scores') ORDER BY n_distinct DESC;",
+      "SELECT schemaname, tablename, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch FROM pg_stat_user_tables WHERE tablename IN ('users', 'rounds', 'courses', 'hole_scores');",
+      "SELECT indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_stat_user_indexes WHERE schemaname = 'public';"
+    ]
+    
+    queries.each do |query|
+      begin
+        results = ActiveRecord::Base.connection.execute(query)
+        puts "\n--- #{query.split.first(10).join(' ')}... ---"
+        results.each { |row| puts row.values.join(' | ') }
+      rescue => e
+        puts "Error executing query: #{e.message}"
+      end
+    end
+  end
+  
+  desc "Vacuum and analyze database"
+  task :maintenance => :environment do
+    puts "Running database maintenance..."
+    
+    tables = %w[users rounds courses hole_scores holes round_attestations]
+    
+    tables.each do |table|
+      puts "Vacuuming and analyzing #{table}..."
+      ActiveRecord::Base.connection.execute("VACUUM ANALYZE #{table};")
+    end
+    
+    puts "Database maintenance completed."
+  end
+end

@@ -10,69 +10,54 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import ApiService from '../services/ApiService';
+import { RoundStatistics, Round, ApiError } from '../types/api';
 
-interface UserStats {
-  rounds_played: number;
-  verified_rounds: number;
-  handicap_index?: number;
-  verified_handicap?: number;
-  average_score?: number;
-  recent_rounds: Array<{
-    id: string;
-    course_name: string;
-    total_strokes: number;
-    started_at: string;
-    is_verified: boolean;
-  }>;
+interface DashboardData {
+  statistics: RoundStatistics;
+  recent_rounds: Round[];
 }
 
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
-  const [stats, setStats] = useState<UserStats | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadStats();
+    loadDashboardData();
   }, []);
 
-  const loadStats = async () => {
+  const loadDashboardData = async () => {
     try {
-      // Mock data - in real app this would call the API
-      const mockStats: UserStats = {
-        rounds_played: 12,
-        verified_rounds: 8,
-        handicap_index: 15.4,
-        verified_handicap: 14.8,
-        average_score: 88.2,
-        recent_rounds: [
-          {
-            id: '1',
-            course_name: 'Pebble Beach Golf Links',
-            total_strokes: 85,
-            started_at: '2024-09-20T10:00:00Z',
-            is_verified: true,
-          },
-          {
-            id: '2',
-            course_name: 'Torrey Pines South',
-            total_strokes: 92,
-            started_at: '2024-09-15T09:30:00Z',
-            is_verified: false,
-          },
-          {
-            id: '3',
-            course_name: 'Augusta National',
-            total_strokes: 89,
-            started_at: '2024-09-10T08:00:00Z',
-            is_verified: true,
-          },
-        ],
-      };
-      setStats(mockStats);
+      setError(null);
+      
+      // Clear cache to ensure fresh data
+      await ApiService.clearAllCache();
+      
+      // Load statistics and recent rounds in parallel
+      const [statsResponse, roundsResponse] = await Promise.all([
+        ApiService.getRoundStatistics(),
+        ApiService.getRecentRounds(3)
+      ]);
+
+      // Debug: Log the recent rounds data
+      console.log('Dashboard recent rounds data:', roundsResponse.data?.rounds);
+
+      if (statsResponse.success && roundsResponse.success) {
+        setDashboardData({
+          statistics: statsResponse.data!.statistics,
+          recent_rounds: roundsResponse.data!.rounds,
+        });
+      } else {
+        setError('Failed to load dashboard data');
+      }
     } catch (error) {
-      console.error('Error loading stats:', error);
+      console.error('Error loading dashboard data:', error);
+      const apiError = error as ApiError;
+      setError(apiError.message || 'Failed to load dashboard data');
     } finally {
       setIsLoading(false);
     }
@@ -80,7 +65,7 @@ export const DashboardScreen: React.FC = () => {
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await loadStats();
+    await loadDashboardData();
     setIsRefreshing(false);
   };
 
@@ -108,6 +93,12 @@ export const DashboardScreen: React.FC = () => {
     navigation.navigate('CourseSelect' as never);
   };
 
+  const navigateToRoundDetail = (roundId: string) => {
+    console.log('Navigating to round detail with roundId:', roundId);
+    // Use push instead of navigate to force a new screen instance
+    navigation.push('RoundDetail' as never, { roundId } as never);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -116,10 +107,28 @@ export const DashboardScreen: React.FC = () => {
     });
   };
 
+  const formatNumber = (value: number | undefined | null, decimals: number = 1): string => {
+    if (value == null || typeof value !== 'number' || isNaN(value)) {
+      return '--';
+    }
+    return Number(value).toFixed(decimals);
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Loading your golf data...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Error: {error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={loadDashboardData}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -157,7 +166,7 @@ export const DashboardScreen: React.FC = () => {
           <View style={styles.handicapCard}>
             <Text style={styles.handicapLabel}>Provisional</Text>
             <Text style={styles.handicapValue}>
-              {stats?.handicap_index?.toFixed(1) || '--'}
+              {formatNumber(dashboardData?.statistics?.handicap_index)}
             </Text>
             <Text style={styles.handicapNote}>Based on all rounds</Text>
           </View>
@@ -165,9 +174,9 @@ export const DashboardScreen: React.FC = () => {
           <View style={[styles.handicapCard, styles.verifiedCard]}>
             <Text style={styles.handicapLabel}>Verified</Text>
             <Text style={styles.handicapValue}>
-              {stats?.verified_handicap?.toFixed(1) || '--'}
+              {formatNumber(dashboardData?.statistics?.verified_handicap)}
             </Text>
-            {stats?.verified_handicap && (
+            {dashboardData?.statistics.verified_handicap && (
               <Text style={styles.verifiedBadge}>✅ VERIFIED</Text>
             )}
           </View>
@@ -180,18 +189,18 @@ export const DashboardScreen: React.FC = () => {
         
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats?.rounds_played || 0}</Text>
+            <Text style={styles.statValue}>{dashboardData?.statistics.total_rounds || 0}</Text>
             <Text style={styles.statLabel}>Rounds Played</Text>
           </View>
           
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{stats?.verified_rounds || 0}</Text>
+            <Text style={styles.statValue}>{dashboardData?.statistics.verified_rounds || 0}</Text>
             <Text style={styles.statLabel}>Verified Rounds</Text>
           </View>
           
           <View style={styles.statCard}>
             <Text style={styles.statValue}>
-              {stats?.average_score?.toFixed(1) || '--'}
+              {formatNumber(dashboardData?.statistics?.average_score)}
             </Text>
             <Text style={styles.statLabel}>Average Score</Text>
           </View>
@@ -202,22 +211,37 @@ export const DashboardScreen: React.FC = () => {
       <View style={styles.recentSection}>
         <Text style={styles.sectionTitle}>Recent Rounds</Text>
         
-        {stats?.recent_rounds?.length ? (
-          stats.recent_rounds.map((round) => (
-            <View key={round.id} style={styles.roundCard}>
+        {dashboardData?.recent_rounds?.length ? (
+          dashboardData.recent_rounds.map((round) => (
+            <TouchableOpacity 
+              key={round.id} 
+              style={styles.roundCard}
+              onPress={() => {
+                console.log('Round card pressed, round object:', round);
+                console.log('Round ID being passed:', round.id);
+                navigateToRoundDetail(round.id);
+              }}
+            >
               <View style={styles.roundHeader}>
-                <Text style={styles.courseName}>{round.course_name}</Text>
+                <Text style={styles.courseName}>
+                  {round.course_name || 'Unknown Course'}
+                </Text>
                 <View style={styles.roundBadges}>
                   {round.is_verified && (
                     <View style={styles.verifiedRoundBadge}>
                       <Text style={styles.verifiedRoundText}>✓</Text>
                     </View>
                   )}
-                  <Text style={styles.roundScore}>{round.total_strokes}</Text>
+                  <Text style={styles.roundScore}>{round.total_strokes || '--'}</Text>
                 </View>
               </View>
               <Text style={styles.roundDate}>{formatDate(round.started_at)}</Text>
-            </View>
+              {dashboardData.statistics.recent_trend && (
+                <Text style={styles.trendText}>
+                  Trend: {dashboardData.statistics.recent_trend}
+                </Text>
+              )}
+            </TouchableOpacity>
           ))
         ) : (
           <View style={styles.emptyState}>
@@ -244,6 +268,30 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: '#666666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#F44336',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#2E7D32',
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   header: {
     flexDirection: 'row',
@@ -416,6 +464,12 @@ const styles = StyleSheet.create({
   roundDate: {
     fontSize: 14,
     color: '#666666',
+  },
+  trendText: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
   emptyState: {
     alignItems: 'center',

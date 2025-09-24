@@ -81,7 +81,7 @@ class Rack::Attack
   end
 
   # Custom response for throttled requests
-  self.throttled_response = lambda do |env|
+  self.throttled_responder = lambda do |env|
     match_data = env['rack.attack.match_data']
     now = match_data[:epoch_time]
     headers = {
@@ -101,7 +101,7 @@ class Rack::Attack
   end
 
   # Custom response for blocked requests
-  self.blocked_response = lambda do |env|
+  self.blocklisted_responder = lambda do |env|
     [403, { 'Content-Type' => 'application/json' }, [{
       success: false,
       error: 'Access forbidden'

@@ -1,6 +1,6 @@
 class Api::V1::RoundsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_round, only: [:show, :update, :complete, :request_attestation, :hole_scores]
+  before_action :set_round, only: [:show, :update, :complete, :request_attestation, :hole_scores, :add_hole_score]
 
   def index
     rounds = current_user.rounds.includes(:course, :hole_scores).recent
@@ -157,11 +157,34 @@ class Api::V1::RoundsController < ApplicationController
   end
 
   def round_params
-    params.require(:round).permit(:course_id, :tee_color, :start_latitude, :start_longitude, :weather_conditions, :temperature, :wind_speed, :wind_direction)
+    params.require(:round).permit(
+      :course_id, 
+      :tee_color, 
+      :started_at,
+      :is_provisional,
+      :start_latitude, 
+      :start_longitude, 
+      :weather_conditions, 
+      :temperature, 
+      :wind_speed, 
+      :wind_direction
+    )
   end
 
   def round_update_params
-    params.require(:round).permit(:weather_conditions, :temperature, :wind_speed, :wind_direction)
+    params.require(:round).permit(
+      :completed_at,
+      :submitted_at,
+      :total_strokes,
+      :total_putts,
+      :fairways_hit,
+      :greens_in_regulation,
+      :total_penalties,
+      :weather_conditions, 
+      :temperature, 
+      :wind_speed, 
+      :wind_direction
+    )
   end
 
   def hole_score_params

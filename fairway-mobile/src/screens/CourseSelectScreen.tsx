@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,22 +13,51 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/ApiService';
 import { Course, ApiError } from '../types/api';
+import { useDebouncedSearch } from '../hooks/useDebounce';
 
 export const CourseSelectScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [searchText, setSearchText] = useState('');
   const [courses, setCourses] = useState<Course[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
+
+  // Memoized search function to prevent recreation on every render
+  const searchFunction = useCallback(async (query: string) => {
+    try {
+      const response = await ApiService.searchCourses(query);
+      if (response.success && response.data) {
+        return response.data.courses;
+      }
+      // Fallback to local filtering if API search fails
+      return courses.filter(course =>
+        course.name.toLowerCase().includes(query.toLowerCase()) ||
+        course.full_address.toLowerCase().includes(query.toLowerCase()) ||
+        course.city.toLowerCase().includes(query.toLowerCase())
+      );
+    } catch (error) {
+      // Fallback to local filtering on error
+      return courses.filter(course =>
+        course.name.toLowerCase().includes(query.toLowerCase()) ||
+        course.full_address.toLowerCase().includes(query.toLowerCase()) ||
+        course.city.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+  }, [courses]);
+
+  // Use debounced search hook
+  const {
+    query: searchText,
+    setQuery: setSearchText,
+    results: searchResults,
+    isSearching,
+    error: searchError,
+  } = useDebouncedSearch(searchFunction, 300);
+
+  // Get the courses to display (search results or all courses)
+  const displayCourses = searchResults || courses;
 
   useEffect(() => {
     loadCourses();
   }, []);
-
-  useEffect(() => {
-    handleSearch();
-  }, [searchText, courses]);
 
   const loadCourses = async () => {
     try {
@@ -37,7 +66,6 @@ export const CourseSelectScreen: React.FC = () => {
       
       if (response.success && response.data) {
         setCourses(response.data.courses);
-        setFilteredCourses(response.data.courses);
       } else {
         Alert.alert('Error', 'Failed to load courses');
       }
@@ -47,40 +75,6 @@ export const CourseSelectScreen: React.FC = () => {
       Alert.alert('Error', apiError.message || 'Failed to load courses');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!searchText.trim()) {
-      setFilteredCourses(courses);
-      return;
-    }
-
-    try {
-      setIsSearching(true);
-      const response = await ApiService.searchCourses(searchText.trim());
-      
-      if (response.success && response.data) {
-        setFilteredCourses(response.data.courses);
-      } else {
-        // Fallback to local filtering if API search fails
-        const localFiltered = courses.filter(course =>
-          course.name.toLowerCase().includes(searchText.toLowerCase()) ||
-          course.full_address.toLowerCase().includes(searchText.toLowerCase()) ||
-          course.city.toLowerCase().includes(searchText.toLowerCase())
-        );
-        setFilteredCourses(localFiltered);
-      }
-    } catch (error) {
-      // Fallback to local filtering on error
-      const localFiltered = courses.filter(course =>
-        course.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        course.full_address.toLowerCase().includes(searchText.toLowerCase()) ||
-        course.city.toLowerCase().includes(searchText.toLowerCase())
-      );
-      setFilteredCourses(localFiltered);
-    } finally {
-      setIsSearching(false);
     }
   };
 
@@ -148,7 +142,7 @@ export const CourseSelectScreen: React.FC = () => {
         </View>
       ) : (
         <FlatList
-          data={filteredCourses}
+          data={displayCourses}
           renderItem={renderCourse}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.coursesList}

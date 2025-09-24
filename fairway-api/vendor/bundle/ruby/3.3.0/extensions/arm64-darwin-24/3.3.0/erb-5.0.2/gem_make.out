@@ -1,0 +1,19 @@
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/erb-5.0.2/ext/erb/escape
+/Users/reesee/.rbenv/versions/3.3.0/bin/ruby extconf.rb
+checking for rb_ext_ractor_safe() in ruby.h... yes
+creating Makefile
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/erb-5.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-anls7 sitelibdir\=./.gem.20250924-31089-anls7 clean
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/erb-5.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-anls7 sitelibdir\=./.gem.20250924-31089-anls7
+compiling escape.c
+linking shared-object erb/escape.bundle
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/erb-5.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-anls7 sitelibdir\=./.gem.20250924-31089-anls7 install
+/usr/bin/install -c -m 0755 escape.bundle ./.gem.20250924-31089-anls7/erb
+
+current directory: /Users/reesee/dev/fairway/fairway-api/vendor/bundle/ruby/3.3.0/gems/erb-5.0.2/ext/erb/escape
+make DESTDIR\= sitearchdir\=./.gem.20250924-31089-anls7 sitelibdir\=./.gem.20250924-31089-anls7 clean

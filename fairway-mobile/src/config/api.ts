@@ -16,6 +16,7 @@ export const API_CONFIG = {
     
     // Rounds
     ROUNDS: '/api/v1/rounds',
+    ROUNDS_STATISTICS: '/api/v1/rounds/statistics',
   },
   TIMEOUT: 10000,
 };

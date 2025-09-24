@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { CourseSelectScreen } from '../screens/CourseSelectScreen';
 import { ScorecardScreen } from '../screens/ScorecardScreen';
+import { RoundDetailScreen } from '../screens/RoundDetailScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -34,6 +35,15 @@ const DashboardStack = () => (
         title: 'Scorecard',
         headerStyle: { backgroundColor: '#2E7D32' },
         headerTintColor: '#FFFFFF'
+      }}
+    />
+    <Stack.Screen 
+      name="RoundDetail" 
+      component={RoundDetailScreen}
+      options={{ 
+        headerShown: false,
+        // Force new screen instance for each navigation
+        animationEnabled: true,
       }}
     />
   </Stack.Navigator>

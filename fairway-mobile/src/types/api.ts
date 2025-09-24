@@ -112,6 +112,7 @@ export interface Round {
   id: string;
   user_id: string;
   course_id: string;
+  course_name?: string; // Added course_name from Rails API
   started_at: string;
   completed_at?: string;
   submitted_at?: string;
@@ -147,6 +148,40 @@ export interface HoleScore {
   penalties: number;
   drive_distance?: number;
   approach_distance?: number;
+}
+
+export interface HoleScoreInput {
+  hole_number: number;
+  strokes: number;
+  putts?: number | null;
+  fairway_hit?: boolean;
+  green_in_regulation?: boolean;
+  up_and_down?: boolean;
+  penalties?: number;
+  drive_distance?: number | null;
+  approach_distance?: number | null;
+}
+
+// Statistics Types
+export interface RoundStatistics {
+  total_rounds: number;
+  verified_rounds: number;
+  average_score?: number;
+  lowest_score?: number;
+  handicap_index?: number;
+  verified_handicap?: number;
+  recent_trend?: 'improving' | 'declining' | 'stable' | null;
+}
+
+export interface RecentRound {
+  id: string;
+  course_id: string;
+  course_name: string;
+  total_strokes?: number;
+  started_at: string;
+  completed_at?: string;
+  is_verified: boolean;
+  is_provisional: boolean;
 }
 
 // Location Types

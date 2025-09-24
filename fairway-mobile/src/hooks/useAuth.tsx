@@ -14,6 +14,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<AuthResult>;
   register: (userData: RegisterRequest) => Promise<AuthResult>;
   logout: () => Promise<AuthResult>;
+  updateUserData: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   refreshUser: () => Promise<void>;
 }
@@ -142,8 +143,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateUserData = async (userData: Partial<User>): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await ApiService.updateProfile(userData);
+      
+      if (response.success && response.data?.user) {
+        setUser(response.data.user);
+        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        return { success: true };
+      }
+      
+      return { 
+        success: false, 
+        error: response.error || 'Failed to update profile' 
+      };
+    } catch (error: any) {
+      const apiError = error as ApiError;
+      return { 
+        success: false, 
+        error: apiError.message || 'Failed to update profile' 
+      };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser, updateUserData }}>
       {children}
     </AuthContext.Provider>
   );

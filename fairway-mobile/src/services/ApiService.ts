@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_CONFIG from '../config/api';
+import CacheService from './CacheService';
 import {
   ApiResponse,
   ApiError,
@@ -11,6 +12,9 @@ import {
   DetailedCourse,
   NearbyCoursesRequest,
   Round,
+  RoundStatistics,
+  RecentRound,
+  HoleScoreInput,
 } from '../types/api';
 
 class ApiService {
@@ -205,13 +209,33 @@ class ApiService {
     }
   }
 
+  async updateProfile(userData: Partial<any>): Promise<ApiResponse<{ user: any }>> {
+    try {
+      const response: AxiosResponse<ApiResponse<{ user: any }>> = await this.api.patch(
+        API_CONFIG.ENDPOINTS.PROFILE,
+        { user: userData }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
   // Course Methods
   async getCourses(): Promise<ApiResponse<{ courses: Course[] }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
-        API_CONFIG.ENDPOINTS.COURSES
+      const cacheKey = 'courses:all';
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
+            API_CONFIG.ENDPOINTS.COURSES
+          );
+          return response.data;
+        },
+        60 // Cache for 60 minutes
       );
-      return response.data;
     } catch (error) {
       throw error;
     }
@@ -219,10 +243,18 @@ class ApiService {
 
   async getCourse(courseId: string): Promise<ApiResponse<{ course: DetailedCourse }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ course: DetailedCourse }>> = await this.api.get(
-        `${API_CONFIG.ENDPOINTS.COURSES}/${courseId}`
+      const cacheKey = `course:${courseId}`;
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const response: AxiosResponse<ApiResponse<{ course: DetailedCourse }>> = await this.api.get(
+            `${API_CONFIG.ENDPOINTS.COURSES}/${courseId}`
+          );
+          return response.data;
+        },
+        120 // Cache individual courses for 2 hours
       );
-      return response.data;
     } catch (error) {
       throw error;
     }
@@ -230,10 +262,18 @@ class ApiService {
 
   async searchCourses(query: string): Promise<ApiResponse<{ courses: Course[] }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
-        `${API_CONFIG.ENDPOINTS.COURSES_SEARCH}?q=${encodeURIComponent(query)}`
+      const cacheKey = `search:${query.toLowerCase().trim()}`;
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
+            `${API_CONFIG.ENDPOINTS.COURSES_SEARCH}?q=${encodeURIComponent(query)}`
+          );
+          return response.data;
+        },
+        30 // Cache search results for 30 minutes
       );
-      return response.data;
     } catch (error) {
       throw error;
     }
@@ -241,31 +281,80 @@ class ApiService {
 
   async getNearbyCourses(location: NearbyCoursesRequest): Promise<ApiResponse<{ courses: Course[] }>> {
     try {
-      const params = new URLSearchParams({
-        latitude: location.latitude.toString(),
-        longitude: location.longitude.toString(),
-      });
+      // Create a cache key based on location (rounded to avoid too many cache entries for similar locations)
+      const roundedLat = Math.round(location.latitude * 100) / 100;
+      const roundedLng = Math.round(location.longitude * 100) / 100;
+      const radius = location.radius || 25;
+      const cacheKey = `nearby:${roundedLat},${roundedLng}:${radius}`;
       
-      if (location.radius) {
-        params.append('radius', location.radius.toString());
-      }
-      
-      const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
-        `${API_CONFIG.ENDPOINTS.COURSES_NEARBY}?${params.toString()}`
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const params = new URLSearchParams({
+            latitude: location.latitude.toString(),
+            longitude: location.longitude.toString(),
+          });
+          
+          if (location.radius) {
+            params.append('radius', location.radius.toString());
+          }
+          
+          const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
+            `${API_CONFIG.ENDPOINTS.COURSES_NEARBY}?${params.toString()}`
+          );
+          return response.data;
+        },
+        15 // Cache nearby results for 15 minutes (locations change more frequently)
       );
-      return response.data;
     } catch (error) {
       throw error;
     }
   }
 
   // Round Methods
-  async getRounds(): Promise<ApiResponse<{ rounds: Round[] }>> {
+  async getRounds(status?: 'completed' | 'in_progress' | 'verified', limit?: number): Promise<ApiResponse<{ rounds: Round[] }>> {
     try {
-      const response: AxiosResponse<ApiResponse<{ rounds: Round[] }>> = await this.api.get(
-        API_CONFIG.ENDPOINTS.ROUNDS
+      const cacheKey = `rounds:${status || 'all'}:${limit || 'all'}`;
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const params = new URLSearchParams();
+          if (status) params.append('status', status);
+          if (limit) params.append('limit', limit.toString());
+          
+          const url = params.toString() 
+            ? `${API_CONFIG.ENDPOINTS.ROUNDS}?${params.toString()}`
+            : API_CONFIG.ENDPOINTS.ROUNDS;
+            
+          const response: AxiosResponse<ApiResponse<{ rounds: Round[] }>> = await this.api.get(url);
+          return response.data;
+        },
+        10 // Cache rounds for 10 minutes
       );
-      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRecentRounds(limit: number = 5): Promise<ApiResponse<{ rounds: Round[] }>> {
+    return this.getRounds('completed', limit);
+  }
+
+  async getRoundDetails(roundId: string): Promise<ApiResponse<{ round: Round; hole_scores: any[] }>> {
+    try {
+      const cacheKey = `round_details:${roundId}`;
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const response: AxiosResponse<ApiResponse<{ round: Round; hole_scores: any[] }>> = await this.api.get(
+            `${API_CONFIG.ENDPOINTS.ROUNDS}/${roundId}`
+          );
+          return response.data;
+        },
+        30 // Cache round details for 30 minutes
+      );
     } catch (error) {
       throw error;
     }
@@ -293,6 +382,64 @@ class ApiService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async addHoleScore(roundId: string, holeScoreData: HoleScoreInput): Promise<ApiResponse<{ hole_score: any }>> {
+    try {
+      const response: AxiosResponse<ApiResponse<{ hole_score: any }>> = await this.api.post(
+        `${API_CONFIG.ENDPOINTS.ROUNDS}/${roundId}/hole_scores`,
+        { hole_score: holeScoreData }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getRoundStatistics(): Promise<ApiResponse<{ statistics: RoundStatistics }>> {
+    try {
+      const cacheKey = 'rounds:statistics';
+      
+      return await CacheService.getOrSet(
+        cacheKey,
+        async () => {
+          const response: AxiosResponse<ApiResponse<{ statistics: RoundStatistics }>> = await this.api.get(
+            API_CONFIG.ENDPOINTS.ROUNDS_STATISTICS
+          );
+          return response.data;
+        },
+        5 // Cache statistics for 5 minutes (fresher data needed)
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Cache Management Methods
+  async clearCourseCache(): Promise<void> {
+    try {
+      const cacheInfo = await CacheService.getCacheInfo();
+      const courseCacheKeys = cacheInfo.cacheKeys.filter(key => 
+        key.startsWith('courses:') || 
+        key.startsWith('course:') || 
+        key.startsWith('search:') || 
+        key.startsWith('nearby:')
+      );
+
+      for (const key of courseCacheKeys) {
+        await CacheService.remove(key);
+      }
+    } catch (error) {
+      console.warn('Failed to clear course cache:', error);
+    }
+  }
+
+  async getCacheInfo() {
+    return await CacheService.getCacheInfo();
+  }
+
+  async clearAllCache(): Promise<void> {
+    await CacheService.clear();
   }
 }
 
