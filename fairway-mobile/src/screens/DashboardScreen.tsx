@@ -87,9 +87,17 @@ export const DashboardScreen: React.FC = () => {
     navigation.navigate('CourseSelect' as never);
   };
 
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const navigateToRoundDetail = (roundId: string) => {
-    // Use push instead of navigate to force a new screen instance
-    navigation.push('RoundDetail' as never, { roundId } as never);
+    if (isNavigating) return; // Prevent rapid navigation
+    
+    setIsNavigating(true);
+    // Use navigate to replace/reuse screen instead of creating duplicates
+    navigation.navigate('RoundDetail' as never, { roundId } as never);
+    
+    // Reset navigation lock after a short delay
+    setTimeout(() => setIsNavigating(false), 1000);
   };
 
   const formatDate = (dateString: string) => {
