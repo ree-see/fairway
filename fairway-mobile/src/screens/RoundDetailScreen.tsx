@@ -171,6 +171,7 @@ export const RoundDetailScreen: React.FC = () => {
     showFIR: true,
     showGIR: true,
   });
+  const [activeTab, setActiveTab] = useState<'statistics' | 'scorecard'>('statistics');
 
   useEffect(() => {
     loadRoundDetail();
@@ -293,8 +294,32 @@ export const RoundDetailScreen: React.FC = () => {
         )}
       </View>
 
-      {/* Round Statistics */}
-      <View style={styles.statsSection}>
+      {/* Tab Navigation */}
+      <View style={styles.tabNavigation}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'statistics' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('statistics')}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'statistics' && styles.tabButtonTextActive]}>
+            Statistics
+          </Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'scorecard' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('scorecard')}
+        >
+          <Text style={[styles.tabButtonText, activeTab === 'scorecard' && styles.tabButtonTextActive]}>
+            Scorecard
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tab Content */}
+      {activeTab === 'statistics' && (
+        <>
+          {/* Round Statistics */}
+          <View style={styles.statsSection}>
         <Text style={styles.sectionTitle}>Round Statistics</Text>
         
         <View style={styles.statsGrid}>
@@ -332,8 +357,12 @@ export const RoundDetailScreen: React.FC = () => {
           </View>
         </View>
       </View>
+        </>
+      )}
 
-      {/* Scorecard Display Options */}
+      {activeTab === 'scorecard' && (
+        <>
+          {/* Scorecard Display Options */}
       <View style={styles.displayOptionsSection}>
         <Text style={styles.sectionTitle}>Scorecard Options</Text>
         
@@ -416,6 +445,8 @@ export const RoundDetailScreen: React.FC = () => {
           </View>
         )}
       </View>
+        </>
+      )}
     </ScrollView>
   );
 };
@@ -501,6 +532,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
     marginBottom: 2,
+  },
+  tabNavigation: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginTop: 20,
+    borderRadius: 12,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+  },
+  tabButtonActive: {
+    backgroundColor: '#2E7D32',
+  },
+  tabButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666666',
+  },
+  tabButtonTextActive: {
+    color: '#FFFFFF',
   },
   statsSection: {
     backgroundColor: '#FFFFFF',
