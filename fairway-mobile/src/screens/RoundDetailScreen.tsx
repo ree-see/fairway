@@ -20,14 +20,21 @@ interface RoundDetailData {
   hole_scores: HoleScore[];
 }
 
+interface ScorecardDisplayOptions {
+  showPutts: boolean;
+  showFIR: boolean;
+  showGIR: boolean;
+}
+
 interface ScorecardNineProps {
   title: string;
   holeScores: any[];
   totalLabel: string;
   getScoreColor: (strokes: number, par: number) => string;
+  displayOptions: ScorecardDisplayOptions;
 }
 
-const ScorecardNine: React.FC<ScorecardNineProps> = ({ title, holeScores, totalLabel, getScoreColor }) => (
+const ScorecardNine: React.FC<ScorecardNineProps> = ({ title, holeScores, totalLabel, getScoreColor, displayOptions }) => (
   <>
     <View style={styles.nineHeader}>
       <Text style={styles.nineTitle}>{title}</Text>
@@ -86,60 +93,66 @@ const ScorecardNine: React.FC<ScorecardNineProps> = ({ title, holeScores, totalL
         </View>
 
         {/* Putts Row */}
-        <View style={styles.dataRow}>
-          <View style={styles.labelCell}>
-            <Text style={styles.labelText}>Putts</Text>
-          </View>
-          {holeScores.map((score: any) => (
-            <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
-              <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
+        {displayOptions.showPutts && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>Putts</Text>
             </View>
-          ))}
-          <View style={styles.totalCell}>
-            <Text style={styles.totalText}>
-              {holeScores.reduce((sum, s) => sum + (s.putts || 0), 0)}
-            </Text>
+            {holeScores.map((score: any) => (
+              <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.reduce((sum, s) => sum + (s.putts || 0), 0)}
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* FIR Row - Only for Par 4 and 5 holes */}
-        <View style={styles.dataRow}>
-          <View style={styles.labelCell}>
-            <Text style={styles.labelText}>FIR</Text>
-          </View>
-          {holeScores.map((score: any) => (
-            <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
-              <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
-                {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+        {displayOptions.showFIR && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>FIR</Text>
+            </View>
+            {holeScores.map((score: any) => (
+              <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
+                  {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.filter(s => s.par >= 4 && s.fairway_hit).length}/
+                {holeScores.filter(s => s.par >= 4).length}
               </Text>
             </View>
-          ))}
-          <View style={styles.totalCell}>
-            <Text style={styles.totalText}>
-              {holeScores.filter(s => s.par >= 4 && s.fairway_hit).length}/
-              {holeScores.filter(s => s.par >= 4).length}
-            </Text>
           </View>
-        </View>
+        )}
 
         {/* GIR Row */}
-        <View style={styles.dataRow}>
-          <View style={styles.labelCell}>
-            <Text style={styles.labelText}>GIR</Text>
-          </View>
-          {holeScores.map((score: any) => (
-            <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
-              <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
-                {score.green_in_regulation ? '✓' : 'X'}
+        {displayOptions.showGIR && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>GIR</Text>
+            </View>
+            {holeScores.map((score: any) => (
+              <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
+                  {score.green_in_regulation ? '✓' : 'X'}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.filter(s => s.green_in_regulation).length}/{holeScores.length}
               </Text>
             </View>
-          ))}
-          <View style={styles.totalCell}>
-            <Text style={styles.totalText}>
-              {holeScores.filter(s => s.green_in_regulation).length}/{holeScores.length}
-            </Text>
           </View>
-        </View>
+        )}
       </View>
     </ScrollView>
   </>
@@ -153,6 +166,11 @@ export const RoundDetailScreen: React.FC = () => {
   const [roundDetail, setRoundDetail] = useState<RoundDetailData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [displayOptions, setDisplayOptions] = useState<ScorecardDisplayOptions>({
+    showPutts: true,
+    showFIR: true,
+    showGIR: true,
+  });
 
   useEffect(() => {
     loadRoundDetail();
@@ -315,6 +333,40 @@ export const RoundDetailScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* Scorecard Display Options */}
+      <View style={styles.displayOptionsSection}>
+        <Text style={styles.sectionTitle}>Scorecard Options</Text>
+        
+        <View style={styles.toggleRow}>
+          <TouchableOpacity 
+            style={[styles.toggleButton, displayOptions.showPutts && styles.toggleButtonActive]}
+            onPress={() => setDisplayOptions(prev => ({ ...prev, showPutts: !prev.showPutts }))}
+          >
+            <Text style={[styles.toggleButtonText, displayOptions.showPutts && styles.toggleButtonTextActive]}>
+              Putts
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.toggleButton, displayOptions.showFIR && styles.toggleButtonActive]}
+            onPress={() => setDisplayOptions(prev => ({ ...prev, showFIR: !prev.showFIR }))}
+          >
+            <Text style={[styles.toggleButtonText, displayOptions.showFIR && styles.toggleButtonTextActive]}>
+              FIR
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.toggleButton, displayOptions.showGIR && styles.toggleButtonActive]}
+            onPress={() => setDisplayOptions(prev => ({ ...prev, showGIR: !prev.showGIR }))}
+          >
+            <Text style={[styles.toggleButtonText, displayOptions.showGIR && styles.toggleButtonTextActive]}>
+              GIR
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Scorecard */}
       <View style={styles.scorecardSection}>
         <Text style={styles.sectionTitle}>Scorecard</Text>
@@ -327,6 +379,7 @@ export const RoundDetailScreen: React.FC = () => {
               holeScores={hole_scores.filter(score => score.hole_number <= 9)}
               totalLabel="Out"
               getScoreColor={getScoreColor}
+              displayOptions={displayOptions}
             />
 
             {/* Back 9 */}
@@ -335,6 +388,7 @@ export const RoundDetailScreen: React.FC = () => {
               holeScores={hole_scores.filter(score => score.hole_number > 9)}
               totalLabel="In"
               getScoreColor={getScoreColor}
+              displayOptions={displayOptions}
             />
 
             {/* Course Totals */}
@@ -654,6 +708,45 @@ const styles = StyleSheet.create({
   totalRowValue: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  displayOptionsSection: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    marginBottom: 0,
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    gap: 12,
+    justifyContent: 'center',
+  },
+  toggleButton: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  toggleButtonActive: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#2E7D32',
+  },
+  toggleButtonText: {
+    fontSize: 14,
+    color: '#666666',
+    fontWeight: '600',
+  },
+  toggleButtonTextActive: {
     color: '#2E7D32',
   },
   emptyScorecard: {
