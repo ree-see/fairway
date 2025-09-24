@@ -269,6 +269,45 @@ export const RoundDetailScreen: React.FC = () => {
                     </Text>
                   </View>
                 </View>
+
+                {/* FIR Row - Only for Par 4 and 5 holes */}
+                <View style={styles.dataRow}>
+                  <View style={styles.labelCell}>
+                    <Text style={styles.labelText}>FIR</Text>
+                  </View>
+                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
+                    <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+                      <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
+                        {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.totalCell}>
+                    <Text style={styles.totalText}>
+                      {hole_scores.filter(s => s.hole_number <= 9 && s.par >= 4 && s.fairway_hit).length}/
+                      {hole_scores.filter(s => s.hole_number <= 9 && s.par >= 4).length}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* GIR Row */}
+                <View style={styles.dataRow}>
+                  <View style={styles.labelCell}>
+                    <Text style={styles.labelText}>GIR</Text>
+                  </View>
+                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
+                    <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+                      <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
+                        {score.green_in_regulation ? '✓' : 'X'}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.totalCell}>
+                    <Text style={styles.totalText}>
+                      {hole_scores.filter(s => s.hole_number <= 9 && s.green_in_regulation).length}/9
+                    </Text>
+                  </View>
+                </View>
               </View>
             </ScrollView>
 
@@ -342,6 +381,45 @@ export const RoundDetailScreen: React.FC = () => {
                   <View style={styles.totalCell}>
                     <Text style={styles.totalText}>
                       {hole_scores.filter(s => s.hole_number > 9).reduce((sum, s) => sum + (s.putts || 0), 0)}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* FIR Row - Only for Par 4 and 5 holes */}
+                <View style={styles.dataRow}>
+                  <View style={styles.labelCell}>
+                    <Text style={styles.labelText}>FIR</Text>
+                  </View>
+                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
+                    <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+                      <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
+                        {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.totalCell}>
+                    <Text style={styles.totalText}>
+                      {hole_scores.filter(s => s.hole_number > 9 && s.par >= 4 && s.fairway_hit).length}/
+                      {hole_scores.filter(s => s.hole_number > 9 && s.par >= 4).length}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* GIR Row */}
+                <View style={styles.dataRow}>
+                  <View style={styles.labelCell}>
+                    <Text style={styles.labelText}>GIR</Text>
+                  </View>
+                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
+                    <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+                      <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
+                        {score.green_in_regulation ? '✓' : 'X'}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.totalCell}>
+                    <Text style={styles.totalText}>
+                      {hole_scores.filter(s => s.hole_number > 9 && s.green_in_regulation).length}/9
                     </Text>
                   </View>
                 </View>
@@ -633,6 +711,10 @@ const styles = StyleSheet.create({
   detailDataText: {
     fontSize: 12,
     color: '#666666',
+  },
+  positiveText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
   },
   totalText: {
     fontSize: 14,
