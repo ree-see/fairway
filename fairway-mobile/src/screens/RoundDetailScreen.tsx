@@ -20,6 +20,131 @@ interface RoundDetailData {
   hole_scores: HoleScore[];
 }
 
+interface ScorecardNineProps {
+  title: string;
+  holeScores: any[];
+  totalLabel: string;
+  getScoreColor: (strokes: number, par: number) => string;
+}
+
+const ScorecardNine: React.FC<ScorecardNineProps> = ({ title, holeScores, totalLabel, getScoreColor }) => (
+  <>
+    <View style={styles.nineHeader}>
+      <Text style={styles.nineTitle}>{title}</Text>
+    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scorecardScroll}>
+      <View style={styles.scorecardTable}>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <View style={styles.holeHeaderCell}>
+            <Text style={styles.headerText}>Hole</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`hole-${score.hole_number}`} style={styles.holeHeaderCell}>
+              <Text style={styles.headerText}>{score.hole_number}</Text>
+            </View>
+          ))}
+          <View style={styles.totalHeaderCell}>
+            <Text style={styles.headerText}>{totalLabel}</Text>
+          </View>
+        </View>
+
+        {/* Par Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>Par</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`par-${score.hole_number}`} style={styles.dataCell}>
+              <Text style={styles.parText}>{score.par}</Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.reduce((sum, s) => sum + s.par, 0)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Score Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>Score</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`score-${score.hole_number}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
+              <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
+                {score.strokes}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.reduce((sum, s) => sum + s.strokes, 0)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Putts Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>Putts</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
+              <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.reduce((sum, s) => sum + (s.putts || 0), 0)}
+            </Text>
+          </View>
+        </View>
+
+        {/* FIR Row - Only for Par 4 and 5 holes */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>FIR</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+              <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
+                {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.filter(s => s.par >= 4 && s.fairway_hit).length}/
+              {holeScores.filter(s => s.par >= 4).length}
+            </Text>
+          </View>
+        </View>
+
+        {/* GIR Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>GIR</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+              <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
+                {score.green_in_regulation ? '✓' : 'X'}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.filter(s => s.green_in_regulation).length}/{holeScores.length}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </ScrollView>
+  </>
+);
+
 export const RoundDetailScreen: React.FC = () => {
   const route = useRoute<RoundDetailRouteProp>();
   const navigation = useNavigation();
@@ -197,234 +322,20 @@ export const RoundDetailScreen: React.FC = () => {
         {hole_scores.length > 0 ? (
           <View style={styles.scorecardContainer}>
             {/* Front 9 */}
-            <View style={styles.nineHeader}>
-              <Text style={styles.nineTitle}>Front 9</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scorecardScroll}>
-              <View style={styles.scorecardTable}>
-                {/* Header Row */}
-                <View style={styles.headerRow}>
-                  <View style={styles.holeHeaderCell}>
-                    <Text style={styles.headerText}>Hole</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`hole-${score.hole_number}`} style={styles.holeHeaderCell}>
-                      <Text style={styles.headerText}>{score.hole_number}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalHeaderCell}>
-                    <Text style={styles.headerText}>Out</Text>
-                  </View>
-                </View>
-
-                {/* Par Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Par</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`par-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={styles.parText}>{score.par}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number <= 9).reduce((sum, s) => sum + s.par, 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Score Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Score</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`score-${score.hole_number}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
-                      <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
-                        {score.strokes}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number <= 9).reduce((sum, s) => sum + s.strokes, 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Putts Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Putts</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number <= 9).reduce((sum, s) => sum + (s.putts || 0), 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* FIR Row - Only for Par 4 and 5 holes */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>FIR</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
-                        {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number <= 9 && s.par >= 4 && s.fairway_hit).length}/
-                      {hole_scores.filter(s => s.hole_number <= 9 && s.par >= 4).length}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* GIR Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>GIR</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number <= 9).map((score: any) => (
-                    <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
-                        {score.green_in_regulation ? '✓' : 'X'}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number <= 9 && s.green_in_regulation).length}/9
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
+            <ScorecardNine
+              title="Front 9"
+              holeScores={hole_scores.filter(score => score.hole_number <= 9)}
+              totalLabel="Out"
+              getScoreColor={getScoreColor}
+            />
 
             {/* Back 9 */}
-            <View style={styles.nineHeader}>
-              <Text style={styles.nineTitle}>Back 9</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scorecardScroll}>
-              <View style={styles.scorecardTable}>
-                {/* Header Row */}
-                <View style={styles.headerRow}>
-                  <View style={styles.holeHeaderCell}>
-                    <Text style={styles.headerText}>Hole</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`hole-${score.hole_number}`} style={styles.holeHeaderCell}>
-                      <Text style={styles.headerText}>{score.hole_number}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalHeaderCell}>
-                    <Text style={styles.headerText}>In</Text>
-                  </View>
-                </View>
-
-                {/* Par Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Par</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`par-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={styles.parText}>{score.par}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number > 9).reduce((sum, s) => sum + s.par, 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Score Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Score</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`score-${score.hole_number}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
-                      <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
-                        {score.strokes}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number > 9).reduce((sum, s) => sum + s.strokes, 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Putts Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>Putts</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number > 9).reduce((sum, s) => sum + (s.putts || 0), 0)}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* FIR Row - Only for Par 4 and 5 holes */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>FIR</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
-                        {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number > 9 && s.par >= 4 && s.fairway_hit).length}/
-                      {hole_scores.filter(s => s.hole_number > 9 && s.par >= 4).length}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* GIR Row */}
-                <View style={styles.dataRow}>
-                  <View style={styles.labelCell}>
-                    <Text style={styles.labelText}>GIR</Text>
-                  </View>
-                  {hole_scores.filter(score => score.hole_number > 9).map((score: any) => (
-                    <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
-                      <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
-                        {score.green_in_regulation ? '✓' : 'X'}
-                      </Text>
-                    </View>
-                  ))}
-                  <View style={styles.totalCell}>
-                    <Text style={styles.totalText}>
-                      {hole_scores.filter(s => s.hole_number > 9 && s.green_in_regulation).length}/9
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </ScrollView>
+            <ScorecardNine
+              title="Back 9"
+              holeScores={hole_scores.filter(score => score.hole_number > 9)}
+              totalLabel="In"
+              getScoreColor={getScoreColor}
+            />
 
             {/* Course Totals */}
             <View style={styles.totalsSection}>
