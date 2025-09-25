@@ -4,7 +4,7 @@ class Api::V1::RoundsController < ApplicationController
 
   def index
     # Fix N+1 query by including all necessary associations
-    rounds = current_user.rounds.includes(:course, :hole_scores, :round_attestations, holes: :course).recent
+    rounds = current_user.rounds.includes(:course, :hole_scores, :round_attestations, course: :holes).recent
     
     # Filter by status if provided
     case params[:status]

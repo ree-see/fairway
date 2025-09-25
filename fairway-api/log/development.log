@@ -10527,3 +10527,188 @@ Migrating to AddSignInColumnsToUsers (20250925153047)
   [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
   [1m[35m (0.1ms)[0m  [1m[34mSELECT pg_advisory_unlock(727146553316580600) /*application='FairwayApi'*/[0m
   [1m[36mActiveRecord::SchemaMigration Load (0.2ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='FairwayApi'*/[0m
+Started GET "/api/v1/rounds/statistics" for ::1 at 2025-09-25 11:31:39 -0400
+Started GET "/api/v1/rounds?status=completed&limit=3" for ::1 at 2025-09-25 11:31:39 -0400
+  [1m[36mActiveRecord::SchemaMigration Load (0.9ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='FairwayApi'*/[0m
+Processing by Api::V1::RoundsController#index as HTML
+Processing by Api::V1::RoundsController#statistics as HTML
+  Parameters: {"status"=>"completed", "limit"=>"3"}
+  [1m[36mUser Load (0.4ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mUser Load (0.6ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mRound Count (3.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:145:in `statistics'
+  [1m[36mRound Load (1.2ms)[0m  [1m[34mSELECT "rounds".* FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL ORDER BY "rounds"."started_at" DESC LIMIT 3 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mRound Count (14.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL AND "rounds"."is_verified" = TRUE /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:146:in `statistics'
+  [1m[36mRound Exists? (1.3ms)[0m  [1m[34mSELECT 1 AS one FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL LIMIT 1 /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:69:in `get_performance_stats'
+  [1m[36mCACHE Round Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL[0m
+  ↳ app/services/handicap_calculator_service.rb:72:in `get_performance_stats'
+  [1m[36mCACHE Round Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL AND "rounds"."is_verified" = TRUE[0m
+  ↳ app/services/handicap_calculator_service.rb:73:in `get_performance_stats'
+  [1m[36mRound Pluck (1.9ms)[0m  [1m[34mSELECT "rounds"."total_strokes" FROM "rounds" LEFT OUTER JOIN "courses" ON "courses"."id" = "rounds"."course_id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL AND "rounds"."total_strokes" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:217:in `calculate_average_score'
+  [1m[36mCourse Load (1.0ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" IN ('ae402f19-4ec4-46a4-a83f-2250fea3982f', '443a37b0-9cfc-4e2b-8565-c77212260f99', 'a5924311-0093-4b58-85aa-d2b6126d1024') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mRound Pluck (17.9ms)[0m  [1m[34mSELECT "rounds"."score_differential" FROM "rounds" LEFT OUTER JOIN "courses" ON "courses"."id" = "rounds"."course_id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL AND "rounds"."score_differential" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:224:in `calculate_average_differential'
+  [1m[36mRound Minimum (0.8ms)[0m  [1m[34mSELECT MIN("rounds"."total_strokes") FROM "rounds" LEFT OUTER JOIN "courses" ON "courses"."id" = "rounds"."course_id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:76:in `get_performance_stats'
+  [1m[36mRound Minimum (1.3ms)[0m  [1m[34mSELECT MIN("rounds"."score_differential") FROM "rounds" LEFT OUTER JOIN "courses" ON "courses"."id" = "rounds"."course_id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:77:in `get_performance_stats'
+  [1m[36mRound Count (1.9ms)[0m  [1m[34mSELECT COUNT(DISTINCT "courses"."id") FROM "rounds" INNER JOIN "courses" ON "courses"."id" = "rounds"."course_id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/handicap_calculator_service.rb:78:in `get_performance_stats'
+  [1m[36mCACHE Round Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL[0m
+  ↳ app/services/handicap_calculator_service.rb:231:in `calculate_improvement_rate'
+  [1m[36mHoleScore Load (6.5ms)[0m  [1m[34mSELECT "hole_scores".* FROM "hole_scores" WHERE "hole_scores"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mRound Minimum (3.6ms)[0m  [1m[34mSELECT MIN("rounds"."total_strokes") FROM "rounds" LEFT OUTER JOIN "hole_scores" ON "hole_scores"."round_id" = "rounds"."id" LEFT OUTER JOIN "courses" ON "courses"."id" = "rounds"."course_id" LEFT OUTER JOIN "round_attestations" ON "round_attestations"."round_id" = "rounds"."id" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:148:in `statistics'
+  [1m[36mRound Count (1.1ms)[0m  [1m[34mSELECT COUNT(*) FROM (SELECT 1 AS one FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL LIMIT 10) subquery_for_count /*action='statistics',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:260:in `calculate_recent_trend'
+Completed 200 OK in 173ms (Views: 0.1ms | ActiveRecord: 76.8ms (14 queries, 3 cached) | GC: 6.1ms)
+
+
+  [1m[36mRoundAttestation Load (2.2ms)[0m  [1m[34mSELECT "round_attestations".* FROM "round_attestations" WHERE "round_attestations"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+Completed 500 Internal Server Error in 165ms (ActiveRecord: 53.0ms (5 queries, 0 cached) | GC: 6.1ms)
+
+
+  
+ActiveRecord::AssociationNotFoundError (Association named 'holes' was not found on Round; perhaps you misspelled it?):
+  
+app/controllers/api/v1/rounds_controller.rb:24:in `map'
+app/controllers/api/v1/rounds_controller.rb:24:in `index'
+Started GET "/api/v1/rounds?status=completed&limit=3" for ::1 at 2025-09-25 11:31:43 -0400
+Processing by Api::V1::RoundsController#index as HTML
+  Parameters: {"status"=>"completed", "limit"=>"3"}
+  [1m[36mUser Load (0.9ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mRound Load (0.8ms)[0m  [1m[34mSELECT "rounds".* FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL ORDER BY "rounds"."started_at" DESC LIMIT 3 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mCourse Load (0.4ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" IN ('ae402f19-4ec4-46a4-a83f-2250fea3982f', '443a37b0-9cfc-4e2b-8565-c77212260f99', 'a5924311-0093-4b58-85aa-d2b6126d1024') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mHoleScore Load (0.6ms)[0m  [1m[34mSELECT "hole_scores".* FROM "hole_scores" WHERE "hole_scores"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mRoundAttestation Load (0.3ms)[0m  [1m[34mSELECT "round_attestations".* FROM "round_attestations" WHERE "round_attestations"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+Completed 500 Internal Server Error in 30ms (ActiveRecord: 3.0ms (5 queries, 0 cached) | GC: 0.5ms)
+
+
+  
+ActiveRecord::AssociationNotFoundError (Association named 'holes' was not found on Round; perhaps you misspelled it?):
+  
+app/controllers/api/v1/rounds_controller.rb:24:in `map'
+app/controllers/api/v1/rounds_controller.rb:24:in `index'
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (4.0ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 10 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (3.0ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 11 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.3ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:32:13.198361' WHERE "solid_queue_processes"."id" = 10 /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.5ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:32:13.198059' WHERE "solid_queue_processes"."id" = 11 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.9ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (1.0ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (6.8ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 9 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.4ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:32:13.438075' WHERE "solid_queue_processes"."id" = 9 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.9ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (7.2ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 12 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.5ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:32:13.628468' WHERE "solid_queue_processes"."id" = 12 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.8ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (4.2ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 11 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (3.8ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 10 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.3ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:33:13.214356' WHERE "solid_queue_processes"."id" = 11 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.7ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:33:13.223250' WHERE "solid_queue_processes"."id" = 10 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (3.3ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 9 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.4ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:33:13.460038' WHERE "solid_queue_processes"."id" = 9 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (3.4ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 12 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.3ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:33:13.644522' WHERE "solid_queue_processes"."id" = 12 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.6ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+Started GET "/api/v1/rounds?status=completed&limit=3" for ::1 at 2025-09-25 11:33:33 -0400
+Processing by Api::V1::RoundsController#index as HTML
+  Parameters: {"status"=>"completed", "limit"=>"3"}
+  [1m[36mUser Load (0.3ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mRound Load (0.7ms)[0m  [1m[34mSELECT "rounds".* FROM "rounds" WHERE "rounds"."user_id" = '785c65eb-f711-4691-be87-d7ed25d93556' AND "rounds"."completed_at" IS NOT NULL ORDER BY "rounds"."started_at" DESC LIMIT 3 /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mCourse Load (0.4ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" IN ('ae402f19-4ec4-46a4-a83f-2250fea3982f', '443a37b0-9cfc-4e2b-8565-c77212260f99', 'a5924311-0093-4b58-85aa-d2b6126d1024') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mHoleScore Load (0.8ms)[0m  [1m[34mSELECT "hole_scores".* FROM "hole_scores" WHERE "hole_scores"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mRoundAttestation Load (0.4ms)[0m  [1m[34mSELECT "round_attestations".* FROM "round_attestations" WHERE "round_attestations"."round_id" IN ('9e2e03d7-4354-45a8-85e4-e4fbaeb64837', 'cd1e74ad-136e-430f-8be6-f39cea915407', '2ce35f3f-3c05-462c-ad23-4e2439a55a17') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mHole Load (2.6ms)[0m  [1m[34mSELECT "holes".* FROM "holes" WHERE "holes"."course_id" IN ('ae402f19-4ec4-46a4-a83f-2250fea3982f', '443a37b0-9cfc-4e2b-8565-c77212260f99', 'a5924311-0093-4b58-85aa-d2b6126d1024') /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:24:in `map'
+  [1m[36mHoleScore Count (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '9e2e03d7-4354-45a8-85e4-e4fbaeb64837' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '9e2e03d7-4354-45a8-85e4-e4fbaeb64837'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHoleScore Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = 'cd1e74ad-136e-430f-8be6-f39cea915407' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = 'cd1e74ad-136e-430f-8be6-f39cea915407'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = '443a37b0-9cfc-4e2b-8565-c77212260f99' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHoleScore Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '2ce35f3f-3c05-462c-ad23-4e2439a55a17' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '2ce35f3f-3c05-462c-ad23-4e2439a55a17'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'a5924311-0093-4b58-85aa-d2b6126d1024' /*action='index',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+Completed 200 OK in 176ms (Views: 0.2ms | ActiveRecord: 45.6ms (15 queries, 3 cached) | GC: 13.5ms)
+
+
+Started GET "/api/v1/courses" for ::1 at 2025-09-25 11:33:46 -0400
+Processing by Api::V1::CoursesController#index as HTML
+  [1m[36mCourse Load (1.5ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."active" = TRUE ORDER BY "courses"."name" ASC LIMIT 50 /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/controllers/api/v1/courses_controller.rb:22:in `map'
+  [1m[36mHole Load (0.9ms)[0m  [1m[34mSELECT "holes".* FROM "holes" WHERE "holes"."course_id" IN ('ae402f19-4ec4-46a4-a83f-2250fea3982f', '5ceb9b3c-ea93-4ba8-8668-254dfac75547', 'f9b6803a-6c31-49ae-a95a-05140102f9d4', '2b37ce4f-0719-4526-8a36-67e407900767', 'd81998b7-8f73-449e-a589-6fd887f62f34', '443a37b0-9cfc-4e2b-8565-c77212260f99', 'a7850e90-7796-4668-9baf-f91f793901b4', 'a5924311-0093-4b58-85aa-d2b6126d1024') /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/controllers/api/v1/courses_controller.rb:22:in `map'
+  [1m[36mHole Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = '5ceb9b3c-ea93-4ba8-8668-254dfac75547' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'f9b6803a-6c31-49ae-a95a-05140102f9d4' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = '2b37ce4f-0719-4526-8a36-67e407900767' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'd81998b7-8f73-449e-a589-6fd887f62f34' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = '443a37b0-9cfc-4e2b-8565-c77212260f99' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'a7850e90-7796-4668-9baf-f91f793901b4' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+  [1m[36mHole Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'a5924311-0093-4b58-85aa-d2b6126d1024' /*action='index',application='FairwayApi',controller='courses'*/[0m
+  ↳ app/models/course.rb:72:in `holes_count'
+Completed 200 OK in 21ms (Views: 0.2ms | ActiveRecord: 3.9ms (10 queries, 0 cached) | GC: 0.4ms)
+
+
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (2.3ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 11 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.3ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:34:13.222423' WHERE "solid_queue_processes"."id" = 11 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (1.8ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 10 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.3ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:34:13.236463' WHERE "solid_queue_processes"."id" = 10 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.6ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (8.0ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 9 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.7ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:34:13.487386' WHERE "solid_queue_processes"."id" = 9 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mBEGIN /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Load (10.2ms)[0m  [1m[37mSELECT "solid_queue_processes".* FROM "solid_queue_processes" WHERE "solid_queue_processes"."id" = 12 LIMIT 1 FOR UPDATE /*application='FairwayApi'*/[0m
+  [1m[36mSolidQueue::Process Update (0.5ms)[0m  [1m[33mUPDATE "solid_queue_processes" SET "last_heartbeat_at" = '2025-09-25 15:34:13.676218' WHERE "solid_queue_processes"."id" = 12 /*application='FairwayApi'*/[0m
+  [1m[36mTRANSACTION (0.7ms)[0m  [1m[35mCOMMIT /*application='FairwayApi'*/[0m
