@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2024_01_15_000002) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_24_181103) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -35,6 +35,11 @@ ActiveRecord::Schema[8.0].define(version: 2024_01_15_000002) do
     t.integer "geofence_radius", default: 500
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "external_id"
+    t.string "external_source"
+    t.datetime "last_synced_at"
+    t.boolean "sync_enabled"
+    t.text "external_data"
     t.index ["active", "latitude", "longitude"], name: "index_courses_for_location_search", where: "(active = true)"
     t.index ["active"], name: "index_courses_on_active"
     t.index ["city"], name: "index_courses_on_city"

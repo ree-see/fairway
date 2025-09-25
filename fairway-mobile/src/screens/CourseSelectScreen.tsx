@@ -92,7 +92,9 @@ export const CourseSelectScreen: React.FC = () => {
           </Text>
         )}
       </View>
-      <Text style={styles.courseLocation}>{item.full_address}</Text>
+      <Text style={styles.courseLocation}>
+        {[item.city, item.state].filter(Boolean).join(', ')}
+      </Text>
       <View style={styles.courseStats}>
         {item.course_rating && (
           <View style={styles.statItem}>

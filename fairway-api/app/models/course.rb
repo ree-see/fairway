@@ -34,10 +34,19 @@ class Course < ApplicationRecord
     less_than_or_equal_to: 2000 
   }
 
+  validates :external_source, inclusion: { in: %w[golfcourseapi manual], allow_nil: true }
+
+  # JSON serialization for external_data
+  serialize :external_data, coder: JSON
+
   # Scopes
   scope :active, -> { where(active: true) }
   scope :public_courses, -> { where(private_course: false) }
   scope :private_courses, -> { where(private_course: true) }
+  scope :sync_enabled, -> { where(sync_enabled: true) }
+  scope :from_external_source, ->(source) { where(external_source: source) }
+  scope :needs_sync, -> { where('last_synced_at IS NULL OR last_synced_at < ?', 1.week.ago) }
+  scope :synced_recently, -> { where('last_synced_at > ?', 1.day.ago) }
   scope :near, ->(latitude, longitude, radius_km = 50) {
     where(
       "6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))) < ?",
@@ -105,6 +114,57 @@ class Course < ApplicationRecord
     return nil if rounds.completed.empty?
     
     rounds.completed.average(:total_strokes)&.round(1)
+  end
+
+  # Sync-related methods
+  def from_external_api?
+    external_source.present?
+  end
+
+  def needs_sync?
+    return false unless sync_enabled?
+    last_synced_at.nil? || last_synced_at < 1.week.ago
+  end
+
+  def mark_as_synced!
+    update!(last_synced_at: Time.current)
+  end
+
+  def external_data_hash
+    return {} if external_data.blank?
+    external_data.is_a?(Hash) ? external_data : {}
+  end
+
+  def update_from_external_data!(data)
+    transaction do
+      # Update basic course information
+      self.name = data['name'] if data['name'].present?
+      self.address = data['address'] if data['address'].present?
+      self.city = data['city'] if data['city'].present?
+      self.state = data['state'] if data['state'].present?
+      self.country = data['country'] if data['country'].present?
+      self.postal_code = data['postal_code'] if data['postal_code'].present?
+      self.phone = data['phone'] if data['phone'].present?
+      self.website = data['website'] if data['website'].present?
+      
+      # Update coordinates if provided
+      if data['latitude'].present? && data['longitude'].present?
+        self.latitude = data['latitude'].to_f
+        self.longitude = data['longitude'].to_f
+      end
+      
+      # Update course ratings if provided
+      self.course_rating = data['course_rating'].to_f if data['course_rating'].present?
+      self.slope_rating = data['slope_rating'].to_i if data['slope_rating'].present?
+      self.par = data['par'].to_i if data['par'].present?
+      self.total_yardage = data['total_yardage'].to_i if data['total_yardage'].present?
+      
+      # Store raw external data for reference
+      self.external_data = data
+      self.last_synced_at = Time.current
+      
+      save!
+    end
   end
 
   private
