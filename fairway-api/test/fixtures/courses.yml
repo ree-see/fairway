@@ -1,6 +1,6 @@
 # Courses fixture for testing
 
-pebble_beach:
+one:
   id: "550e8400-e29b-41d4-a716-446655440101"
   name: "Pebble Beach Golf Links"
   address: "1700 17-Mile Drive"

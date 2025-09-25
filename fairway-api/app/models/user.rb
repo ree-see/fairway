@@ -51,46 +51,14 @@ class User < ApplicationRecord
     verified_handicap.present?
   end
 
-  # Calculate handicap based on best 8 of last 20 rounds
+  # Calculate handicap using the dedicated service
   def calculate_provisional_handicap
-    return nil if rounds.completed.count < 5
-
-    recent_rounds = rounds.completed
-                          .includes(:hole_scores)
-                          .order(started_at: :desc)
-                          .limit(20)
-
-    return nil if recent_rounds.count < 5
-
-    # Get score differentials and take best 8
-    differentials = recent_rounds.map(&:score_differential).compact.sort
-    best_differentials = differentials.take([8, differentials.count].min)
-    
-    return nil if best_differentials.empty?
-
-    # Calculate handicap index (average of best differentials * 0.96)
-    (best_differentials.sum / best_differentials.count * 0.96).round(1)
+    handicap_calculator.calculate_handicap_index
   end
 
-  # Calculate verified handicap based only on verified rounds
-  def calculate_verified_handicap
-    return nil if rounds.verified.count < 5
-
-    verified_rounds_data = rounds.verified
-                                .includes(:hole_scores)
-                                .order(started_at: :desc)
-                                .limit(20)
-
-    return nil if verified_rounds_data.count < 5
-
-    # Get score differentials and take best 8
-    differentials = verified_rounds_data.map(&:score_differential).compact.sort
-    best_differentials = differentials.take([8, differentials.count].min)
-    
-    return nil if best_differentials.empty?
-
-    # Calculate verified handicap index (average of best differentials * 0.96)
-    (best_differentials.sum / best_differentials.count * 0.96).round(1)
+  # Calculate verified handicap using the dedicated service  
+  def calculate_verified_handicap_value
+    handicap_calculator.calculate_verified_handicap
   end
 
   def recent_rounds(limit = 10)
@@ -98,9 +66,23 @@ class User < ApplicationRecord
   end
 
   def average_score
-    return nil if rounds.completed.empty?
-    
-    rounds.completed.average(:total_strokes)&.round(1)
+    performance_stats = handicap_calculator.get_performance_stats
+    performance_stats[:average_score]
+  end
+
+  # Get recent performance trend
+  def recent_trend
+    handicap_calculator.get_recent_trend
+  end
+
+  # Get comprehensive performance statistics
+  def performance_statistics
+    handicap_calculator.get_performance_stats
+  end
+
+  # Calculate playing handicap for a specific course
+  def playing_handicap_for_course(course_handicap = nil, slope_rating = nil)
+    handicap_calculator.calculate_playing_handicap(course_handicap, slope_rating)
   end
 
   private
@@ -111,6 +93,10 @@ class User < ApplicationRecord
 
   def calculate_handicaps
     self.handicap_index = calculate_provisional_handicap
-    self.verified_handicap = calculate_verified_handicap
+    self.verified_handicap = calculate_verified_handicap_value
+  end
+
+  def handicap_calculator
+    @handicap_calculator ||= HandicapCalculatorService.new(self)
   end
 end

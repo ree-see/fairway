@@ -48,10 +48,8 @@ class Course < ApplicationRecord
   scope :needs_sync, -> { where('last_synced_at IS NULL OR last_synced_at < ?', 1.week.ago) }
   scope :synced_recently, -> { where('last_synced_at > ?', 1.day.ago) }
   scope :near, ->(latitude, longitude, radius_km = 50) {
-    where(
-      "6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))) < ?",
-      latitude, longitude, latitude, radius_km
-    )
+    clause_args = GeolocationService.nearby_query_clause(latitude, longitude, radius_km)
+    where(clause_args[0], *clause_args[1..-1])
   }
 
   # Callbacks
@@ -63,32 +61,11 @@ class Course < ApplicationRecord
   end
 
   def distance_from(latitude, longitude)
-    return nil unless latitude && longitude
-    
-    # Haversine formula to calculate distance in kilometers
-    rad_per_deg = Math::PI / 180
-    rkm = 6371 # Earth radius in kilometers
-    rm = rkm * 1000 # Earth radius in meters
-
-    dlat_rad = (self.latitude - latitude) * rad_per_deg
-    dlon_rad = (self.longitude - longitude) * rad_per_deg
-
-    lat1_rad = latitude * rad_per_deg
-    lat2_rad = self.latitude * rad_per_deg
-
-    a = Math.sin(dlat_rad/2)**2 + Math.cos(lat1_rad) * Math.cos(lat2_rad) * Math.sin(dlon_rad/2)**2
-    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-
-    rm * c # Distance in meters
+    GeolocationService.distance_between(self.latitude, self.longitude, latitude, longitude)
   end
 
   def within_geofence?(latitude, longitude)
-    return false unless latitude && longitude
-    
-    distance = distance_from(latitude, longitude)
-    return false unless distance
-    
-    distance <= geofence_radius
+    GeolocationService.within_radius?(self.latitude, self.longitude, latitude, longitude, geofence_radius)
   end
 
   def holes_count
@@ -122,52 +99,26 @@ class Course < ApplicationRecord
   end
 
   def needs_sync?
-    return false unless sync_enabled?
-    last_synced_at.nil? || last_synced_at < 1.week.ago
+    synchronization_service.needs_sync?
   end
 
   def mark_as_synced!
-    update!(last_synced_at: Time.current)
+    synchronization_service.mark_as_synced!
   end
 
   def external_data_hash
-    return {} if external_data.blank?
-    external_data.is_a?(Hash) ? external_data : {}
+    synchronization_service.external_data_hash
   end
 
   def update_from_external_data!(data)
-    transaction do
-      # Update basic course information
-      self.name = data['name'] if data['name'].present?
-      self.address = data['address'] if data['address'].present?
-      self.city = data['city'] if data['city'].present?
-      self.state = data['state'] if data['state'].present?
-      self.country = data['country'] if data['country'].present?
-      self.postal_code = data['postal_code'] if data['postal_code'].present?
-      self.phone = data['phone'] if data['phone'].present?
-      self.website = data['website'] if data['website'].present?
-      
-      # Update coordinates if provided
-      if data['latitude'].present? && data['longitude'].present?
-        self.latitude = data['latitude'].to_f
-        self.longitude = data['longitude'].to_f
-      end
-      
-      # Update course ratings if provided
-      self.course_rating = data['course_rating'].to_f if data['course_rating'].present?
-      self.slope_rating = data['slope_rating'].to_i if data['slope_rating'].present?
-      self.par = data['par'].to_i if data['par'].present?
-      self.total_yardage = data['total_yardage'].to_i if data['total_yardage'].present?
-      
-      # Store raw external data for reference
-      self.external_data = data
-      self.last_synced_at = Time.current
-      
-      save!
-    end
+    synchronization_service.update_from_external_data!(data)
   end
 
   private
+
+  def synchronization_service
+    @synchronization_service ||= CourseSynchronizationService.new(self)
+  end
 
   def calculate_course_stats
     if holes.any?

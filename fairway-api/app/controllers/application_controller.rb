@@ -1,11 +1,13 @@
 class ApplicationController < ActionController::API
   include ActionController::HttpAuthentication::Token::ControllerMethods
+  include ApiValidation
   
   # No global authentication - each controller defines its own
   
   rescue_from ActiveRecord::RecordNotFound, with: :record_not_found
   rescue_from ActiveRecord::RecordInvalid, with: :record_invalid
   rescue_from JWT::DecodeError, with: :invalid_token
+  rescue_from ActionController::ParameterMissing, with: :parameter_missing
   
   attr_reader :current_user
 
@@ -76,6 +78,10 @@ class ApplicationController < ActionController::API
 
   def invalid_token
     render_error("Invalid or expired token", :unauthorized)
+  end
+  
+  def parameter_missing(exception)
+    render_error(exception.message, :bad_request)
   end
 
   def health_check

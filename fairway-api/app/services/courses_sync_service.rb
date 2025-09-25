@@ -1,4 +1,6 @@
 class CoursesSyncService
+  include CoursesSyncErrors
+
   API_BASE_URL = 'https://api.golfcourseapi.com'.freeze
   RATE_LIMIT_DELAY = 1.second # Delay between requests to respect rate limits
   BATCH_SIZE = 50 # Number of courses to process in one batch
@@ -8,6 +10,8 @@ class CoursesSyncService
     @api_key = api_key || Rails.application.credentials.golf_course_api_key
     @base_uri = URI(API_BASE_URL)
     @logger = Rails.logger
+    @circuit_breaker = CircuitBreaker.new
+    @error_tracker = ErrorTracker.new
   end
 
   # Initial sync to populate database with all courses
@@ -124,29 +128,70 @@ class CoursesSyncService
       return generate_mock_response(path, params)
     end
     
-    uri = @base_uri.dup
-    uri.path = "/#{path}".gsub('//', '/')
-    
-    # Add query parameters
-    if params.any?
-      uri.query = URI.encode_www_form(params)
+    @circuit_breaker.call do
+      uri = @base_uri.dup
+      uri.path = "/#{path}".gsub('//', '/')
+      
+      # Add query parameters
+      if params.any?
+        uri.query = URI.encode_www_form(params)
+      end
+      
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = uri.scheme == 'https'
+      http.read_timeout = 30
+      http.open_timeout = 10
+      
+      request = Net::HTTP::Get.new(uri)
+      request['Content-Type'] = 'application/json'
+      request['Authorization'] = "Key #{@api_key}" if @api_key.present?
+      request['User-Agent'] = 'FairwayAPI/1.0'
+      
+      begin
+        response = http.request(request)
+        handle_response(response, uri.to_s)
+      rescue Net::TimeoutError, Net::OpenTimeout => e
+        error = NetworkError.new("Request timeout: #{e.message}", details: { uri: uri.to_s })
+        @error_tracker.record_error(error, { path: path, params: params })
+        raise error
+      rescue Net::HTTPError, SocketError => e
+        error = NetworkError.new("Network error: #{e.message}", details: { uri: uri.to_s })
+        @error_tracker.record_error(error, { path: path, params: params })
+        raise error
+      end
     end
-    
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = uri.scheme == 'https'
-    http.read_timeout = 30
-    
-    request = Net::HTTP::Get.new(uri)
-    request['Content-Type'] = 'application/json'
-    request['Authorization'] = "Key #{@api_key}" if @api_key.present?
-    
-    response = http.request(request)
-    
+  rescue CircuitBreakerOpenError => e
+    @error_tracker.record_error(e, { path: path, params: params })
+    raise
+  end
+
+  def handle_response(response, uri)
     case response
     when Net::HTTPSuccess
-      JSON.parse(response.body) rescue {}
+      begin
+        JSON.parse(response.body)
+      rescue JSON::ParserError => e
+        error = DataValidationError.new("Invalid JSON response: #{e.message}", details: { uri: uri })
+        @error_tracker.record_error(error)
+        raise error
+      end
+    when Net::HTTPUnauthorized
+      error = AuthenticationError.new("Authentication failed", details: { uri: uri })
+      @error_tracker.record_error(error)
+      raise error
+    when Net::HTTPTooManyRequests
+      retry_after = response['Retry-After']&.to_i || 60
+      error = RateLimitError.new("Rate limit exceeded", details: { uri: uri }, retry_after: retry_after)
+      @error_tracker.record_error(error)
+      raise error
+    when Net::HTTPNotFound
+      error = NotFoundError.new("Resource not found", details: { uri: uri })
+      @error_tracker.record_error(error)
+      raise error
     else
-      raise "HTTP #{response.code}: #{response.message}"
+      error = ApiError.new("HTTP #{response.code}: #{response.message}", details: { uri: uri, body: response.body[0..500] })
+      @error_tracker.record_error(error)
+      raise error
     end
   end
 
@@ -194,17 +239,36 @@ class CoursesSyncService
       response = http_request("v1/courses/#{course_id}")
       
       # Extract the course data from the nested response
-      response.is_a?(Hash) && response.key?('course') ? response['course'] : response
+      course_data = response.is_a?(Hash) && response.key?('course') ? response['course'] : response
       
-    rescue => e
+      # Validate course data structure
+      validate_course_data(course_data, course_id)
+      
+      course_data
+      
+    rescue RateLimitError => e
+      @logger.warn "Rate limit hit for course #{course_id}, waiting #{e.retry_after} seconds"
+      sleep(e.retry_after || RATE_LIMIT_DELAY)
+      retry if retries < MAX_RETRIES
+      raise
+    rescue NotFoundError => e
+      @logger.debug "Course #{course_id} not found in API"
+      nil # Return nil for 404s - this is expected behavior
+    rescue NetworkError, ApiError => e
       retries += 1
-      if retries <= MAX_RETRIES && !e.message.include?('404')
-        @logger.warn "Retrying course fetch for ID #{course_id} (attempt #{retries}): #{e.message}"
-        sleep(retries * 2)
+      if retries <= MAX_RETRIES
+        wait_time = exponential_backoff(retries)
+        @logger.warn "Retrying course fetch for ID #{course_id} (attempt #{retries}/#{MAX_RETRIES}): #{e.message}, waiting #{wait_time}s"
+        sleep(wait_time)
         retry
       else
-        raise e
+        @logger.error "Failed to fetch course #{course_id} after #{MAX_RETRIES} retries: #{e.message}"
+        raise
       end
+    rescue => e
+      error = ApiError.new("Unexpected error fetching course #{course_id}: #{e.message}")
+      @error_tracker.record_error(error, { course_id: course_id, retries: retries })
+      raise error
     end
   end
 
@@ -380,5 +444,36 @@ class CoursesSyncService
     end
 
     expanded_name
+  end
+
+  def validate_course_data(course_data, course_id)
+    return if course_data.nil? # Allow nil for 404 cases
+
+    unless course_data.is_a?(Hash)
+      raise DataValidationError.new("Invalid course data format for course #{course_id}", 
+                                   details: { course_id: course_id, data_type: course_data.class })
+    end
+
+    # Validate required fields
+    required_fields = %w[id]
+    missing_fields = required_fields.reject { |field| course_data.key?(field) }
+    
+    if missing_fields.any?
+      raise DataValidationError.new("Missing required fields for course #{course_id}: #{missing_fields.join(', ')}", 
+                                   details: { course_id: course_id, missing_fields: missing_fields })
+    end
+  end
+
+  def exponential_backoff(attempt)
+    [2 ** attempt, 60].min # Cap at 60 seconds
+  end
+
+  # Get comprehensive error summary for monitoring
+  def error_summary
+    @error_tracker.error_summary.merge(
+      circuit_breaker_state: @circuit_breaker.state,
+      circuit_breaker_failures: @circuit_breaker.failure_count,
+      has_critical_errors: @error_tracker.has_critical_errors?
+    )
   end
 end

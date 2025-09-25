@@ -80,6 +80,65 @@ class Rack::Attack
     end
   end
 
+  # Prevent handicap calculation abuse
+  throttle('handicap_calculations_per_user', limit: 20, period: 1.hour) do |req|
+    if req.path.match?(/\/api\/v1\/users\/.*\/handicap/) && req.get?
+      extract_user_id_from_token(req)
+    end
+  end
+
+  # Protect course synchronization endpoints (admin only)
+  throttle('course_sync_per_ip', limit: 10, period: 1.hour) do |req|
+    req.ip if req.path.start_with?('/api/v1/admin/courses/sync')
+  end
+
+  # Prevent score manipulation attempts
+  throttle('hole_scores_per_user', limit: 200, period: 1.day) do |req|
+    if req.path.match?(/\/api\/v1\/rounds\/.*\/hole_scores/) && req.post?
+      extract_user_id_from_token(req)
+    end
+  end
+
+  # Prevent attestation spam
+  throttle('attestations_per_user', limit: 50, period: 1.day) do |req|
+    if req.path.match?(/\/api\/v1\/rounds\/.*\/request_attestation/) && req.post?
+      extract_user_id_from_token(req)
+    end
+  end
+
+  # Rate limit by authenticated user for general API usage
+  throttle('authenticated_user_requests', limit: 1000, period: 1.hour) do |req|
+    if req.path.start_with?('/api/v1/') && req.env['HTTP_AUTHORIZATION']
+      extract_user_id_from_token(req)
+    end
+  end
+
+  # Stricter limits for unregistered users
+  throttle('unauthenticated_requests_per_ip', limit: 60, period: 1.hour) do |req|
+    if req.path.start_with?('/api/v1/') && !req.env['HTTP_AUTHORIZATION']
+      req.ip
+    end
+  end
+
+  # Geographic-based limiting (example)
+  throttle('requests_per_country', limit: 10000, period: 1.hour) do |req|
+    # This would require a GeoIP service
+    # country_code = GeoIP.country(req.ip)
+    # "#{country_code}" if country_code
+  end
+
+  # Progressive rate limiting - stricter for repeated violations
+  throttle('progressive_limit_violation', limit: 5, period: 1.hour) do |req|
+    violations_key = "violations:#{req.ip}"
+    violations = Rack::Attack.cache.read(violations_key) || 0
+    
+    if violations > 0
+      # Exponentially decrease allowed requests based on previous violations
+      adjusted_limit = [100 / (2 ** violations), 10].max
+      req.ip if violations >= 3 # Only apply to repeat offenders
+    end
+  end
+
   # Custom response for throttled requests
   self.throttled_responder = lambda do |env|
     match_data = env['rack.attack.match_data']
@@ -114,9 +173,70 @@ class Rack::Attack
     
     case req.env['rack.attack.match_type']
     when :throttle
-      Rails.logger.warn "[Rack::Attack] Throttled #{req.ip} for #{req.env['rack.attack.matched']}"
+      Rails.logger.warn({
+        event: 'rate_limit_triggered',
+        ip: req.ip,
+        path: req.path,
+        matched_rule: req.env['rack.attack.matched'],
+        user_agent: req.user_agent,
+        timestamp: Time.current.iso8601
+      }.to_json)
+      
+      # Track violations for progressive limiting
+      violations_key = "violations:#{req.ip}"
+      violations = Rack::Attack.cache.read(violations_key) || 0
+      Rack::Attack.cache.write(violations_key, violations + 1, expires_in: 24.hours)
+      
     when :blocklist
-      Rails.logger.error "[Rack::Attack] Blocked #{req.ip} for #{req.env['rack.attack.matched']}"
+      Rails.logger.error({
+        event: 'request_blocked',
+        ip: req.ip,
+        path: req.path,
+        matched_rule: req.env['rack.attack.matched'],
+        user_agent: req.user_agent,
+        timestamp: Time.current.iso8601
+      }.to_json)
+    end
+  end
+
+  # Helper method to extract user ID from JWT token
+  def self.extract_user_id_from_token(req)
+    token = req.env['HTTP_AUTHORIZATION']&.split(' ')&.last
+    return nil unless token
+    
+    begin
+      decoded = JWT.decode(token, Rails.application.secret_key_base, true, { algorithm: 'HS256' })
+      decoded[0]['user_id']
+    rescue JWT::DecodeError
+      nil
+    end
+  end
+
+  # Conditional rate limiting based on user trust score
+  throttle('untrusted_user_requests', limit: 100, period: 1.hour) do |req|
+    if req.path.start_with?('/api/v1/') && req.env['HTTP_AUTHORIZATION']
+      user_id = extract_user_id_from_token(req)
+      if user_id
+        user = User.find_by(id: user_id)
+        # Apply stricter limits to new or untrusted users
+        if user&.created_at&.> 7.days.ago || (user&.verified_rounds&.< 5)
+          user_id
+        end
+      end
+    end
+  end
+
+  # Protect sensitive endpoints with stricter limits
+  throttle('sensitive_endpoint_access', limit: 10, period: 1.hour) do |req|
+    sensitive_paths = [
+      '/api/v1/auth/change_password',
+      '/api/v1/auth/reset_password',
+      '/api/v1/users/delete_account',
+      '/api/v1/admin'
+    ]
+    
+    if sensitive_paths.any? { |path| req.path.start_with?(path) }
+      req.ip
     end
   end
 end

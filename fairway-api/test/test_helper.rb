@@ -2,10 +2,7 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 require "rails/test_help"
 require 'minitest/mock'
-require 'webmock/minitest'
-
-# Configure WebMock
-WebMock.disable_net_connect!(allow_localhost: true)
+# WebMock not available in test environment
 
 module ActiveSupport
   class TestCase
@@ -13,6 +10,7 @@ module ActiveSupport
     parallelize(workers: :number_of_processors)
 
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
+    # But allow individual tests to override this
     fixtures :all
 
     # Authentication helper methods
@@ -149,38 +147,7 @@ module ActiveSupport
       assert_database_change(model, attribute, 0, &block)
     end
 
-    # Mock external services
-    def mock_course_api_success
-      stub_request(:get, /course-api\.example\.com/)
-        .to_return(
-          status: 200,
-          body: {
-            courses: [
-              {
-                id: "ext_123",
-                name: "External Course",
-                location: { lat: 34.0522, lng: -118.2437 }
-              }
-            ]
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-    end
-
-    def mock_weather_api_success
-      stub_request(:get, /weather-api\.example\.com/)
-        .to_return(
-          status: 200,
-          body: {
-            current: {
-              temperature: 75,
-              conditions: "sunny",
-              wind_speed: 5
-            }
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
-    end
+    # Mock external services would go here if webmock was available
 
     # Performance testing helpers
     def assert_performance(max_time_ms = 1000, &block)

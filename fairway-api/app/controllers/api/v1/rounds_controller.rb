@@ -3,7 +3,8 @@ class Api::V1::RoundsController < ApplicationController
   before_action :set_round, only: [:show, :update, :complete, :request_attestation, :hole_scores, :add_hole_score]
 
   def index
-    rounds = current_user.rounds.includes(:course, :hole_scores).recent
+    # Fix N+1 query by including all necessary associations
+    rounds = current_user.rounds.includes(:course, :hole_scores, :round_attestations, holes: :course).recent
     
     # Filter by status if provided
     case params[:status]
@@ -25,6 +26,8 @@ class Api::V1::RoundsController < ApplicationController
   end
 
   def show
+    # Preload associations to avoid N+1 queries
+    @round = @round.includes(:course, hole_scores: :hole)
     render_success({ 
       round: detailed_round_response(@round),
       hole_scores: @round.hole_scores.includes(:hole).order('holes.number').map { |score| hole_score_response(score) }
@@ -135,7 +138,8 @@ class Api::V1::RoundsController < ApplicationController
   end
 
   def statistics
-    rounds = current_user.rounds.completed.includes(:hole_scores, :course)
+    # Preload all associations needed for statistics
+    rounds = current_user.rounds.completed.includes(:hole_scores, :course, :round_attestations)
     
     stats = {
       total_rounds: rounds.count,
@@ -153,7 +157,8 @@ class Api::V1::RoundsController < ApplicationController
   private
 
   def set_round
-    @round = current_user.rounds.find(params[:id])
+    # Preload course association to avoid N+1 queries
+    @round = current_user.rounds.includes(:course).find(params[:id])
   end
 
   def round_params

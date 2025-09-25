@@ -1,9 +1,9 @@
 # Rounds fixture for testing
 
-current_round:
+one:
   id: "550e8400-e29b-41d4-a716-446655440201"
   user: one
-  course: pebble_beach
+  course: one
   started_at: <%= 2.hours.ago %>
   tee_color: "white"
   course_rating: 74.5
@@ -26,10 +26,10 @@ current_round:
   created_at: <%= 2.hours.ago %>
   updated_at: <%= 1.hour.ago %>
 
-completed_round:
+two:
   id: "550e8400-e29b-41d4-a716-446655440202"
   user: one
-  course: torrey_pines
+  course: one
   started_at: <%= 1.week.ago %>
   completed_at: <%= 1.week.ago + 4.hours %>
   submitted_at: <%= 1.week.ago + 4.hours %>
@@ -54,10 +54,10 @@ completed_round:
   created_at: <%= 1.week.ago %>
   updated_at: <%= 1.week.ago + 4.hours %>
 
-high_fraud_round:
+three:
   id: "550e8400-e29b-41d4-a716-446655440203"
   user: two
-  course: municipal_course
+  course: one
   started_at: <%= 3.days.ago %>
   completed_at: <%= 3.days.ago + 1.hour %>
   submitted_at: <%= 3.days.ago + 1.hour %>
@@ -82,10 +82,10 @@ high_fraud_round:
   created_at: <%= 3.days.ago %>
   updated_at: <%= 3.days.ago + 1.hour %>
 
-scratch_round:
+four:
   id: "550e8400-e29b-41d4-a716-446655440204"
   user: scratch_golfer
-  course: augusta_national
+  course: one
   started_at: <%= 2.weeks.ago %>
   completed_at: <%= 2.weeks.ago + 4.5.hours %>
   submitted_at: <%= 2.weeks.ago + 4.5.hours %>

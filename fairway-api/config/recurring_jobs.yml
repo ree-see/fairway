@@ -1,0 +1,16 @@
+# Recurring jobs configuration for solid_queue
+# Jobs are scheduled using cron syntax
+
+# Course synchronization jobs
+courses_daily_sync:
+  class: CoursesSyncJob
+  args: ['update']
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  queue: default
+
+# Weekly maintenance sync (more comprehensive)
+courses_weekly_maintenance:
+  class: CoursesSyncJob  
+  args: ['update', { comprehensive: true }]
+  schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+  queue: default

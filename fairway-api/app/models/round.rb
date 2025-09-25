@@ -55,8 +55,7 @@ class Round < ApplicationRecord
   end
 
   def duration_minutes
-    return nil unless started_at && completed_at
-    ((completed_at - started_at) / 60).round
+    scoring_service.duration_minutes
   end
 
   def holes_completed
@@ -64,99 +63,52 @@ class Round < ApplicationRecord
   end
 
   def completion_percentage
-    return 0 if course.holes.empty?
-    (holes_completed.to_f / course.holes.count * 100).round(1)
+    scoring_service.completion_percentage
   end
 
-  # Calculate score differential using USGA formula
+  # Calculate score differential using scoring service
   def calculate_score_differential
-    return nil unless total_strokes && course_rating && slope_rating
-
-    # Score Differential = (113 / Slope Rating) x (Adjusted Gross Score - Course Rating - PCC)
-    # PCC (Playing Conditions Calculation) is 0 for now
-    pcc = 0
-    
-    adjusted_gross_score = [total_strokes, maximum_hole_scores].min
-    
-    self.score_differential = (113.0 / slope_rating) * (adjusted_gross_score - course_rating - pcc)
-    score_differential.round(1)
+    scoring_service.calculate_score_differential
   end
 
   # Maximum score per hole for handicap calculation (Net Double Bogey)
   def maximum_hole_scores
-    return total_strokes unless course.holes.any?
-    
-    course.holes.sum do |hole|
-      # Net Double Bogey = Par + 2 + handicap strokes
-      hole.par + 2 + handicap_strokes_for_hole(hole)
-    end
+    scoring_service.maximum_hole_scores
   end
 
   def handicap_strokes_for_hole(hole)
-    return 0 unless user.handicap_index
-    
-    # Calculate strokes received on this hole based on handicap
-    course_handicap = (user.handicap_index * slope_rating / 113.0).round
-    
-    if course_handicap >= hole.handicap
-      1 + ((course_handicap - hole.handicap) / 18)
-    else
-      0
-    end
+    scoring_service.handicap_strokes_for_hole(hole)
   end
 
   def request_attestation(attester)
-    return false if attesters.include?(attester)
-    return false if attester == user
-    
-    round_attestations.create!(
-      attester: attester,
-      requested_at: Time.current,
-      is_approved: false
-    )
+    attestation_service.request_attestation(attester)
   end
 
   def add_attestation(attester, approved:, comments: nil)
-    attestation = round_attestations.find_or_initialize_by(attester: attester)
-    
-    attestation.update!(
-      is_approved: approved,
-      comments: comments,
-      attested_at: Time.current
-    )
-
-    # Update verification status
-    self.verification_count = round_attestations.where(is_approved: true).count
-    self.is_verified = verification_count >= 1 && fraud_risk_score < 50.0
-    self.is_provisional = !is_verified
-    
-    save!
-    attestation
+    attestation_service.add_attestation(attester, approved: approved, comments: comments)
   end
 
   def fraud_risk_factors_list
-    return [] unless fraud_risk_factors.present?
-    
-    JSON.parse(fraud_risk_factors)
-  rescue JSON::ParserError
-    []
+    fraud_detection_service.fraud_risk_factors_list
+  end
+
+  def calculate_score_differential
+    return nil unless total_strokes && course_rating && slope_rating
+    self.score_differential = scoring_service.calculate_score_differential
   end
 
   private
 
   def calculate_totals
-    if hole_scores.any?
-      self.total_strokes = hole_scores.sum(:strokes)
-      self.total_putts = hole_scores.sum(:putts).presence || 0
-      self.fairways_hit = hole_scores.where(fairway_hit: true).count
-      self.greens_in_regulation = hole_scores.where(green_in_regulation: true).count
-      self.total_penalties = hole_scores.sum(:penalties)
-    end
+    return unless hole_scores.any?
+    
+    totals = scoring_service.calculate_totals
+    assign_attributes(totals)
   end
 
   def verify_location
     if start_latitude.present? && start_longitude.present?
-      self.location_verified = course.within_geofence?(start_latitude, start_longitude)
+      self.location_verified = fraud_detection_service.verify_location(start_latitude, start_longitude)
     end
   end
 
@@ -168,8 +120,23 @@ class Round < ApplicationRecord
   end
 
   def calculate_fraud_risk_score
-    # TODO: Implement fraud risk calculation job
-    # For now, set a default low risk score for new rounds
-    self.update_column(:fraud_risk_score, 0.0) if fraud_risk_score.nil?
+    return if fraud_risk_score.present?
+    
+    score = fraud_detection_service.calculate_fraud_risk_score
+    self.update_column(:fraud_risk_score, score)
+  end
+
+  private
+
+  def scoring_service
+    @scoring_service ||= RoundScoringService.new(self)
+  end
+
+  def attestation_service
+    @attestation_service ||= RoundAttestationService.new(self)
+  end
+
+  def fraud_detection_service
+    @fraud_detection_service ||= FraudDetectionService.new(self)
   end
 end
