@@ -576,32 +576,28 @@ export const ScorecardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#2E7D32', // Green background for entire screen
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#2E7D32',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666666',
+    color: '#FFFFFF',
   },
   header: {
     backgroundColor: '#2E7D32',
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
     paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
+    minHeight: Platform.OS === 'ios' ? 100 : 80,
   },
   courseName: {
     fontSize: 18,
@@ -616,7 +612,9 @@ const styles = StyleSheet.create({
   },
   holeContainer: {
     flex: 1,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 0, // Remove top padding to eliminate gap
+    paddingBottom: 20,
     justifyContent: 'center',
   },
   holeCard: {
@@ -738,7 +736,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#C41E3A', // Cardinal red
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
