@@ -56,9 +56,10 @@ class ApiService {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return this.api(originalRequest);
           } catch (refreshError) {
-            // Refresh failed, redirect to login
+            // Refresh failed, clear auth and let app handle redirect
             await this.clearStoredAuth();
-            throw refreshError;
+            console.error('Token refresh failed:', refreshError);
+            throw new Error('No refresh token available');
           }
         }
         

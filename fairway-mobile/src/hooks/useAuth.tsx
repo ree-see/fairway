@@ -17,6 +17,7 @@ interface AuthContextType {
   updateUserData: (userData: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   refreshUser: () => Promise<void>;
+  handleAuthFailure: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,9 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           await refreshUser();
         } catch (error) {
-          // Token expired or invalid, clear stored auth
-          console.log('Token validation failed, clearing stored auth');
-          await clearStoredAuth();
+          // Token might be expired but refresh token could still be valid
+          console.log('Token validation failed, but user will remain logged in for retry attempts');
+          // Don't clear stored auth immediately - let the API service handle token refresh
         }
       }
     } catch (error) {
@@ -166,8 +167,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const handleAuthFailure = async (): Promise<void> => {
+    console.log('Authentication failed completely, clearing stored auth');
+    await clearStoredAuth();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser, updateUserData }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser, updateUserData, handleAuthFailure }}>
       {children}
     </AuthContext.Provider>
   );

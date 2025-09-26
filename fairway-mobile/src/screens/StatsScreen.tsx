@@ -1,0 +1,242 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  SafeAreaView,
+} from 'react-native';
+
+const StatsScreen: React.FC = () => {
+  // Mock data for demonstration
+  const stats = {
+    handicapIndex: 14.2,
+    averageScore: 87,
+    totalRounds: 24,
+    fairwaysInRegulation: 62.5,
+    greensInRegulation: 47.2,
+    averagePutts: 2.1,
+    scrambling: 68.4,
+    strokesGained: {
+      driving: -0.3,
+      approach: -0.8,
+      shortGame: 0.2,
+      putting: -0.1
+    }
+  };
+
+  const StatCard: React.FC<{ title: string; value: string | number; subtitle?: string }> = ({ 
+    title, 
+    value, 
+    subtitle 
+  }) => (
+    <View style={styles.statCard}>
+      <Text style={styles.statTitle}>{title}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      {subtitle && <Text style={styles.statSubtitle}>{subtitle}</Text>}
+    </View>
+  );
+
+  const SectionCard: React.FC<{ title: string; children: React.ReactNode }> = ({ 
+    title, 
+    children 
+  }) => (
+    <View style={styles.sectionCard}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {children}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        {/* Overview Stats */}
+        <SectionCard title="Overview">
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Handicap Index" 
+              value={stats.handicapIndex.toFixed(1)} 
+            />
+            <StatCard 
+              title="Average Score" 
+              value={Math.round(stats.averageScore)} 
+            />
+          </View>
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Total Rounds" 
+              value={stats.totalRounds} 
+              subtitle="This Season"
+            />
+            <StatCard 
+              title="Best Round" 
+              value={79} 
+              subtitle="Last Month"
+            />
+          </View>
+        </SectionCard>
+
+        {/* Performance Stats */}
+        <SectionCard title="Performance">
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Fairways in Regulation" 
+              value={`${stats.fairwaysInRegulation}%`} 
+            />
+            <StatCard 
+              title="Greens in Regulation" 
+              value={`${stats.greensInRegulation}%`} 
+            />
+          </View>
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Average Putts" 
+              value={stats.averagePutts.toFixed(1)} 
+            />
+            <StatCard 
+              title="Scrambling" 
+              value={`${stats.scrambling}%`} 
+            />
+          </View>
+        </SectionCard>
+
+        {/* Strokes Gained */}
+        <SectionCard title="Strokes Gained">
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Driving" 
+              value={stats.strokesGained.driving > 0 ? `+${stats.strokesGained.driving}` : stats.strokesGained.driving} 
+            />
+            <StatCard 
+              title="Approach" 
+              value={stats.strokesGained.approach > 0 ? `+${stats.strokesGained.approach}` : stats.strokesGained.approach} 
+            />
+          </View>
+          <View style={styles.statRow}>
+            <StatCard 
+              title="Short Game" 
+              value={stats.strokesGained.shortGame > 0 ? `+${stats.strokesGained.shortGame}` : stats.strokesGained.shortGame} 
+            />
+            <StatCard 
+              title="Putting" 
+              value={stats.strokesGained.putting > 0 ? `+${stats.strokesGained.putting}` : stats.strokesGained.putting} 
+            />
+          </View>
+        </SectionCard>
+
+        {/* Trends */}
+        <SectionCard title="Recent Trends">
+          <View style={styles.trendContainer}>
+            <View style={styles.trendItem}>
+              <Text style={styles.trendLabel}>Last 5 Rounds</Text>
+              <Text style={styles.trendValue}>84.2 avg</Text>
+              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ +2.1</Text>
+            </View>
+            <View style={styles.trendItem}>
+              <Text style={styles.trendLabel}>This Month</Text>
+              <Text style={styles.trendValue}>GIR 52%</Text>
+              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ +4.8%</Text>
+            </View>
+            <View style={styles.trendItem}>
+              <Text style={styles.trendLabel}>Putting</Text>
+              <Text style={styles.trendValue}>1.98 avg</Text>
+              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ -0.12</Text>
+            </View>
+          </View>
+        </SectionCard>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#2E7D32',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 120, // Extra space for tab bar
+  },
+  sectionCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  statRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  statTitle: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 2,
+  },
+  statSubtitle: {
+    fontSize: 10,
+    color: '#999',
+    textAlign: 'center',
+  },
+  trendContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  trendItem: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginHorizontal: 4,
+  },
+  trendLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  trendValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 2,
+  },
+  trendChange: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+});
+
+export default StatsScreen;
