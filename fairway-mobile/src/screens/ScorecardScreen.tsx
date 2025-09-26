@@ -96,11 +96,27 @@ export const ScorecardScreen: React.FC = () => {
     } catch (error) {
       console.error('Error initializing round:', error);
       const apiError = error as ApiError;
-      Alert.alert(
-        'Error', 
-        apiError.message || 'Failed to start round',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
-      );
+      
+      // Handle authentication errors specifically
+      if (apiError.message?.includes('refresh token') || apiError.status === 401) {
+        Alert.alert(
+          'Session Expired',
+          'Your session has expired. Please log in again.',
+          [
+            { text: 'Clear Auth & Go Back', onPress: async () => {
+              await AuthDebugger.clearAllAuth();
+              navigation.navigate('Dashboard' as never);
+            }},
+            { text: 'Go Back', onPress: () => navigation.goBack() }
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Error', 
+          apiError.message || 'Failed to start round',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+      }
     } finally {
       setIsLoading(false);
     }
