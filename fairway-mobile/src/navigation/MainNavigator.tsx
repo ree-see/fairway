@@ -29,15 +29,6 @@ const DashboardStack = () => (
       }}
     />
     <Stack.Screen 
-      name="Scorecard" 
-      component={ScorecardScreen}
-      options={{ 
-        title: 'Scorecard',
-        headerStyle: { backgroundColor: '#2E7D32' },
-        headerTintColor: '#FFFFFF'
-      }}
-    />
-    <Stack.Screen 
       name="RoundDetail" 
       component={RoundDetailScreen}
       options={{ 

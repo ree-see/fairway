@@ -83,7 +83,7 @@ export const ScorecardScreen: React.FC = () => {
       // Start Live Activity for iOS Dynamic Island
       if (LiveActivityService.isLiveActivitySupported()) {
         await LiveActivityService.startRoundActivity({
-          courseId: course.id as number,
+          courseId: parseInt(course.id) || 0,
           courseName: course.name,
           startTime: roundData.started_at,
           currentHole: 1,
@@ -105,7 +105,7 @@ export const ScorecardScreen: React.FC = () => {
           [
             { text: 'Clear Auth & Go Back', onPress: async () => {
               await AuthDebugger.clearAllAuth();
-              navigation.navigate('Dashboard' as never);
+              navigation.goBack();
             }},
             { text: 'Go Back', onPress: () => navigation.goBack() }
           ]
@@ -257,7 +257,7 @@ export const ScorecardScreen: React.FC = () => {
         Alert.alert(
           'Round Submitted!',
           `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
-          [{ text: 'OK', onPress: () => navigation.navigate('Dashboard' as never) }]
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
         );
       } else {
         throw new Error(response.error || 'Failed to submit round');
@@ -357,16 +357,18 @@ export const ScorecardScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.courseName}>{course?.name}</Text>
-        <View style={styles.scoreHeader}>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoreLabel}>Total</Text>
-            <Text style={styles.scoreValue}>{getTotalScore()}</Text>
-          </View>
-          <View style={styles.scoreItem}>
-            <Text style={styles.scoreLabel}>To Par</Text>
-            <Text style={[styles.scoreValue, { color: getScoreToPar() > 0 ? '#F44336' : '#4CAF50' }]}>
+      {/* Custom Focused Round Header */}
+      <View style={styles.focusedHeader}>
+        <View style={styles.headerLeft}>
+          <Text style={styles.courseNameFocused}>{course?.name}</Text>
+          <Text style={styles.holeProgress}>
+            Hole {getCompletedHoles() + 1}/18
+          </Text>
+        </View>
+        <View style={styles.headerRight}>
+          <View style={styles.scoreDisplayFocused}>
+            <Text style={styles.scoreLabelFocused}>Score</Text>
+            <Text style={[styles.scoreValueFocused, { color: getScoreToPar() > 0 ? '#F44336' : '#4CAF50' }]}>
               {getScoreToPar() > 0 ? '+' : ''}{getScoreToPar()}
             </Text>
           </View>
@@ -423,7 +425,14 @@ export const ScorecardScreen: React.FC = () => {
             
             <TouchableOpacity style={styles.menuItem} onPress={() => {
               setShowMenu(false);
-              Alert.alert('Pause Round', 'This will save your progress. You can resume from the Dashboard.');
+              Alert.alert(
+                'Pause Round',
+                'Save progress and return to Dashboard?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Pause & Exit', onPress: () => navigation.goBack() }
+                ]
+              );
             }}>
               <Text style={styles.menuItemText}>Pause Round</Text>
             </TouchableOpacity>
@@ -455,10 +464,16 @@ export const ScorecardScreen: React.FC = () => {
               setShowMenu(false);
               Alert.alert(
                 'Exit Without Saving?',
-                'All progress will be lost. Are you sure?',
+                'All progress will be lost. Return to Dashboard?',
                 [
                   { text: 'Cancel', style: 'cancel' },
-                  { text: 'Exit', style: 'destructive', onPress: () => navigation.goBack() }
+                  { text: 'Exit', style: 'destructive', onPress: () => {
+                    // End Live Activity if running
+                    if (LiveActivityService.isLiveActivitySupported()) {
+                      LiveActivityService.endActivity();
+                    }
+                    navigation.goBack();
+                  }}
                 ]
               );
             }}>
@@ -475,6 +490,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+  },
+  focusedHeader: {
+    backgroundColor: '#2E7D32',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Account for status bar
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  headerLeft: {
+    flex: 1,
+  },
+  headerRight: {
+    alignItems: 'flex-end',
+  },
+  courseNameFocused: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 2,
+  },
+  holeProgress: {
+    fontSize: 12,
+    color: '#E8F5E8',
+  },
+  scoreDisplayFocused: {
+    alignItems: 'center',
+  },
+  scoreLabelFocused: {
+    fontSize: 10,
+    color: '#E8F5E8',
+    marginBottom: 2,
+  },
+  scoreValueFocused: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
