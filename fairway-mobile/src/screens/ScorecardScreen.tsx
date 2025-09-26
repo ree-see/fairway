@@ -457,35 +457,35 @@ export const ScorecardScreen: React.FC = () => {
                 </Text>
               </TouchableOpacity>
             )}
-
-            {/* Hole Selectors */}
-            <View style={styles.holeSelectorContainer}>
-              <Text style={styles.holeSelectorTitle}>Select Hole</Text>
-              <View style={styles.holeGridContainer}>
-                {holes.map((hole, index) => (
-                  <TouchableOpacity
-                    key={hole.id}
-                    style={[
-                      styles.holeSelector,
-                      index === currentHoleIndex && styles.holeSelectorActive,
-                      hole.strokes !== undefined && styles.holeSelectorCompleted
-                    ]}
-                    onPress={() => navigateToHole(index)}
-                  >
-                    <Text style={[
-                      styles.holeSelectorText,
-                      index === currentHoleIndex && styles.holeSelectorTextActive,
-                      hole.strokes !== undefined && styles.holeSelectorTextCompleted
-                    ]}>
-                      {hole.number}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
           </View>
         </Animated.View>
       </PanGestureHandler>
+
+      {/* Hole Selectors - Separate from hole card */}
+      <View style={styles.holeSelectorContainer}>
+        <Text style={styles.holeSelectorTitle}>Select Hole</Text>
+        <View style={styles.holeGridContainer}>
+          {holes.map((hole, index) => (
+            <TouchableOpacity
+              key={hole.id}
+              style={[
+                styles.holeSelector,
+                index === currentHoleIndex && styles.holeSelectorActive,
+                hole.strokes !== undefined && styles.holeSelectorCompleted
+              ]}
+              onPress={() => navigateToHole(index)}
+            >
+              <Text style={[
+                styles.holeSelectorText,
+                index === currentHoleIndex && styles.holeSelectorTextActive,
+                hole.strokes !== undefined && styles.holeSelectorTextCompleted
+              ]}>
+                {hole.number}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
 
       {/* Submit Button - only when all holes completed */}
       {shouldShowSubmitButton() && (
@@ -710,8 +710,17 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
   },
   holeSelectorContainer: {
-    marginTop: 24,
-    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    marginHorizontal: 20,
+    marginVertical: 16,
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   holeSelectorTitle: {
     fontSize: 14,
