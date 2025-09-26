@@ -44,6 +44,7 @@ export const ScorecardScreen: React.FC = () => {
   const config = route.params as RoundConfig;
   
   const [holes, setHoles] = useState<ScoringHole[]>([]);
+  const [activeHoleNumbers, setActiveHoleNumbers] = useState<number[]>([]);
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [stagedHole, setStagedHole] = useState<ScoringHole | null>(null);
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
@@ -87,17 +88,8 @@ export const ScorecardScreen: React.FC = () => {
       
       const detailedCourse = courseResponse.data.course;
       
-      // Filter holes based on round configuration
-      let filteredHoles = detailedCourse.holes;
-      if (config.roundType === '9') {
-        if (config.nineHoleOption === 'front') {
-          filteredHoles = detailedCourse.holes.filter(hole => hole.number <= 9);
-        } else {
-          filteredHoles = detailedCourse.holes.filter(hole => hole.number >= 10);
-        }
-      }
-      
-      const courseHoles: ScoringHole[] = filteredHoles.map(hole => ({
+      // Store all holes for display but filter active holes based on round configuration
+      const allCourseHoles: ScoringHole[] = detailedCourse.holes.map(hole => ({
         ...hole,
         strokes: undefined,
         putts: undefined,
@@ -106,7 +98,22 @@ export const ScorecardScreen: React.FC = () => {
         up_and_down: false,
       }));
       
+      // Determine which holes are active for this round
+      let activeHoleNumbers: number[] = [];
+      if (config.roundType === '9') {
+        if (config.nineHoleOption === 'front') {
+          activeHoleNumbers = detailedCourse.holes.filter(hole => hole.number <= 9).map(hole => hole.number);
+        } else {
+          activeHoleNumbers = detailedCourse.holes.filter(hole => hole.number >= 10).map(hole => hole.number);
+        }
+      } else {
+        activeHoleNumbers = detailedCourse.holes.map(hole => hole.number);
+      }
+      
+      const courseHoles = allCourseHoles;
+      
       setHoles(courseHoles);
+      setActiveHoleNumbers(activeHoleNumbers);
       
       // Create a new round
       const roundData = {
@@ -465,25 +472,34 @@ export const ScorecardScreen: React.FC = () => {
       <View style={styles.holeSelectorContainer}>
         <Text style={styles.holeSelectorTitle}>Select Hole</Text>
         <View style={styles.holeGridContainer}>
-          {holes.map((hole, index) => (
-            <TouchableOpacity
-              key={hole.id}
-              style={[
-                styles.holeSelector,
-                index === currentHoleIndex && styles.holeSelectorActive,
-                hole.strokes !== undefined && styles.holeSelectorCompleted
-              ]}
-              onPress={() => navigateToHole(index)}
+          {holes.map((hole, index) => {
+            const isActive = activeHoleNumbers.includes(hole.number);
+            const isCurrentHole = index === currentHoleIndex;
+            const isCompleted = hole.strokes !== undefined;
+            
+            return (
+              <TouchableOpacity
+                key={hole.id}
+                style={[
+                  styles.holeSelector,
+                  isCurrentHole && styles.holeSelectorActive,
+                  isCompleted && styles.holeSelectorCompleted,
+                  !isActive && styles.holeSelectorInactive
+                ]}
+                onPress={() => isActive ? navigateToHole(index) : null}
+                disabled={!isActive}
             >
               <Text style={[
                 styles.holeSelectorText,
-                index === currentHoleIndex && styles.holeSelectorTextActive,
-                hole.strokes !== undefined && styles.holeSelectorTextCompleted
+                isCurrentHole && styles.holeSelectorTextActive,
+                isCompleted && styles.holeSelectorTextCompleted,
+                !isActive && styles.holeSelectorTextInactive
               ]}>
                 {hole.number}
               </Text>
             </TouchableOpacity>
-          ))}
+            );
+          })}
         </View>
       </View>
 
@@ -755,6 +771,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E8',
     borderColor: '#2E7D32',
   },
+  holeSelectorInactive: {
+    backgroundColor: '#F0F0F0',
+    borderColor: '#E0E0E0',
+    opacity: 0.5,
+  },
   holeSelectorText: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -765,6 +786,9 @@ const styles = StyleSheet.create({
   },
   holeSelectorTextCompleted: {
     color: '#2E7D32',
+  },
+  holeSelectorTextInactive: {
+    color: '#CCCCCC',
   },
   footer: {
     padding: 20,
