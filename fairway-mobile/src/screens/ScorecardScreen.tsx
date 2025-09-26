@@ -450,18 +450,29 @@ export const ScorecardScreen: React.FC = () => {
               </TouchableOpacity>
             )}
 
-            {/* Hole Progress Indicator */}
-            <View style={styles.progressContainer}>
-              <Text style={styles.progressText}>
-                {currentHoleIndex + 1} of {holes.length}
-              </Text>
-              <View style={styles.progressBar}>
-                <View 
-                  style={[
-                    styles.progressFill, 
-                    { width: `${((currentHoleIndex + 1) / holes.length) * 100}%` }
-                  ]} 
-                />
+            {/* Hole Selectors */}
+            <View style={styles.holeSelectorContainer}>
+              <Text style={styles.holeSelectorTitle}>Select Hole</Text>
+              <View style={styles.holeGridContainer}>
+                {holes.map((hole, index) => (
+                  <TouchableOpacity
+                    key={hole.id}
+                    style={[
+                      styles.holeSelector,
+                      index === currentHoleIndex && styles.holeSelectorActive,
+                      hole.strokes !== undefined && styles.holeSelectorCompleted
+                    ]}
+                    onPress={() => setCurrentHoleIndex(index)}
+                  >
+                    <Text style={[
+                      styles.holeSelectorText,
+                      index === currentHoleIndex && styles.holeSelectorTextActive,
+                      hole.strokes !== undefined && styles.holeSelectorTextCompleted
+                    ]}>
+                      {hole.number}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </View>
@@ -688,26 +699,52 @@ const styles = StyleSheet.create({
   boolButtonTextActive: {
     color: '#2E7D32',
   },
-  progressContainer: {
+  holeSelectorContainer: {
     marginTop: 24,
-    alignItems: 'center',
+    paddingVertical: 16,
   },
-  progressText: {
+  holeSelectorTitle: {
     fontSize: 14,
     color: '#666666',
-    marginBottom: 8,
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  progressBar: {
-    width: '100%',
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    overflow: 'hidden',
+  holeGridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: '#2E7D32',
-    borderRadius: 2,
+  holeSelector: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  holeSelectorActive: {
+    backgroundColor: '#C41E3A', // Cardinal red for current hole
+    borderColor: '#C41E3A',
+  },
+  holeSelectorCompleted: {
+    backgroundColor: '#E8F5E8',
+    borderColor: '#2E7D32',
+  },
+  holeSelectorText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#666666',
+  },
+  holeSelectorTextActive: {
+    color: '#FFFFFF',
+  },
+  holeSelectorTextCompleted: {
+    color: '#2E7D32',
   },
   footer: {
     padding: 20,
