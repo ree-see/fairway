@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   StyleSheet,
@@ -10,12 +9,17 @@ import {
   ActivityIndicator,
   Modal,
   Platform,
+  Animated,
+  Dimensions,
 } from 'react-native';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import ApiService from '../services/ApiService';
 import LiveActivityService from '../services/LiveActivityService';
 import AuthDebugger from '../utils/AuthDebugger';
 import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiError } from '../types/api';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 interface ScoringHole extends Hole {
   strokes?: number;
@@ -25,16 +29,29 @@ interface ScoringHole extends Hole {
   up_and_down?: boolean;
 }
 
+interface RoundConfig {
+  course: Course;
+  roundType: '9' | '18';
+  nineHoleOption: 'front' | 'back' | null;
+  selectedTees: string;
+  totalHoles: number;
+  startingHole: number;
+}
+
 export const ScorecardScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
-  const { course } = route.params as { course: Course };
+  const config = route.params as RoundConfig;
   
   const [holes, setHoles] = useState<ScoringHole[]>([]);
+  const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  
+  const translateX = useRef(new Animated.Value(0)).current;
+  const panRef = useRef<PanGestureHandler>(null);
 
   useEffect(() => {
     initializeRound();
@@ -48,13 +65,24 @@ export const ScorecardScreen: React.FC = () => {
       await AuthDebugger.debugStoredTokens();
       
       // Get detailed course data with holes
-      const courseResponse = await ApiService.getCourse(course.id);
+      const courseResponse = await ApiService.getCourse(config.course.id);
       if (!courseResponse.success || !courseResponse.data) {
         throw new Error('Failed to load course details');
       }
       
       const detailedCourse = courseResponse.data.course;
-      const courseHoles: ScoringHole[] = detailedCourse.holes.map(hole => ({
+      
+      // Filter holes based on round configuration
+      let filteredHoles = detailedCourse.holes;
+      if (config.roundType === '9') {
+        if (config.nineHoleOption === 'front') {
+          filteredHoles = detailedCourse.holes.filter(hole => hole.number <= 9);
+        } else {
+          filteredHoles = detailedCourse.holes.filter(hole => hole.number >= 10);
+        }
+      }
+      
+      const courseHoles: ScoringHole[] = filteredHoles.map(hole => ({
         ...hole,
         strokes: undefined,
         putts: undefined,
@@ -67,10 +95,11 @@ export const ScorecardScreen: React.FC = () => {
       
       // Create a new round
       const roundData = {
-        course_id: course.id,
+        course_id: config.course.id,
         started_at: new Date().toISOString(),
-        tee_color: 'white', // Default to white tees
+        tee_color: config.selectedTees,
         is_provisional: true,
+        holes_played: config.totalHoles,
       };
       
       const roundResponse = await ApiService.createRound(roundData);
@@ -83,8 +112,8 @@ export const ScorecardScreen: React.FC = () => {
       // Start Live Activity for iOS Dynamic Island
       if (LiveActivityService.isLiveActivitySupported()) {
         await LiveActivityService.startRoundActivity({
-          courseId: parseInt(course.id) || 0,
-          courseName: course.name,
+          courseId: parseInt(config.course.id) || 0,
+          courseName: config.course.name,
           startTime: roundData.started_at,
           currentHole: 1,
           totalHoles: courseHoles.length,
@@ -122,12 +151,13 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
-  const updateHoleScore = async (holeNumber: number, field: 'strokes' | 'putts', value: string) => {
+  const updateHoleScore = async (field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
+    const currentHole = holes[currentHoleIndex];
     
     setHoles(prev => {
-      const updatedHoles = prev.map(hole => 
-        hole.number === holeNumber 
+      const updatedHoles = prev.map((hole, index) => 
+        index === currentHoleIndex 
           ? { ...hole, [field]: numValue }
           : hole
       );
@@ -135,8 +165,8 @@ export const ScorecardScreen: React.FC = () => {
       // Update Live Activity when strokes are updated (use setTimeout to ensure state has updated)
       if (field === 'strokes' && numValue && currentRound && LiveActivityService.isLiveActivitySupported()) {
         setTimeout(async () => {
-          const scoreToPar = updatedHoles.reduce((total, hole) => total + ((hole.strokes || 0) - hole.par), 0);
-          const completedHoles = updatedHoles.filter(hole => hole.strokes && hole.strokes > 0).length;
+          const scoreToPar = getScoreToPar(updatedHoles);
+          const completedHoles = getCompletedHoles(updatedHoles);
           
           console.log('Updating Live Activity:', {
             hole: Math.max(1, completedHoles),
@@ -151,44 +181,37 @@ export const ScorecardScreen: React.FC = () => {
             scoreToPar, 
             currentRound.started_at
           );
-        }, 100); // Small delay to ensure state has updated
+        }, 100);
       }
 
       return updatedHoles;
     });
+
+    // Auto-advance to next hole after strokes entry
+    if (field === 'strokes' && numValue && currentHoleIndex < holes.length - 1) {
+      setTimeout(() => {
+        goToNextHole();
+      }, 300); // Small delay for better UX
+    }
   };
 
-  const updateHoleBool = (holeNumber: number, field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
-    setHoles(prev => prev.map(hole => 
-      hole.number === holeNumber 
+  const updateHoleBool = (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
+    setHoles(prev => prev.map((hole, index) => 
+      index === currentHoleIndex 
         ? { ...hole, [field]: value }
         : hole
     ));
   };
 
-  const getTotalScore = () => {
-    return holes.reduce((total, hole) => total + (hole.strokes || 0), 0);
-  };
-
-  const getTotalPar = () => {
-    return holes.reduce((total, hole) => total + hole.par, 0);
-  };
-
-  const getScoreToPar = () => {
-    // Only calculate score to par for completed holes
-    const completedHoles = holes.filter(hole => hole.strokes && hole.strokes > 0);
+  const getScoreToPar = (holesData = holes) => {
+    const completedHoles = holesData.filter(hole => hole.strokes && hole.strokes > 0);
     const totalStrokes = completedHoles.reduce((total, hole) => total + (hole.strokes || 0), 0);
     const totalPar = completedHoles.reduce((total, hole) => total + hole.par, 0);
     return totalStrokes - totalPar;
   };
 
-  const getCompletedHoles = () => {
-    return holes.filter(hole => hole.strokes && hole.strokes > 0).length;
-  };
-
-  const shouldShowSubmitButton = () => {
-    const completedHoles = getCompletedHoles();
-    return completedHoles === 9 || completedHoles === 18;
+  const getCompletedHoles = (holesData = holes) => {
+    return holesData.filter(hole => hole.strokes && hole.strokes > 0).length;
   };
 
   const getScoreDisplay = () => {
@@ -200,25 +223,62 @@ export const ScorecardScreen: React.FC = () => {
     }
     
     if (scoreToPar === 0) {
-      return completedHoles === 18 ? 'E' : `E thru ${completedHoles}`;
+      return completedHoles === holes.length ? 'E' : `E thru ${completedHoles}`;
     }
     
     const scoreText = scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
-    return completedHoles === 18 ? scoreText : `${scoreText} thru ${completedHoles}`;
+    return completedHoles === holes.length ? scoreText : `${scoreText} thru ${completedHoles}`;
+  };
+
+  const goToNextHole = () => {
+    if (currentHoleIndex < holes.length - 1) {
+      setCurrentHoleIndex(prev => prev + 1);
+    }
+  };
+
+  const goToPreviousHole = () => {
+    if (currentHoleIndex > 0) {
+      setCurrentHoleIndex(prev => prev - 1);
+    }
+  };
+
+  const onPanGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX } }],
+    { useNativeDriver: true }
+  );
+
+  const onHandlerStateChange = (event: any) => {
+    const { translationX, velocityX } = event.nativeEvent;
+    
+    if (event.nativeEvent.state === 5) { // GESTURE_STATE_END
+      const shouldSwipe = Math.abs(translationX) > screenWidth / 4 || Math.abs(velocityX) > 500;
+      
+      if (shouldSwipe) {
+        if (translationX > 0 && currentHoleIndex > 0) {
+          // Swipe right - go to previous hole
+          goToPreviousHole();
+        } else if (translationX < 0 && currentHoleIndex < holes.length - 1) {
+          // Swipe left - go to next hole
+          goToNextHole();
+        }
+      }
+      
+      // Reset animation
+      Animated.spring(translateX, {
+        toValue: 0,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const shouldShowSubmitButton = () => {
+    const completedHoles = getCompletedHoles();
+    return completedHoles === holes.length; // Show when all holes are completed
   };
 
   const submitRound = () => {
     const completedHoles = getCompletedHoles();
-    if (completedHoles === 9) {
-      Alert.alert(
-        '9-Hole Round',
-        'You have completed 9 holes. Submit as a 9-hole round?',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Submit', onPress: () => handleSubmit() },
-        ]
-      );
-    } else if (completedHoles === 18) {
+    if (completedHoles === holes.length) {
       handleSubmit();
     }
   };
@@ -232,7 +292,7 @@ export const ScorecardScreen: React.FC = () => {
     try {
       setIsSubmitting(true);
       
-      // First, save all hole scores to the backend
+      // Save all hole scores to the backend
       const holesWithScores = holes.filter(hole => hole.strokes && hole.strokes > 0);
       
       for (const hole of holesWithScores) {
@@ -243,7 +303,7 @@ export const ScorecardScreen: React.FC = () => {
           fairway_hit: hole.fairway_hit || false,
           green_in_regulation: hole.green_in_regulation || false,
           up_and_down: hole.up_and_down || false,
-          penalties: 0, // Could be enhanced to track penalties per hole
+          penalties: 0,
           drive_distance: null,
           approach_distance: null,
         };
@@ -252,16 +312,14 @@ export const ScorecardScreen: React.FC = () => {
           await ApiService.addHoleScore(currentRound.id, holeScoreData);
         } catch (error) {
           console.error(`Failed to save hole ${hole.number} score:`, error);
-          // Continue with other holes even if one fails
         }
       }
       
       // Calculate round statistics
-      const totalScore = getTotalScore();
+      const totalScore = holes.reduce((total, hole) => total + (hole.strokes || 0), 0);
       const totalPutts = holes.reduce((total, hole) => total + (hole.putts || 0), 0);
       const fairwaysHit = holes.filter(hole => hole.par >= 4 && hole.fairway_hit).length;
       const greensInRegulation = holes.filter(hole => hole.green_in_regulation).length;
-      const totalPenalties = 0; // Could be enhanced to track penalties per hole
 
       // Update round with completion data
       const roundUpdateData = {
@@ -271,7 +329,7 @@ export const ScorecardScreen: React.FC = () => {
         total_putts: totalPutts,
         fairways_hit: fairwaysHit,
         greens_in_regulation: greensInRegulation,
-        total_penalties: totalPenalties,
+        total_penalties: 0,
       };
 
       const response = await ApiService.updateRound(currentRound.id, roundUpdateData);
@@ -300,80 +358,6 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
-  const renderHole = (hole: ScoringHole) => (
-    <View key={hole.number} style={styles.holeCard}>
-      <View style={styles.holeHeader}>
-        <View style={styles.holeInfo}>
-          <Text style={styles.holeNumber}>Hole {hole.number}</Text>
-          <Text style={styles.holeDetails}>Par {hole.par} • {hole.distance}yd</Text>
-        </View>
-      </View>
-      
-      <View style={styles.scoreRow}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Strokes</Text>
-          <TextInput
-            style={styles.scoreInput}
-            value={hole.strokes?.toString() || ''}
-            onChangeText={(value) => updateHoleScore(hole.number, 'strokes', value)}
-            keyboardType="numeric"
-            maxLength={2}
-          />
-        </View>
-        
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Putts</Text>
-          <TextInput
-            style={styles.scoreInput}
-            value={hole.putts?.toString() || ''}
-            onChangeText={(value) => updateHoleScore(hole.number, 'putts', value)}
-            keyboardType="numeric"
-            maxLength={2}
-          />
-        </View>
-      </View>
-
-      {hole.par >= 4 && (
-        <View style={styles.booleanRow}>
-          <TouchableOpacity
-            style={[styles.boolButton, hole.fairway_hit && styles.boolButtonActive]}
-            onPress={() => updateHoleBool(hole.number, 'fairway_hit', !hole.fairway_hit)}
-          >
-            <Text style={[styles.boolButtonText, hole.fairway_hit && styles.boolButtonTextActive]}>
-              Fairway Hit
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {!hole.up_and_down && (
-        <View style={styles.booleanRow}>
-          <TouchableOpacity
-            style={[styles.boolButton, hole.green_in_regulation && styles.boolButtonActive]}
-            onPress={() => updateHoleBool(hole.number, 'green_in_regulation', !hole.green_in_regulation)}
-          >
-            <Text style={[styles.boolButtonText, hole.green_in_regulation && styles.boolButtonTextActive]}>
-              Green in Regulation
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {!hole.green_in_regulation && (
-        <View style={styles.booleanRow}>
-          <TouchableOpacity
-            style={[styles.boolButton, hole.up_and_down && styles.boolButtonActive]}
-            onPress={() => updateHoleBool(hole.number, 'up_and_down', !hole.up_and_down)}
-          >
-            <Text style={[styles.boolButtonText, hole.up_and_down && styles.boolButtonTextActive]}>
-              Up & Down
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -383,32 +367,108 @@ export const ScorecardScreen: React.FC = () => {
     );
   }
 
+  const currentHole = holes[currentHoleIndex];
+
   return (
     <View style={styles.container}>
-      {/* Custom Focused Round Header */}
-      <View style={styles.focusedHeader}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.courseNameFocused}>{course?.name}</Text>
-          <Text style={styles.holeProgress}>
-            Hole {getCompletedHoles() + 1}/18
-          </Text>
-        </View>
-        <View style={styles.headerRight}>
-          <View style={styles.scoreDisplayFocused}>
-            <Text style={styles.scoreLabelFocused}>Score</Text>
-            <Text style={[styles.scoreValueFocused, { color: getScoreToPar() > 0 ? '#F44336' : getScoreToPar() < 0 ? '#4CAF50' : '#FFFFFF' }]}>
-              {getScoreDisplay()}
-            </Text>
-          </View>
-        </View>
+      {/* Simplified Header */}
+      <View style={styles.header}>
+        <Text style={styles.courseName}>{config.course.name}</Text>
+        <Text style={styles.scoreDisplay}>{getScoreDisplay()}</Text>
       </View>
 
-      <ScrollView style={styles.scorecard}>
-        <View style={styles.holes}>
-          {holes.map(renderHole)}
-        </View>
-      </ScrollView>
+      {/* Single Hole Card with Swipe Navigation */}
+      <PanGestureHandler
+        ref={panRef}
+        onGestureEvent={onPanGestureEvent}
+        onHandlerStateChange={onHandlerStateChange}
+      >
+        <Animated.View 
+          style={[
+            styles.holeContainer, 
+            { transform: [{ translateX }] }
+          ]}
+        >
+          <View style={styles.holeCard}>
+            <View style={styles.holeHeader}>
+              <Text style={styles.holeNumber}>Hole {currentHole?.number}</Text>
+              <Text style={styles.holeDetails}>Par {currentHole?.par} • {currentHole?.distance}yd</Text>
+            </View>
+            
+            <View style={styles.scoreRow}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Strokes</Text>
+                <TextInput
+                  style={styles.scoreInput}
+                  value={currentHole?.strokes?.toString() || ''}
+                  onChangeText={(value) => updateHoleScore('strokes', value)}
+                  keyboardType="numeric"
+                  maxLength={2}
+                />
+              </View>
+              
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Putts</Text>
+                <TextInput
+                  style={styles.scoreInput}
+                  value={currentHole?.putts?.toString() || ''}
+                  onChangeText={(value) => updateHoleScore('putts', value)}
+                  keyboardType="numeric"
+                  maxLength={2}
+                />
+              </View>
+            </View>
 
+            {currentHole?.par >= 4 && (
+              <TouchableOpacity
+                style={[styles.boolButton, currentHole?.fairway_hit && styles.boolButtonActive]}
+                onPress={() => updateHoleBool('fairway_hit', !currentHole?.fairway_hit)}
+              >
+                <Text style={[styles.boolButtonText, currentHole?.fairway_hit && styles.boolButtonTextActive]}>
+                  Fairway Hit
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={[styles.boolButton, currentHole?.green_in_regulation && styles.boolButtonActive]}
+              onPress={() => updateHoleBool('green_in_regulation', !currentHole?.green_in_regulation)}
+            >
+              <Text style={[styles.boolButtonText, currentHole?.green_in_regulation && styles.boolButtonTextActive]}>
+                Green in Regulation
+              </Text>
+            </TouchableOpacity>
+
+            {!currentHole?.green_in_regulation && (
+              <TouchableOpacity
+                style={[styles.boolButton, currentHole?.up_and_down && styles.boolButtonActive]}
+                onPress={() => updateHoleBool('up_and_down', !currentHole?.up_and_down)}
+              >
+                <Text style={[styles.boolButtonText, currentHole?.up_and_down && styles.boolButtonTextActive]}>
+                  Up & Down
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Hole Progress Indicator */}
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressText}>
+                {currentHoleIndex + 1} of {holes.length}
+              </Text>
+              <View style={styles.progressBar}>
+                <View 
+                  style={[
+                    styles.progressFill, 
+                    { width: `${((currentHoleIndex + 1) / holes.length) * 100}%` }
+                  ]} 
+                />
+              </View>
+            </View>
+          </View>
+        </Animated.View>
+      </PanGestureHandler>
+
+      {/* Submit Button - only when all holes completed */}
       {shouldShowSubmitButton() && (
         <View style={styles.footer}>
           <TouchableOpacity 
@@ -425,13 +485,13 @@ export const ScorecardScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Floating Action Button for Menu */}
+      {/* Floating Action Button with Hamburger Icon */}
       <TouchableOpacity 
         style={styles.fabButton}
         onPress={() => setShowMenu(true)}
         activeOpacity={0.8}
       >
-        <Text style={styles.fabIcon}>⋮</Text>
+        <Text style={styles.fabIcon}>☰</Text>
       </TouchableOpacity>
 
       {/* Round Menu Modal */}
@@ -467,14 +527,14 @@ export const ScorecardScreen: React.FC = () => {
             
             <TouchableOpacity style={styles.menuItem} onPress={() => {
               setShowMenu(false);
-              Alert.alert('Round Settings', 'Settings coming soon: Change tees, add playing partners');
+              Alert.alert('Round Settings', 'Settings coming soon');
             }}>
               <Text style={styles.menuItemText}>Round Settings</Text>
             </TouchableOpacity>
             
             <TouchableOpacity style={styles.menuItem} onPress={() => {
               setShowMenu(false);
-              Alert.alert('Summary', `Completed: ${getCompletedHoles()}/18 holes\nScore: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}`);
+              Alert.alert('Summary', `Completed: ${getCompletedHoles()}/${holes.length} holes\nScore: ${getScoreDisplay()}`);
             }}>
               <Text style={styles.menuItemText}>View Summary</Text>
             </TouchableOpacity>
@@ -496,7 +556,6 @@ export const ScorecardScreen: React.FC = () => {
                 [
                   { text: 'Cancel', style: 'cancel' },
                   { text: 'Exit', style: 'destructive', onPress: () => {
-                    // End Live Activity if running
                     if (LiveActivityService.isLiveActivitySupported()) {
                       LiveActivityService.endActivity();
                     }
@@ -519,49 +578,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
-  focusedHeader: {
-    backgroundColor: '#2E7D32',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20, // Account for status bar
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  headerRight: {
-    alignItems: 'flex-end',
-  },
-  courseNameFocused: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    marginBottom: 2,
-  },
-  holeProgress: {
-    fontSize: 12,
-    color: '#E8F5E8',
-  },
-  scoreDisplayFocused: {
-    alignItems: 'center',
-  },
-  scoreLabelFocused: {
-    fontSize: 10,
-    color: '#E8F5E8',
-    marginBottom: 2,
-  },
-  scoreValueFocused: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -574,100 +590,91 @@ const styles = StyleSheet.create({
     color: '#666666',
   },
   header: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  courseName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
-  },
-  scoreHeader: {
+    backgroundColor: '#2E7D32',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
     flexDirection: 'row',
-    gap: 24,
-  },
-  scoreItem: {
+    justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  scoreLabel: {
-    fontSize: 12,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  scoreValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  scorecard: {
-    flex: 1,
-    padding: 20,
-  },
-  holes: {
-    gap: 16,
-  },
-  holeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 4,
   },
-  holeHeader: {
-    marginBottom: 16,
-  },
-  holeInfo: {
-    alignItems: 'center',
-  },
-  holeNumber: {
+  courseName: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  scoreDisplay: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  holeContainer: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  holeCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  holeHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  holeNumber: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#2E7D32',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   holeDetails: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
   },
   scoreRow: {
     flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
     justifyContent: 'center',
-  },
-  booleanRow: {
-    marginBottom: 8,
+    gap: 24,
+    marginBottom: 24,
   },
   inputContainer: {
     alignItems: 'center',
   },
   inputLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666666',
-    marginBottom: 4,
+    marginBottom: 8,
+    fontWeight: '600',
   },
   scoreInput: {
     backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    width: 50,
-    height: 40,
+    borderRadius: 12,
+    width: 80,
+    height: 60,
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#333333',
   },
   boolButton: {
     backgroundColor: '#F5F5F5',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    marginBottom: 12,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -676,12 +683,33 @@ const styles = StyleSheet.create({
     borderColor: '#2E7D32',
   },
   boolButtonText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666666',
     fontWeight: '600',
   },
   boolButtonTextActive: {
     color: '#2E7D32',
+  },
+  progressContainer: {
+    marginTop: 24,
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  progressBar: {
+    width: '100%',
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#2E7D32',
+    borderRadius: 2,
   },
   footer: {
     padding: 20,
@@ -720,7 +748,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   fabIcon: {
-    fontSize: 24,
+    fontSize: 20,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },

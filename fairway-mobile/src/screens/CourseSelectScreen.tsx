@@ -79,7 +79,7 @@ export const CourseSelectScreen: React.FC = () => {
   };
 
   const selectCourse = (course: Course) => {
-    navigation.navigate('FocusedRound' as never, { course } as never);
+    navigation.navigate('RoundConfig' as never, { course } as never);
   };
 
   const renderCourse = ({ item }: { item: Course }) => (
