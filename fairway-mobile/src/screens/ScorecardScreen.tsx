@@ -45,6 +45,7 @@ export const ScorecardScreen: React.FC = () => {
   
   const [holes, setHoles] = useState<ScoringHole[]>([]);
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
+  const [stagedHole, setStagedHole] = useState<ScoringHole | null>(null);
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,6 +57,20 @@ export const ScorecardScreen: React.FC = () => {
   useEffect(() => {
     initializeRound();
   }, []);
+
+  // Initialize staging when holes are loaded
+  useEffect(() => {
+    if (holes.length > 0 && !stagedHole) {
+      loadHoleData(currentHoleIndex);
+    }
+  }, [holes]);
+
+  // Load hole data when currentHoleIndex changes
+  useEffect(() => {
+    if (holes.length > 0) {
+      loadHoleData(currentHoleIndex);
+    }
+  }, [currentHoleIndex]);
 
   const initializeRound = async () => {
     try {
@@ -153,49 +168,22 @@ export const ScorecardScreen: React.FC = () => {
 
   const updateHoleScore = async (field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
-    const currentHole = holes[currentHoleIndex];
     
-    setHoles(prev => {
-      const updatedHoles = prev.map((hole, index) => 
-        index === currentHoleIndex 
-          ? { ...hole, [field]: numValue }
-          : hole
-      );
-
-      // Update Live Activity when strokes are updated (use setTimeout to ensure state has updated)
-      if (field === 'strokes' && numValue && currentRound && LiveActivityService.isLiveActivitySupported()) {
-        setTimeout(async () => {
-          const scoreToPar = getScoreToPar(updatedHoles);
-          const completedHoles = getCompletedHoles(updatedHoles);
-          
-          console.log('Updating Live Activity:', {
-            hole: Math.max(1, completedHoles),
-            totalHoles: updatedHoles.length,
-            scoreToPar,
-            startTime: currentRound.started_at
-          });
-          
-          await LiveActivityService.updateScore(
-            Math.max(1, completedHoles), 
-            updatedHoles.length, 
-            scoreToPar, 
-            currentRound.started_at
-          );
-        }, 100);
-      }
-
-      return updatedHoles;
+    // Update staged hole only - don't save to main holes array yet
+    setStagedHole(prev => {
+      if (!prev) return prev;
+      return { ...prev, [field]: numValue };
     });
 
-    // Note: Auto-advance removed - users navigate manually
+    // Note: Score saved to main array only when navigating away from hole
   };
 
   const updateHoleBool = (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
-    setHoles(prev => prev.map((hole, index) => 
-      index === currentHoleIndex 
-        ? { ...hole, [field]: value }
-        : hole
-    ));
+    // Update staged hole only - don't save to main holes array yet
+    setStagedHole(prev => {
+      if (!prev) return prev;
+      return { ...prev, [field]: value };
+    });
   };
 
   const getScoreToPar = (holesData = holes) => {
@@ -225,15 +213,40 @@ export const ScorecardScreen: React.FC = () => {
     return completedHoles === holes.length ? scoreText : `${scoreText} thru ${completedHoles}`;
   };
 
+  // Save staged hole data to the main holes array
+  const saveStagedHole = () => {
+    if (stagedHole) {
+      setHoles(prev => prev.map((hole, index) => 
+        index === currentHoleIndex ? { ...stagedHole } : hole
+      ));
+    }
+  };
+
+  // Load hole data into staging when switching holes
+  const loadHoleData = (holeIndex: number) => {
+    if (holeIndex >= 0 && holeIndex < holes.length) {
+      setStagedHole({ ...holes[holeIndex] });
+    }
+  };
+
+  // Custom setCurrentHoleIndex that saves before switching
+  const navigateToHole = (newHoleIndex: number) => {
+    if (newHoleIndex !== currentHoleIndex) {
+      saveStagedHole(); // Save current hole before switching
+      setCurrentHoleIndex(newHoleIndex);
+      loadHoleData(newHoleIndex); // Load new hole data
+    }
+  };
+
   const goToNextHole = () => {
     if (currentHoleIndex < holes.length - 1) {
-      setCurrentHoleIndex(prev => prev + 1);
+      navigateToHole(currentHoleIndex + 1);
     }
   };
 
   const goToPreviousHole = () => {
     if (currentHoleIndex > 0) {
-      setCurrentHoleIndex(prev => prev - 1);
+      navigateToHole(currentHoleIndex - 1);
     }
   };
 
@@ -362,7 +375,7 @@ export const ScorecardScreen: React.FC = () => {
     );
   }
 
-  const currentHole = holes[currentHoleIndex];
+  const currentHole = stagedHole || holes[currentHoleIndex];
 
   return (
     <View style={styles.container}>
@@ -457,7 +470,7 @@ export const ScorecardScreen: React.FC = () => {
                       index === currentHoleIndex && styles.holeSelectorActive,
                       hole.strokes !== undefined && styles.holeSelectorCompleted
                     ]}
-                    onPress={() => setCurrentHoleIndex(index)}
+                    onPress={() => navigateToHole(index)}
                   >
                     <Text style={[
                       styles.holeSelectorText,
