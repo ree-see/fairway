@@ -8,6 +8,7 @@ import { CourseSelectScreen } from '../screens/CourseSelectScreen';
 import { ScorecardScreen } from '../screens/ScorecardScreen';
 import { RoundDetailScreen } from '../screens/RoundDetailScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import StatsScreen from '../screens/StatsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -49,6 +50,8 @@ export const MainNavigator: React.FC = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Stats') {
+            iconName = focused ? 'stats-chart' : 'stats-chart-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else {
@@ -63,6 +66,7 @@ export const MainNavigator: React.FC = () => {
       })}
     >
       <Tab.Screen name="Home" component={DashboardStack} />
+      <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
