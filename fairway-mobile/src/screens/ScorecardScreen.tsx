@@ -496,14 +496,16 @@ export const ScorecardScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Floating Action Button with Hamburger Icon */}
-      <TouchableOpacity 
-        style={styles.fabButton}
-        onPress={() => setShowMenu(true)}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.fabIcon}>☰</Text>
-      </TouchableOpacity>
+      {/* Bottom Capsule Menu Button */}
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity 
+          style={styles.capsuleMenuButton}
+          onPress={() => setShowMenu(true)}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.capsuleMenuText}>☰ Menu</Text>
+        </TouchableOpacity>
+      </View>
 
       {/* Round Menu Modal */}
       <Modal
@@ -766,24 +768,30 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  fabButton: {
+  bottomButtonContainer: {
     position: 'absolute',
-    right: 20,
-    bottom: 30,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    paddingTop: 20,
+    backgroundColor: '#2E7D32',
+  },
+  capsuleMenuButton: {
     backgroundColor: '#C41E3A', // Cardinal red
-    justifyContent: 'center',
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  fabIcon: {
-    fontSize: 20,
+  capsuleMenuText: {
+    fontSize: 16,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
