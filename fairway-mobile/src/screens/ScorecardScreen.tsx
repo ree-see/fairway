@@ -612,20 +612,23 @@ const styles = StyleSheet.create({
   },
   holeContainer: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 0, // Remove top padding to eliminate gap
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16, // Minimal padding to make card larger
     justifyContent: 'center',
+    alignItems: 'center',
   },
   holeCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 20,
+    padding: 32, // Increased padding for larger card
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowRadius: 12,
+    elevation: 10,
+    width: '100%',
+    maxWidth: 400, // Limit max width on tablets
+    minHeight: 500, // Ensure minimum height to fill space better
   },
   holeHeader: {
     alignItems: 'center',
@@ -658,11 +661,11 @@ const styles = StyleSheet.create({
   },
   scoreInput: {
     backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    width: 80,
-    height: 60,
+    borderRadius: 16,
+    width: 100,
+    height: 70,
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333333',
   },
