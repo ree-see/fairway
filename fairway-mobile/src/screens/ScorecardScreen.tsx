@@ -187,12 +187,7 @@ export const ScorecardScreen: React.FC = () => {
       return updatedHoles;
     });
 
-    // Auto-advance to next hole after strokes entry
-    if (field === 'strokes' && numValue && currentHoleIndex < holes.length - 1) {
-      setTimeout(() => {
-        goToNextHole();
-      }, 300); // Small delay for better UX
-    }
+    // Note: Auto-advance removed - users navigate manually
   };
 
   const updateHoleBool = (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
