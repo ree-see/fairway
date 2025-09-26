@@ -128,6 +128,20 @@ class ApiService {
     ]);
   }
 
+  private async getCurrentUserId(): Promise<string> {
+    try {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return user.id || 'anonymous';
+      }
+      return 'anonymous';
+    } catch (error) {
+      console.warn('Error getting current user ID:', error);
+      return 'anonymous';
+    }
+  }
+
   // Authentication Methods
   async login(credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> {
     try {
@@ -315,7 +329,8 @@ class ApiService {
   // Round Methods
   async getRounds(status?: 'completed' | 'in_progress' | 'verified', limit?: number): Promise<ApiResponse<{ rounds: Round[] }>> {
     try {
-      const cacheKey = `rounds:${status || 'all'}:${limit || 'all'}`;
+      const userId = await this.getCurrentUserId();
+      const cacheKey = `rounds:${userId}:${status || 'all'}:${limit || 'all'}`;
       
       return await CacheService.getOrSet(
         cacheKey,
@@ -399,7 +414,8 @@ class ApiService {
 
   async getRoundStatistics(): Promise<ApiResponse<{ statistics: RoundStatistics }>> {
     try {
-      const cacheKey = 'rounds:statistics';
+      const userId = await this.getCurrentUserId();
+      const cacheKey = `rounds:statistics:${userId}`;
       
       return await CacheService.getOrSet(
         cacheKey,
@@ -432,6 +448,30 @@ class ApiService {
       }
     } catch (error) {
       console.warn('Failed to clear course cache:', error);
+    }
+  }
+
+  async clearUserCache(): Promise<void> {
+    try {
+      const userId = await this.getCurrentUserId();
+      
+      // Clear new user-specific cache entries
+      await CacheService.remove(`rounds:statistics:${userId}`);
+      await CacheService.remove(`rounds:${userId}:all:all`);
+      await CacheService.remove(`rounds:${userId}:completed:all`);
+      await CacheService.remove(`rounds:${userId}:in_progress:all`);
+      await CacheService.remove(`rounds:${userId}:verified:all`);
+      
+      // Clear old non-user-specific cache entries that might still exist
+      await CacheService.remove('rounds:statistics');
+      await CacheService.remove('rounds:all:all');
+      await CacheService.remove('rounds:completed:all');
+      await CacheService.remove('rounds:in_progress:all');
+      await CacheService.remove('rounds:verified:all');
+      
+      console.log('User cache cleared successfully');
+    } catch (error) {
+      console.warn('Error clearing user cache:', error);
     }
   }
 
