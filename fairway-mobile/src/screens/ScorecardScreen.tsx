@@ -8,9 +8,13 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Modal,
+  Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import ApiService from '../services/ApiService';
+import LiveActivityService from '../services/LiveActivityService';
+import AuthDebugger from '../utils/AuthDebugger';
 import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiError } from '../types/api';
 
 interface ScoringHole extends Hole {
@@ -30,6 +34,7 @@ export const ScorecardScreen: React.FC = () => {
   const [currentRound, setCurrentRound] = useState<Round | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
 
   useEffect(() => {
     initializeRound();
@@ -38,6 +43,9 @@ export const ScorecardScreen: React.FC = () => {
   const initializeRound = async () => {
     try {
       setIsLoading(true);
+      
+      // Debug auth tokens
+      await AuthDebugger.debugStoredTokens();
       
       // Get detailed course data with holes
       const courseResponse = await ApiService.getCourse(course.id);
@@ -71,6 +79,19 @@ export const ScorecardScreen: React.FC = () => {
       }
       
       setCurrentRound(roundResponse.data.round);
+
+      // Start Live Activity for iOS Dynamic Island
+      if (LiveActivityService.isLiveActivitySupported()) {
+        await LiveActivityService.startRoundActivity({
+          courseId: course.id as number,
+          courseName: course.name,
+          startTime: roundData.started_at,
+          currentHole: 1,
+          totalHoles: courseHoles.length,
+          scoreToPar: 0,
+          currentScore: 0,
+        });
+      }
       
     } catch (error) {
       console.error('Error initializing round:', error);
@@ -85,13 +106,30 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
-  const updateHoleScore = (holeNumber: number, field: 'strokes' | 'putts', value: string) => {
+  const updateHoleScore = async (holeNumber: number, field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
-    setHoles(prev => prev.map(hole => 
-      hole.number === holeNumber 
-        ? { ...hole, [field]: numValue }
-        : hole
-    ));
+    setHoles(prev => {
+      const updatedHoles = prev.map(hole => 
+        hole.number === holeNumber 
+          ? { ...hole, [field]: numValue }
+          : hole
+      );
+
+      // Update Live Activity when strokes are updated
+      if (field === 'strokes' && numValue && currentRound && LiveActivityService.isLiveActivitySupported()) {
+        const scoreToPar = updatedHoles.reduce((total, hole) => total + ((hole.strokes || 0) - hole.par), 0);
+        const completedHoles = updatedHoles.filter(hole => hole.strokes && hole.strokes > 0).length;
+        
+        LiveActivityService.updateScore(
+          Math.max(1, completedHoles), 
+          updatedHoles.length, 
+          scoreToPar, 
+          currentRound.started_at
+        );
+      }
+
+      return updatedHoles;
+    });
   };
 
   const updateHoleBool = (holeNumber: number, field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
@@ -116,18 +154,27 @@ export const ScorecardScreen: React.FC = () => {
     return total - par;
   };
 
+  const getCompletedHoles = () => {
+    return holes.filter(hole => hole.strokes && hole.strokes > 0).length;
+  };
+
+  const shouldShowSubmitButton = () => {
+    const completedHoles = getCompletedHoles();
+    return completedHoles === 9 || completedHoles === 18;
+  };
+
   const submitRound = () => {
-    const completedHoles = holes.filter(hole => hole.strokes).length;
-    if (completedHoles < 18) {
+    const completedHoles = getCompletedHoles();
+    if (completedHoles === 9) {
       Alert.alert(
-        'Incomplete Round',
-        `You have only completed ${completedHoles} holes. Submit anyway?`,
+        '9-Hole Round',
+        'You have completed 9 holes. Submit as a 9-hole round?',
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Submit', onPress: () => handleSubmit() },
         ]
       );
-    } else {
+    } else if (completedHoles === 18) {
       handleSubmit();
     }
   };
@@ -186,6 +233,11 @@ export const ScorecardScreen: React.FC = () => {
       const response = await ApiService.updateRound(currentRound.id, roundUpdateData);
       
       if (response.success) {
+        // End Live Activity
+        if (LiveActivityService.isLiveActivitySupported()) {
+          await LiveActivityService.endActivity();
+        }
+
         Alert.alert(
           'Round Submitted!',
           `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
@@ -311,19 +363,94 @@ export const ScorecardScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      {shouldShowSubmitButton() && (
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
+            onPress={submitRound}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.submitButtonText}>Submit Round</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Floating Action Button for Menu */}
+      <TouchableOpacity 
+        style={styles.fabButton}
+        onPress={() => setShowMenu(true)}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.fabIcon}>⋮</Text>
+      </TouchableOpacity>
+
+      {/* Round Menu Modal */}
+      <Modal
+        visible={showMenu}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowMenu(false)}
+      >
         <TouchableOpacity 
-          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
-          onPress={submitRound}
-          disabled={isSubmitting}
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMenu(false)}
         >
-          {isSubmitting ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.submitButtonText}>Submit Round</Text>
-          )}
+          <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={() => setShowMenu(false)}>
+              <Text style={styles.menuItemText}>Continue Round</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              setShowMenu(false);
+              Alert.alert('Pause Round', 'This will save your progress. You can resume from the Dashboard.');
+            }}>
+              <Text style={styles.menuItemText}>Pause Round</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              setShowMenu(false);
+              Alert.alert('Round Settings', 'Settings coming soon: Change tees, add playing partners');
+            }}>
+              <Text style={styles.menuItemText}>Round Settings</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.menuItem} onPress={() => {
+              setShowMenu(false);
+              Alert.alert('Summary', `Completed: ${getCompletedHoles()}/18 holes\nScore: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}`);
+            }}>
+              <Text style={styles.menuItemText}>View Summary</Text>
+            </TouchableOpacity>
+            
+            {shouldShowSubmitButton() && (
+              <TouchableOpacity style={[styles.menuItem, styles.menuItemSuccess]} onPress={() => {
+                setShowMenu(false);
+                submitRound();
+              }}>
+                <Text style={[styles.menuItemText, styles.menuItemTextSuccess]}>End Round</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity style={[styles.menuItem, styles.menuItemDanger]} onPress={() => {
+              setShowMenu(false);
+              Alert.alert(
+                'Exit Without Saving?',
+                'All progress will be lost. Are you sure?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { text: 'Exit', style: 'destructive', onPress: () => navigation.goBack() }
+                ]
+              );
+            }}>
+              <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Exit Without Saving</Text>
+            </TouchableOpacity>
+          </View>
         </TouchableOpacity>
-      </View>
+      </Modal>
     </View>
   );
 };
@@ -472,6 +599,63 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#FFFFFF',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  fabButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2E7D32',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  fabIcon: {
+    fontSize: 24,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+  },
+  menuItem: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  menuItemText: {
+    fontSize: 16,
+    color: '#333333',
+  },
+  menuItemSuccess: {
+    backgroundColor: '#E8F5E8',
+  },
+  menuItemTextSuccess: {
+    color: '#2E7D32',
+    fontWeight: 'bold',
+  },
+  menuItemDanger: {
+    backgroundColor: '#FFEBEE',
+  },
+  menuItemTextDanger: {
+    color: '#F44336',
     fontWeight: 'bold',
   },
 });

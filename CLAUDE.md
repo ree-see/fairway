@@ -161,3 +161,41 @@ The app's unique value proposition centers on a multi-layered verification syste
 - GPS functionality with geo-fencing capabilities
 - Apple Watch companion app support
 - make sure to sure utilize git for version control and develop from test driven development framework
+
+## Production Deployment Checklist
+
+### SolidQueue Background Jobs Setup
+**IMPORTANT**: When deploying to production, configure SolidQueue properly:
+
+1. **Enable Puma Plugin** (Recommended):
+   ```bash
+   # Set environment variable for automatic worker startup
+   SOLID_QUEUE_IN_PUMA=true rails server
+   ```
+
+2. **Alternative: Systemd Service**:
+   ```bash
+   # Create systemd service for solid_queue worker
+   sudo systemctl enable solid_queue
+   sudo systemctl start solid_queue
+   ```
+
+3. **Verify Recurring Jobs**:
+   ```ruby
+   # Check that course sync jobs are scheduled
+   SolidQueue::RecurringTask.count  # Should show 2 tasks
+   # - courses_daily_sync: Daily at 2 AM
+   # - courses_weekly_maintenance: Weekly on Sunday at 3 AM
+   ```
+
+4. **Monitor Job Processing**:
+   ```ruby
+   # Check job queue health
+   SolidQueue::Job.where(finished_at: nil).count  # Pending jobs
+   SolidQueue::Job.failed.count  # Failed jobs
+   ```
+
+### Course Database API Setup
+- Ensure `golf_course_api_key` is configured in Rails credentials for production
+- Consider upgrading to Pro tier ($6.99/month) for faster initial course population
+- Set up monitoring for API rate limits and sync failures
