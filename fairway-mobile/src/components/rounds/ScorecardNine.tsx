@@ -1,0 +1,254 @@
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+
+interface ScorecardDisplayOptions {
+  showPutts: boolean;
+  showFIR: boolean;
+  showGIR: boolean;
+}
+
+interface ScorecardNineProps {
+  title: string;
+  holeScores: any[];
+  totalLabel: string;
+  getScoreColor: (strokes: number, par: number) => string;
+  displayOptions: ScorecardDisplayOptions;
+}
+
+export const ScorecardNine: React.FC<ScorecardNineProps> = ({ 
+  title, 
+  holeScores, 
+  totalLabel, 
+  getScoreColor, 
+  displayOptions 
+}) => (
+  <>
+    <View style={styles.nineHeader}>
+      <Text style={styles.nineTitle}>{title}</Text>
+    </View>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scorecardScroll}>
+      <View style={styles.scorecardTable}>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <View style={styles.holeHeaderCell}>
+            <Text style={styles.headerText}>Hole</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`hole-${score.hole_number}`} style={styles.holeHeaderCell}>
+              <Text style={styles.headerText}>{score.hole_number}</Text>
+            </View>
+          ))}
+          <View style={styles.totalHeaderCell}>
+            <Text style={styles.headerText}>{totalLabel}</Text>
+          </View>
+        </View>
+
+        {/* Par Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>Par</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`par-${score.hole_number}`} style={styles.dataCell}>
+              <Text style={styles.parText}>{score.par}</Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.reduce((sum, s) => sum + s.par, 0)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Score Row */}
+        <View style={styles.dataRow}>
+          <View style={styles.labelCell}>
+            <Text style={styles.labelText}>Score</Text>
+          </View>
+          {holeScores.map((score: any) => (
+            <View key={`score-${score.hole_number}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
+              <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
+                {score.strokes}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.totalCell}>
+            <Text style={styles.totalText}>
+              {holeScores.reduce((sum, s) => sum + s.strokes, 0)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Putts Row */}
+        {displayOptions.showPutts && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>Putts</Text>
+            </View>
+            {holeScores.map((score: any) => (
+              <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.reduce((sum, s) => sum + (s.putts || 0), 0)}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* FIR Row - Only for Par 4 and 5 holes */}
+        {displayOptions.showFIR && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>FIR</Text>
+            </View>
+            {holeScores.map((score: any) => (
+              <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
+                  {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.filter(s => s.par >= 4 && s.fairway_hit).length}/
+                {holeScores.filter(s => s.par >= 4).length}
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {/* GIR Row */}
+        {displayOptions.showGIR && (
+          <View style={styles.dataRow}>
+            <View style={styles.labelCell}>
+              <Text style={styles.labelText}>GIR</Text>
+            </View>
+            {holeScores.map((score: any) => (
+              <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+                <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
+                  {score.green_in_regulation ? '✓' : 'X'}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.totalCell}>
+              <Text style={styles.totalText}>
+                {holeScores.filter(s => s.green_in_regulation).length}/{holeScores.length}
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </ScrollView>
+  </>
+);
+
+const styles = StyleSheet.create({
+  nineHeader: {
+    backgroundColor: '#F8F9FA',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginVertical: 8,
+  },
+  nineTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    textAlign: 'center',
+  },
+  scorecardScroll: {
+    marginBottom: 8,
+  },
+  scorecardTable: {
+    minWidth: '100%',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    backgroundColor: '#2E7D32',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  dataRow: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  holeHeaderCell: {
+    width: 40,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.3)',
+  },
+  totalHeaderCell: {
+    width: 50,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  labelCell: {
+    width: 60,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderRightWidth: 1,
+    borderRightColor: '#E0E0E0',
+  },
+  dataCell: {
+    width: 40,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#E0E0E0',
+  },
+  totalCell: {
+    width: 50,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8F9FA',
+    borderLeftWidth: 2,
+    borderLeftColor: '#2E7D32',
+  },
+  headerText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  labelText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#333333',
+  },
+  parText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666666',
+  },
+  scoreText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  detailDataText: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  positiveText: {
+    color: '#4CAF50',
+    fontWeight: 'bold',
+  },
+  totalText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+});

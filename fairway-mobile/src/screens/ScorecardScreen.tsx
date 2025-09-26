@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  Text,
-  TouchableOpacity,
-  TextInput,
   StyleSheet,
   Alert,
-  ActivityIndicator,
-  Modal,
-  Platform,
   Animated,
   Dimensions,
 } from 'react-native';
@@ -18,6 +12,13 @@ import ApiService from '../services/ApiService';
 import LiveActivityService from '../services/LiveActivityService';
 import AuthDebugger from '../utils/AuthDebugger';
 import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiError } from '../types/api';
+import { LoadingScreen } from '../components/common/LoadingScreen';
+import { ScoreHeader } from '../components/scorecard/ScoreHeader';
+import { HoleCard } from '../components/scorecard/HoleCard';
+import { HoleSelector } from '../components/scorecard/HoleSelector';
+import { SubmitButton } from '../components/scorecard/SubmitButton';
+import { MenuButton } from '../components/scorecard/MenuButton';
+import { RoundMenu } from '../components/scorecard/RoundMenu';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -374,25 +375,18 @@ export const ScorecardScreen: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2E7D32" />
-        <Text style={styles.loadingText}>Starting your round...</Text>
-      </View>
-    );
+    return <LoadingScreen message="Starting your round..." />;
   }
 
   const currentHole = stagedHole || holes[currentHoleIndex];
 
   return (
     <View style={styles.container}>
-      {/* Simplified Header */}
-      <View style={styles.header}>
-        <Text style={styles.courseName}>{config.course.name}</Text>
-        <Text style={styles.scoreDisplay}>{getScoreDisplay()}</Text>
-      </View>
+      <ScoreHeader 
+        courseName={config.course.name}
+        scoreDisplay={getScoreDisplay()}
+      />
 
-      {/* Single Hole Card with Swipe Navigation */}
       <PanGestureHandler
         ref={panRef}
         onGestureEvent={onPanGestureEvent}
@@ -404,208 +398,38 @@ export const ScorecardScreen: React.FC = () => {
             { transform: [{ translateX }] }
           ]}
         >
-          <View style={styles.holeCard}>
-            <View style={styles.holeHeader}>
-              <Text style={styles.holeNumber}>Hole {currentHole?.number}</Text>
-              <Text style={styles.holeDetails}>Par {currentHole?.par} • {currentHole?.distance}yd</Text>
-            </View>
-            
-            <View style={styles.scoreRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Strokes</Text>
-                <TextInput
-                  style={styles.scoreInput}
-                  value={currentHole?.strokes?.toString() || ''}
-                  onChangeText={(value) => updateHoleScore('strokes', value)}
-                  keyboardType="numeric"
-                  maxLength={2}
-                />
-              </View>
-              
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Putts</Text>
-                <TextInput
-                  style={styles.scoreInput}
-                  value={currentHole?.putts?.toString() || ''}
-                  onChangeText={(value) => updateHoleScore('putts', value)}
-                  keyboardType="numeric"
-                  maxLength={2}
-                />
-              </View>
-            </View>
-
-            {currentHole?.par >= 4 && (
-              <TouchableOpacity
-                style={[styles.boolButton, currentHole?.fairway_hit && styles.boolButtonActive]}
-                onPress={() => updateHoleBool('fairway_hit', !currentHole?.fairway_hit)}
-              >
-                <Text style={[styles.boolButtonText, currentHole?.fairway_hit && styles.boolButtonTextActive]}>
-                  Fairway Hit
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity
-              style={[styles.boolButton, currentHole?.green_in_regulation && styles.boolButtonActive]}
-              onPress={() => updateHoleBool('green_in_regulation', !currentHole?.green_in_regulation)}
-            >
-              <Text style={[styles.boolButtonText, currentHole?.green_in_regulation && styles.boolButtonTextActive]}>
-                Green in Regulation
-              </Text>
-            </TouchableOpacity>
-
-            {!currentHole?.green_in_regulation && (
-              <TouchableOpacity
-                style={[styles.boolButton, currentHole?.up_and_down && styles.boolButtonActive]}
-                onPress={() => updateHoleBool('up_and_down', !currentHole?.up_and_down)}
-              >
-                <Text style={[styles.boolButtonText, currentHole?.up_and_down && styles.boolButtonTextActive]}>
-                  Up & Down
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <HoleCard 
+            hole={currentHole}
+            onUpdateScore={updateHoleScore}
+            onUpdateBool={updateHoleBool}
+          />
         </Animated.View>
       </PanGestureHandler>
 
-      {/* Hole Selectors - Separate from hole card */}
-      <View style={styles.holeSelectorContainer}>
-        <Text style={styles.holeSelectorTitle}>Select Hole</Text>
-        <View style={styles.holeGridContainer}>
-          {holes.map((hole, index) => {
-            const isActive = activeHoleNumbers.includes(hole.number);
-            const isCurrentHole = index === currentHoleIndex;
-            const isCompleted = hole.strokes !== undefined;
-            
-            return (
-              <TouchableOpacity
-                key={hole.id}
-                style={[
-                  styles.holeSelector,
-                  isCurrentHole && styles.holeSelectorActive,
-                  isCompleted && styles.holeSelectorCompleted,
-                  !isActive && styles.holeSelectorInactive
-                ]}
-                onPress={() => isActive ? navigateToHole(index) : null}
-                disabled={!isActive}
-            >
-              <Text style={[
-                styles.holeSelectorText,
-                isCurrentHole && styles.holeSelectorTextActive,
-                isCompleted && styles.holeSelectorTextCompleted,
-                !isActive && styles.holeSelectorTextInactive
-              ]}>
-                {hole.number}
-              </Text>
-            </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
+      <HoleSelector 
+        holes={holes}
+        activeHoleNumbers={activeHoleNumbers}
+        currentHoleIndex={currentHoleIndex}
+        onSelectHole={navigateToHole}
+      />
 
-      {/* Submit Button - only when all holes completed */}
-      {shouldShowSubmitButton() && (
-        <View style={styles.footer}>
-          <TouchableOpacity 
-            style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]} 
-            onPress={submitRound}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
-            ) : (
-              <Text style={styles.submitButtonText}>Submit Round</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
+      <SubmitButton 
+        visible={shouldShowSubmitButton()}
+        isSubmitting={isSubmitting}
+        onSubmit={submitRound}
+      />
 
-      {/* Bottom Capsule Menu Button */}
-      <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity 
-          style={styles.capsuleMenuButton}
-          onPress={() => setShowMenu(true)}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.capsuleMenuText}>☰ Menu</Text>
-        </TouchableOpacity>
-      </View>
+      <MenuButton onPress={() => setShowMenu(true)} />
 
-      {/* Round Menu Modal */}
-      <Modal
+      <RoundMenu 
         visible={showMenu}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowMenu(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowMenu(false)}
-        >
-          <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuItem} onPress={() => setShowMenu(false)}>
-              <Text style={styles.menuItemText}>Continue Round</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              setShowMenu(false);
-              Alert.alert(
-                'Pause Round',
-                'Save progress and return to Dashboard?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Pause & Exit', onPress: () => navigation.goBack() }
-                ]
-              );
-            }}>
-              <Text style={styles.menuItemText}>Pause Round</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              setShowMenu(false);
-              Alert.alert('Round Settings', 'Settings coming soon');
-            }}>
-              <Text style={styles.menuItemText}>Round Settings</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.menuItem} onPress={() => {
-              setShowMenu(false);
-              Alert.alert('Summary', `Completed: ${getCompletedHoles()}/${holes.length} holes\nScore: ${getScoreDisplay()}`);
-            }}>
-              <Text style={styles.menuItemText}>View Summary</Text>
-            </TouchableOpacity>
-            
-            {shouldShowSubmitButton() && (
-              <TouchableOpacity style={[styles.menuItem, styles.menuItemSuccess]} onPress={() => {
-                setShowMenu(false);
-                submitRound();
-              }}>
-                <Text style={[styles.menuItemText, styles.menuItemTextSuccess]}>End Round</Text>
-              </TouchableOpacity>
-            )}
-            
-            <TouchableOpacity style={[styles.menuItem, styles.menuItemDanger]} onPress={() => {
-              setShowMenu(false);
-              Alert.alert(
-                'Exit Without Saving?',
-                'All progress will be lost. Return to Dashboard?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Exit', style: 'destructive', onPress: () => {
-                    if (LiveActivityService.isLiveActivitySupported()) {
-                      LiveActivityService.endActivity();
-                    }
-                    navigation.goBack();
-                  }}
-                ]
-              );
-            }}>
-              <Text style={[styles.menuItemText, styles.menuItemTextDanger]}>Exit Without Saving</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => setShowMenu(false)}
+        completedHoles={getCompletedHoles()}
+        totalHoles={holes.length}
+        scoreDisplay={getScoreDisplay()}
+        canSubmit={shouldShowSubmitButton()}
+        onSubmit={submitRound}
+      />
     </View>
   );
 };
@@ -613,39 +437,7 @@ export const ScorecardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E7D32', // Green background for entire screen
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#2E7D32',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#FFFFFF',
-  },
-  header: {
-    backgroundColor: '#2E7D32',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: Platform.OS === 'ios' ? 100 : 80,
-  },
-  courseName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    flex: 1,
-  },
-  scoreDisplay: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
   },
   holeContainer: {
     flex: 1,
@@ -653,224 +445,5 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 8,
     justifyContent: 'flex-start',
-  },
-  holeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  holeHeader: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  holeNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 8,
-  },
-  holeDetails: {
-    fontSize: 16,
-    color: '#666666',
-  },
-  scoreRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-    marginBottom: 24,
-  },
-  inputContainer: {
-    alignItems: 'center',
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-    fontWeight: '600',
-  },
-  scoreInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    width: 80,
-    height: 60,
-    textAlign: 'center',
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-  },
-  boolButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  boolButtonActive: {
-    backgroundColor: '#E8F5E8',
-    borderColor: '#2E7D32',
-  },
-  boolButtonText: {
-    fontSize: 16,
-    color: '#666666',
-    fontWeight: '600',
-  },
-  boolButtonTextActive: {
-    color: '#2E7D32',
-  },
-  holeSelectorContainer: {
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 0,
-    marginBottom: 16,
-    borderRadius: 16,
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  holeSelectorTitle: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 12,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  holeGridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  holeSelector: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 4,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  holeSelectorActive: {
-    backgroundColor: '#C41E3A', // Cardinal red for current hole
-    borderColor: '#C41E3A',
-  },
-  holeSelectorCompleted: {
-    backgroundColor: '#E8F5E8',
-    borderColor: '#2E7D32',
-  },
-  holeSelectorInactive: {
-    backgroundColor: '#F0F0F0',
-    borderColor: '#E0E0E0',
-    opacity: 0.5,
-  },
-  holeSelectorText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#666666',
-  },
-  holeSelectorTextActive: {
-    color: '#FFFFFF',
-  },
-  holeSelectorTextCompleted: {
-    color: '#2E7D32',
-  },
-  holeSelectorTextInactive: {
-    color: '#CCCCCC',
-  },
-  footer: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  submitButton: {
-    backgroundColor: '#2E7D32',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  bottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 34,
-    paddingTop: 20,
-    backgroundColor: '#2E7D32',
-  },
-  capsuleMenuButton: {
-    backgroundColor: '#C41E3A', // Cardinal red
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  capsuleMenuText: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  menuContainer: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-    paddingBottom: Platform.OS === 'ios' ? 34 : 20,
-  },
-  menuItem: {
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  menuItemText: {
-    fontSize: 16,
-    color: '#333333',
-  },
-  menuItemSuccess: {
-    backgroundColor: '#E8F5E8',
-  },
-  menuItemTextSuccess: {
-    color: '#2E7D32',
-    fontWeight: 'bold',
-  },
-  menuItemDanger: {
-    backgroundColor: '#FFEBEE',
-  },
-  menuItemTextDanger: {
-    color: '#F44336',
-    fontWeight: 'bold',
   },
 });
