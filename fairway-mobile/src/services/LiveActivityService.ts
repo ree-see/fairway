@@ -32,6 +32,10 @@ class LiveActivityService {
         }
       });
 
+      // For now, simulate activity ID for testing
+      this.activityId = `activity_${Date.now()}`;
+      console.log('🎯 Live Activity started with ID:', this.activityId);
+
       // TODO: Implement native iOS module call
       // this.activityId = await NativeModules.LiveActivityModule.startActivity(data);
       
@@ -41,7 +45,21 @@ class LiveActivityService {
   }
 
   async updateScore(hole: number, totalHoles: number, scoreToPar: number, startTime: string): Promise<void> {
-    if (!this.isSupported || !this.activityId) {
+    console.log('LiveActivityService.updateScore called:', { 
+      isSupported: this.isSupported, 
+      hasActivityId: !!this.activityId,
+      hole,
+      totalHoles,
+      scoreToPar 
+    });
+
+    if (!this.isSupported) {
+      console.log('Live Activities not supported on this device');
+      return;
+    }
+
+    if (!this.activityId) {
+      console.log('No activity ID found, cannot update');
       return;
     }
 
@@ -56,7 +74,10 @@ class LiveActivityService {
         }
       };
 
-      console.log('Updating Live Activity:', updateData);
+      console.log('🏌️ LIVE ACTIVITY UPDATE:', updateData);
+      console.log('📱 Dynamic Island would show:');
+      console.log('   Compact:', updateData.dynamicIslandContent.compact);
+      console.log('   Expanded:', updateData.dynamicIslandContent.expanded);
       
       // TODO: Implement native iOS module call
       // await NativeModules.LiveActivityModule.updateActivity(this.activityId, updateData);

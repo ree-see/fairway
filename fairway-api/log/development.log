@@ -13350,3 +13350,107 @@ Processing by Api::V1::RoundsController#create as HTML
 Completed 201 Created in 18ms (Views: 0.1ms | ActiveRecord: 6.0ms (8 queries, 2 cached) | GC: 0.6ms)
 
 
+Started POST "/api/v1/rounds" for ::1 at 2025-09-25 20:21:19 -0400
+Processing by Api::V1::RoundsController#create as HTML
+  Parameters: {"round"=>{"course_id"=>"ae402f19-4ec4-46a4-a83f-2250fea3982f", "started_at"=>"2025-09-26T00:21:19.286Z", "tee_color"=>"white", "is_provisional"=>true}}
+  [1m[36mUser Load (3.8ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mCourse Load (2.2ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:39:in `create'
+  [1m[36mCACHE Course Load (0.0ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mRound Create (4.4ms)[0m  [1m[32mINSERT INTO "rounds" ("user_id", "course_id", "started_at", "completed_at", "submitted_at", "tee_color", "course_rating", "slope_rating", "total_strokes", "total_putts", "score_differential", "weather_conditions", "temperature", "wind_speed", "wind_direction", "is_verified", "is_provisional", "verification_count", "fraud_risk_score", "fraud_risk_factors", "location_verified", "start_latitude", "start_longitude", "fairways_hit", "greens_in_regulation", "total_penalties", "created_at", "updated_at") VALUES ('785c65eb-f711-4691-be87-d7ed25d93556', 'ae402f19-4ec4-46a4-a83f-2250fea3982f', '2025-09-26 00:21:19.481814', NULL, NULL, 'white', 74.7, 137, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, 0, 0.0, NULL, FALSE, NULL, NULL, 0, 0, 0, '2025-09-26 00:21:19.485837', '2025-09-26 00:21:19.485837') RETURNING "id" /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.8ms)[0m  [1m[35mCOMMIT /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mHoleScore Count (1.8ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '24b92715-edac-495d-826b-dd468894d00c' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mHole Exists? (7.3ms)[0m  [1m[34mSELECT 1 AS one FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:48:in `completion_percentage'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '24b92715-edac-495d-826b-dd468894d00c'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.6ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+Completed 201 Created in 95ms (Views: 10.3ms | ActiveRecord: 37.3ms (8 queries, 2 cached) | GC: 1.6ms)
+
+
+Started POST "/api/v1/rounds" for ::1 at 2025-09-25 20:24:27 -0400
+Processing by Api::V1::RoundsController#create as HTML
+  Parameters: {"round"=>{"course_id"=>"ae402f19-4ec4-46a4-a83f-2250fea3982f", "started_at"=>"2025-09-26T00:24:26.985Z", "tee_color"=>"white", "is_provisional"=>true}}
+  [1m[36mUser Load (15.8ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mCourse Load (0.6ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:39:in `create'
+  [1m[36mCACHE Course Load (0.0ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mBEGIN /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mRound Create (6.4ms)[0m  [1m[32mINSERT INTO "rounds" ("user_id", "course_id", "started_at", "completed_at", "submitted_at", "tee_color", "course_rating", "slope_rating", "total_strokes", "total_putts", "score_differential", "weather_conditions", "temperature", "wind_speed", "wind_direction", "is_verified", "is_provisional", "verification_count", "fraud_risk_score", "fraud_risk_factors", "location_verified", "start_latitude", "start_longitude", "fairways_hit", "greens_in_regulation", "total_penalties", "created_at", "updated_at") VALUES ('785c65eb-f711-4691-be87-d7ed25d93556', 'ae402f19-4ec4-46a4-a83f-2250fea3982f', '2025-09-26 00:24:27.165346', NULL, NULL, 'white', 74.7, 137, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, 0, 0.0, NULL, FALSE, NULL, NULL, 0, 0, 0, '2025-09-26 00:24:27.171925', '2025-09-26 00:24:27.171925') RETURNING "id" /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mCOMMIT /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mHoleScore Count (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '822206d5-e81c-4d8f-98df-6187c2d14fb4' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mHole Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:48:in `completion_percentage'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '822206d5-e81c-4d8f-98df-6187c2d14fb4'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+Completed 201 Created in 58ms (Views: 2.4ms | ActiveRecord: 24.6ms (8 queries, 2 cached) | GC: 0.2ms)
+
+
+Started POST "/api/v1/rounds" for ::1 at 2025-09-25 20:24:39 -0400
+Processing by Api::V1::RoundsController#create as HTML
+  Parameters: {"round"=>{"course_id"=>"ae402f19-4ec4-46a4-a83f-2250fea3982f", "started_at"=>"2025-09-26T00:24:39.178Z", "tee_color"=>"white", "is_provisional"=>true}}
+  [1m[36mUser Load (0.4ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mCourse Load (0.2ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:39:in `create'
+  [1m[36mCACHE Course Load (0.0ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mRound Create (1.2ms)[0m  [1m[32mINSERT INTO "rounds" ("user_id", "course_id", "started_at", "completed_at", "submitted_at", "tee_color", "course_rating", "slope_rating", "total_strokes", "total_putts", "score_differential", "weather_conditions", "temperature", "wind_speed", "wind_direction", "is_verified", "is_provisional", "verification_count", "fraud_risk_score", "fraud_risk_factors", "location_verified", "start_latitude", "start_longitude", "fairways_hit", "greens_in_regulation", "total_penalties", "created_at", "updated_at") VALUES ('785c65eb-f711-4691-be87-d7ed25d93556', 'ae402f19-4ec4-46a4-a83f-2250fea3982f', '2025-09-26 00:24:39.194234', NULL, NULL, 'white', 74.7, 137, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, 0, 0.0, NULL, FALSE, NULL, NULL, 0, 0, 0, '2025-09-26 00:24:39.198009', '2025-09-26 00:24:39.198009') RETURNING "id" /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mHoleScore Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = 'e0ab9e99-b4a8-4fa1-953d-9ff0b0d2414c' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mHole Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:48:in `completion_percentage'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = 'e0ab9e99-b4a8-4fa1-953d-9ff0b0d2414c'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+Completed 201 Created in 17ms (Views: 0.1ms | ActiveRecord: 2.6ms (8 queries, 2 cached) | GC: 0.0ms)
+
+
+Started POST "/api/v1/rounds" for ::1 at 2025-09-25 20:24:52 -0400
+Processing by Api::V1::RoundsController#create as HTML
+  Parameters: {"round"=>{"course_id"=>"ae402f19-4ec4-46a4-a83f-2250fea3982f", "started_at"=>"2025-09-26T00:24:52.042Z", "tee_color"=>"white", "is_provisional"=>true}}
+  [1m[36mUser Load (30.9ms)[0m  [1m[34mSELECT "users".* FROM "users" WHERE "users"."id" = '785c65eb-f711-4691-be87-d7ed25d93556' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/application_controller.rb:22:in `authenticate_user!'
+  [1m[36mCourse Load (1.2ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:39:in `create'
+  [1m[36mCACHE Course Load (0.0ms)[0m  [1m[34mSELECT "courses".* FROM "courses" WHERE "courses"."id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mBEGIN /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mRound Create (3.7ms)[0m  [1m[32mINSERT INTO "rounds" ("user_id", "course_id", "started_at", "completed_at", "submitted_at", "tee_color", "course_rating", "slope_rating", "total_strokes", "total_putts", "score_differential", "weather_conditions", "temperature", "wind_speed", "wind_direction", "is_verified", "is_provisional", "verification_count", "fraud_risk_score", "fraud_risk_factors", "location_verified", "start_latitude", "start_longitude", "fairways_hit", "greens_in_regulation", "total_penalties", "created_at", "updated_at") VALUES ('785c65eb-f711-4691-be87-d7ed25d93556', 'ae402f19-4ec4-46a4-a83f-2250fea3982f', '2025-09-26 00:24:52.140292', NULL, NULL, 'white', 74.7, 137, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, TRUE, 0, 0.0, NULL, FALSE, NULL, NULL, 0, 0, 0, '2025-09-26 00:24:52.146310', '2025-09-26 00:24:52.146310') RETURNING "id" /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mTRANSACTION (4.4ms)[0m  [1m[35mCOMMIT /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/controllers/api/v1/rounds_controller.rb:52:in `create'
+  [1m[36mHoleScore Count (0.5ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '275dc407-f028-4c26-b188-4acbc29be1f9' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/models/round.rb:62:in `holes_completed'
+  [1m[36mHole Exists? (0.5ms)[0m  [1m[34mSELECT 1 AS one FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' LIMIT 1 /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:48:in `completion_percentage'
+  [1m[36mCACHE HoleScore Count (0.0ms)[0m  [1m[34mSELECT COUNT(*) FROM "hole_scores" WHERE "hole_scores"."round_id" = '275dc407-f028-4c26-b188-4acbc29be1f9'[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+  [1m[36mHole Count (0.3ms)[0m  [1m[34mSELECT COUNT(*) FROM "holes" WHERE "holes"."course_id" = 'ae402f19-4ec4-46a4-a83f-2250fea3982f' /*action='create',application='FairwayApi',controller='rounds'*/[0m
+  ↳ app/services/round_scoring_service.rb:49:in `completion_percentage'
+Completed 201 Created in 70ms (Views: 0.2ms | ActiveRecord: 41.8ms (8 queries, 2 cached) | GC: 0.0ms)
+
+

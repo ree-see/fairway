@@ -124,6 +124,7 @@ export const ScorecardScreen: React.FC = () => {
 
   const updateHoleScore = async (holeNumber: number, field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
+    
     setHoles(prev => {
       const updatedHoles = prev.map(hole => 
         hole.number === holeNumber 
@@ -131,17 +132,26 @@ export const ScorecardScreen: React.FC = () => {
           : hole
       );
 
-      // Update Live Activity when strokes are updated
+      // Update Live Activity when strokes are updated (use setTimeout to ensure state has updated)
       if (field === 'strokes' && numValue && currentRound && LiveActivityService.isLiveActivitySupported()) {
-        const scoreToPar = updatedHoles.reduce((total, hole) => total + ((hole.strokes || 0) - hole.par), 0);
-        const completedHoles = updatedHoles.filter(hole => hole.strokes && hole.strokes > 0).length;
-        
-        LiveActivityService.updateScore(
-          Math.max(1, completedHoles), 
-          updatedHoles.length, 
-          scoreToPar, 
-          currentRound.started_at
-        );
+        setTimeout(async () => {
+          const scoreToPar = updatedHoles.reduce((total, hole) => total + ((hole.strokes || 0) - hole.par), 0);
+          const completedHoles = updatedHoles.filter(hole => hole.strokes && hole.strokes > 0).length;
+          
+          console.log('Updating Live Activity:', {
+            hole: Math.max(1, completedHoles),
+            totalHoles: updatedHoles.length,
+            scoreToPar,
+            startTime: currentRound.started_at
+          });
+          
+          await LiveActivityService.updateScore(
+            Math.max(1, completedHoles), 
+            updatedHoles.length, 
+            scoreToPar, 
+            currentRound.started_at
+          );
+        }, 100); // Small delay to ensure state has updated
       }
 
       return updatedHoles;
