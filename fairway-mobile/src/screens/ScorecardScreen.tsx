@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   holeSelectorContainer: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
-    marginTop: 4,
+    marginTop: 0,
     marginBottom: 16,
     borderRadius: 16,
     paddingVertical: 20,
