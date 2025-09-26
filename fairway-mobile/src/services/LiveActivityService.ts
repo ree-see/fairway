@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import LiveActivity from 'react-native-live-activity';
 
 interface RoundActivityData {
   courseId: number;
@@ -27,17 +28,29 @@ class LiveActivityService {
         courseName: data.courseName,
         startTime: data.startTime,
         dynamicIslandContent: {
-          compact: this.formatScoreToPar(data.scoreToPar),
-          expanded: `Hole ${data.currentHole}/${data.totalHoles} | ${this.formatScoreToPar(data.scoreToPar)} | ${this.formatElapsedTime(data.startTime)}`
+          compact: this.formatScoreToPar(data.scoreToPar, data.currentHole),
+          expanded: `Hole ${data.currentHole}/${data.totalHoles} | ${this.formatScoreToPar(data.scoreToPar, data.currentHole)} | ${this.formatElapsedTime(data.startTime)}`
         }
       });
 
-      // For now, simulate activity ID for testing
-      this.activityId = `activity_${Date.now()}`;
-      console.log('🎯 Live Activity started with ID:', this.activityId);
+      // Start actual Live Activity
+      try {
+        const activityData = {
+          courseName: data.courseName,
+          currentHole: data.currentHole,
+          totalHoles: data.totalHoles,
+          scoreToPar: data.scoreToPar,
+          startTime: data.startTime,
+        };
 
-      // TODO: Implement native iOS module call
-      // this.activityId = await NativeModules.LiveActivityModule.startActivity(data);
+        this.activityId = await LiveActivity.startActivity('GolfRound', activityData);
+        console.log('🎯 Live Activity started with ID:', this.activityId);
+      } catch (activityError) {
+        console.warn('Failed to start native Live Activity:', activityError);
+        // Fallback to simulation for testing
+        this.activityId = `activity_${Date.now()}`;
+        console.log('🎯 Using simulated Live Activity ID:', this.activityId);
+      }
       
     } catch (error) {
       console.error('Failed to start Live Activity:', error);
@@ -69,8 +82,8 @@ class LiveActivityService {
         totalHoles,
         scoreToPar,
         dynamicIslandContent: {
-          compact: this.formatScoreToPar(scoreToPar),
-          expanded: `Hole ${hole}/${totalHoles} | ${this.formatScoreToPar(scoreToPar)} | ${this.formatElapsedTime(startTime)}`
+          compact: this.formatScoreToPar(scoreToPar, hole),
+          expanded: `Hole ${hole}/${totalHoles} | ${this.formatScoreToPar(scoreToPar, hole)} | ${this.formatElapsedTime(startTime)}`
         }
       };
 
@@ -79,8 +92,20 @@ class LiveActivityService {
       console.log('   Compact:', updateData.dynamicIslandContent.compact);
       console.log('   Expanded:', updateData.dynamicIslandContent.expanded);
       
-      // TODO: Implement native iOS module call
-      // await NativeModules.LiveActivityModule.updateActivity(this.activityId, updateData);
+      // Update actual Live Activity
+      try {
+        const activityUpdateData = {
+          currentHole: hole,
+          totalHoles,
+          scoreToPar,
+          startTime,
+        };
+
+        await LiveActivity.updateActivity(this.activityId, activityUpdateData);
+        console.log('✅ Live Activity updated successfully');
+      } catch (activityError) {
+        console.warn('Failed to update native Live Activity:', activityError);
+      }
       
     } catch (error) {
       console.error('Failed to update Live Activity:', error);
@@ -95,8 +120,13 @@ class LiveActivityService {
     try {
       console.log('Ending Live Activity');
       
-      // TODO: Implement native iOS module call
-      // await NativeModules.LiveActivityModule.endActivity(this.activityId);
+      // End actual Live Activity
+      try {
+        await LiveActivity.endActivity(this.activityId);
+        console.log('✅ Live Activity ended successfully');
+      } catch (activityError) {
+        console.warn('Failed to end native Live Activity:', activityError);
+      }
       
       this.activityId = null;
     } catch (error) {
@@ -104,9 +134,15 @@ class LiveActivityService {
     }
   }
 
-  private formatScoreToPar(scoreToPar: number): string {
-    if (scoreToPar === 0) return 'E';
-    return scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
+  private formatScoreToPar(scoreToPar: number, completedHoles: number): string {
+    if (completedHoles === 0) return 'E';
+    
+    if (scoreToPar === 0) {
+      return completedHoles === 18 ? 'E' : `E thru ${completedHoles}`;
+    }
+    
+    const scoreText = scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
+    return completedHoles === 18 ? scoreText : `${scoreText} thru ${completedHoles}`;
   }
 
   private formatElapsedTime(startTime: string): string {

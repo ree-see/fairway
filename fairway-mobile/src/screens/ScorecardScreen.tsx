@@ -175,9 +175,11 @@ export const ScorecardScreen: React.FC = () => {
   };
 
   const getScoreToPar = () => {
-    const total = getTotalScore();
-    const par = getTotalPar();
-    return total - par;
+    // Only calculate score to par for completed holes
+    const completedHoles = holes.filter(hole => hole.strokes && hole.strokes > 0);
+    const totalStrokes = completedHoles.reduce((total, hole) => total + (hole.strokes || 0), 0);
+    const totalPar = completedHoles.reduce((total, hole) => total + hole.par, 0);
+    return totalStrokes - totalPar;
   };
 
   const getCompletedHoles = () => {
@@ -187,6 +189,22 @@ export const ScorecardScreen: React.FC = () => {
   const shouldShowSubmitButton = () => {
     const completedHoles = getCompletedHoles();
     return completedHoles === 9 || completedHoles === 18;
+  };
+
+  const getScoreDisplay = () => {
+    const completedHoles = getCompletedHoles();
+    const scoreToPar = getScoreToPar();
+    
+    if (completedHoles === 0) {
+      return 'E';
+    }
+    
+    if (scoreToPar === 0) {
+      return completedHoles === 18 ? 'E' : `E thru ${completedHoles}`;
+    }
+    
+    const scoreText = scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
+    return completedHoles === 18 ? scoreText : `${scoreText} thru ${completedHoles}`;
   };
 
   const submitRound = () => {
@@ -378,8 +396,8 @@ export const ScorecardScreen: React.FC = () => {
         <View style={styles.headerRight}>
           <View style={styles.scoreDisplayFocused}>
             <Text style={styles.scoreLabelFocused}>Score</Text>
-            <Text style={[styles.scoreValueFocused, { color: getScoreToPar() > 0 ? '#F44336' : '#4CAF50' }]}>
-              {getScoreToPar() > 0 ? '+' : ''}{getScoreToPar()}
+            <Text style={[styles.scoreValueFocused, { color: getScoreToPar() > 0 ? '#F44336' : getScoreToPar() < 0 ? '#4CAF50' : '#FFFFFF' }]}>
+              {getScoreDisplay()}
             </Text>
           </View>
         </View>
