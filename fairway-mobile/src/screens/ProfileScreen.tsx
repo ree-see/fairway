@@ -12,6 +12,12 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import ApiService from '../services/ApiService';
 import { Ionicons } from '@expo/vector-icons';
+import { ProfileHeader } from '../components/profile/ProfileHeader';
+import { MenuSection } from '../components/profile/MenuSection';
+import { SubscriptionCard } from '../components/profile/SubscriptionCard';
+import { LogoutButton } from '../components/profile/LogoutButton';
+import { ProfileEditModal } from '../components/profile/ProfileEditModal';
+import { AppFooter } from '../components/profile/AppFooter';
 
 export const ProfileScreen: React.FC = () => {
   const { user, logout, updateUserData } = useAuth();
