@@ -634,9 +634,9 @@ const styles = StyleSheet.create({
   holeContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 0, // Remove top padding to eliminate gap
-    paddingBottom: 20,
-    justifyContent: 'center',
+    paddingTop: 0,
+    paddingBottom: 8,
+    justifyContent: 'flex-start',
   },
   holeCard: {
     backgroundColor: '#FFFFFF',
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   holeSelectorContainer: {
     backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
-    marginTop: 8,
+    marginTop: 4,
     marginBottom: 16,
     borderRadius: 16,
     paddingVertical: 20,
