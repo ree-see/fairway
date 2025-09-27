@@ -66,16 +66,16 @@ const StatsScreen: React.FC = () => {
     totalRounds: statistics?.total_rounds || 0,
     verifiedRounds: statistics?.verified_rounds || 0,
     lowestScore: statistics?.lowest_score || 0,
-    // Mock data for advanced stats (to be implemented later)
-    fairwaysInRegulation: 62.5,
-    greensInRegulation: 47.2,
-    averagePutts: 2.1,
-    scrambling: 68.4,
+    // Real performance stats from API
+    fairwaysInRegulation: statistics?.fairway_percentage || 0,
+    greensInRegulation: statistics?.gir_percentage || 0,
+    averagePutts: statistics?.average_putts || 0,
+    scrambling: statistics?.scrambling_percentage || 0,
     strokesGained: {
-      driving: -0.3,
-      approach: -0.8,
-      shortGame: 0.2,
-      putting: -0.1
+      driving: statistics?.strokes_gained_driving || 0,
+      approach: statistics?.strokes_gained_approach || 0,
+      shortGame: statistics?.strokes_gained_short_game || 0,
+      putting: statistics?.strokes_gained_putting || 0
     }
   };
 
@@ -100,6 +100,22 @@ const StatsScreen: React.FC = () => {
       {children}
     </View>
   );
+
+  const getTrendColor = (trend?: string | null) => {
+    switch (trend) {
+      case 'improving': return '#4CAF50';
+      case 'declining': return '#F44336';
+      default: return '#666';
+    }
+  };
+
+  const getTrendIcon = (trend?: string | null) => {
+    switch (trend) {
+      case 'improving': return '↗ Improving';
+      case 'declining': return '↘ Declining';
+      default: return '→ Stable';
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -188,19 +204,37 @@ const StatsScreen: React.FC = () => {
         <SectionCard title="Recent Trends">
           <View style={styles.trendContainer}>
             <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>Last 5 Rounds</Text>
-              <Text style={styles.trendValue}>84.2 avg</Text>
-              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ +2.1</Text>
+              <Text style={styles.trendLabel}>Overall Trend</Text>
+              <Text style={styles.trendValue}>
+                {statistics?.recent_trend ? 
+                  statistics.recent_trend.charAt(0).toUpperCase() + statistics.recent_trend.slice(1) 
+                  : 'Stable'
+                }
+              </Text>
+              <Text style={[
+                styles.trendChange, 
+                { color: getTrendColor(statistics?.recent_trend) }
+              ]}>
+                {getTrendIcon(statistics?.recent_trend)}
+              </Text>
             </View>
             <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>This Month</Text>
-              <Text style={styles.trendValue}>GIR 52%</Text>
-              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ +4.8%</Text>
+              <Text style={styles.trendLabel}>Average Score</Text>
+              <Text style={styles.trendValue}>
+                {stats.averageScore ? `${Math.round(stats.averageScore)} avg` : '--'}
+              </Text>
+              <Text style={[styles.trendChange, { color: '#666' }]}>
+                {stats.totalRounds > 1 ? 'Over all rounds' : 'Need more data'}
+              </Text>
             </View>
             <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>Putting</Text>
-              <Text style={styles.trendValue}>1.98 avg</Text>
-              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>↗ -0.12</Text>
+              <Text style={styles.trendLabel}>Best Round</Text>
+              <Text style={styles.trendValue}>
+                {stats.lowestScore || '--'}
+              </Text>
+              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>
+                Personal best
+              </Text>
             </View>
           </View>
         </SectionCard>

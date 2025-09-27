@@ -171,6 +171,23 @@ export interface RoundStatistics {
   handicap_index?: number;
   verified_handicap?: number;
   recent_trend?: 'improving' | 'declining' | 'stable' | null;
+  
+  // Performance statistics
+  average_putts?: number;
+  fairway_percentage?: number;
+  gir_percentage?: number;
+  scrambling_percentage?: number;
+  
+  // Round averages
+  total_putts?: number;
+  fairways_hit?: number;
+  greens_in_regulation?: number;
+  
+  // Strokes gained
+  strokes_gained_driving?: number;
+  strokes_gained_approach?: number;
+  strokes_gained_short_game?: number;
+  strokes_gained_putting?: number;
 }
 
 export interface RecentRound {
