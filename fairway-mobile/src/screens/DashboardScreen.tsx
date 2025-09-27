@@ -38,10 +38,6 @@ export const DashboardScreen: React.FC = () => {
     try {
       setError(null);
       
-      // DEBUGGING: Clear ALL cache to ensure fresh data for now
-      console.log('🧹 Clearing all cache to debug user-specific stats issue');
-      await ApiService.clearAllCache();
-      
       // Load statistics and recent rounds in parallel
       const [statsResponse, roundsResponse] = await Promise.all([
         ApiService.getRoundStatistics(),
@@ -49,12 +45,10 @@ export const DashboardScreen: React.FC = () => {
       ]);
 
       if (statsResponse.success && roundsResponse.success) {
-        console.log('🎯 Setting dashboard data - statistics:', statsResponse.data!.statistics);
         setDashboardData({
           statistics: statsResponse.data!.statistics,
           recent_rounds: roundsResponse.data!.rounds,
         });
-        console.log('🎯 Dashboard data set successfully');
       } else {
         setError('Failed to load dashboard data');
       }

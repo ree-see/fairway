@@ -119,17 +119,14 @@ class CacheService {
     const cachedData = await this.get<T>(key);
     
     if (cachedData !== null) {
-      console.log('✅ Cache HIT for key:', key);
       return cachedData;
     }
 
-    console.log('❌ Cache MISS for key:', key);
     // Cache miss - fetch new data
     const freshData = await fetchFunction();
     
     // Store in cache
     await this.set(key, freshData, expiresInMinutes);
-    console.log('💾 Cached data for key:', key);
     
     return freshData;
   }
