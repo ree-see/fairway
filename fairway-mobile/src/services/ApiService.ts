@@ -417,12 +417,17 @@ class ApiService {
       const userId = await this.getCurrentUserId();
       const cacheKey = `rounds:statistics:${userId}`;
       
+      console.log('🔍 getRoundStatistics - User ID:', userId);
+      console.log('🔍 getRoundStatistics - Cache Key:', cacheKey);
+      
       return await CacheService.getOrSet(
         cacheKey,
         async () => {
+          console.log('🔄 Fetching fresh statistics from API for user:', userId);
           const response: AxiosResponse<ApiResponse<{ statistics: RoundStatistics }>> = await this.api.get(
             API_CONFIG.ENDPOINTS.ROUNDS_STATISTICS
           );
+          console.log('📊 API Response - Statistics:', response.data.data?.statistics);
           return response.data;
         },
         5 // Cache statistics for 5 minutes (fresher data needed)

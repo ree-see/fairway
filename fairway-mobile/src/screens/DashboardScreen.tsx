@@ -38,6 +38,10 @@ export const DashboardScreen: React.FC = () => {
     try {
       setError(null);
       
+      // DEBUGGING: Clear ALL cache to ensure fresh data for now
+      console.log('🧹 Clearing all cache to debug user-specific stats issue');
+      await ApiService.clearAllCache();
+      
       // Load statistics and recent rounds in parallel
       const [statsResponse, roundsResponse] = await Promise.all([
         ApiService.getRoundStatistics(),
