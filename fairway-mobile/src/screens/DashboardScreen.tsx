@@ -49,10 +49,12 @@ export const DashboardScreen: React.FC = () => {
       ]);
 
       if (statsResponse.success && roundsResponse.success) {
+        console.log('🎯 Setting dashboard data - statistics:', statsResponse.data!.statistics);
         setDashboardData({
           statistics: statsResponse.data!.statistics,
           recent_rounds: roundsResponse.data!.rounds,
         });
+        console.log('🎯 Dashboard data set successfully');
       } else {
         setError('Failed to load dashboard data');
       }

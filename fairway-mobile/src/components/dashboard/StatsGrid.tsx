@@ -7,6 +7,9 @@ interface StatsGridProps {
 }
 
 export const StatsGrid: React.FC<StatsGridProps> = ({ statistics }) => {
+  console.log('📱 StatsGrid received statistics:', statistics);
+  console.log('📱 StatsGrid total_rounds value:', statistics?.total_rounds);
+  
   const formatNumber = (value: number | undefined | null, decimals: number = 1): string => {
     if (value == null || typeof value !== 'number' || isNaN(value)) {
       return '--';
