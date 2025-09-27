@@ -1,18 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
+import ApiService from '../services/ApiService';
+import { RoundStatistics, ApiError } from '../types/api';
+import { LoadingScreen } from '../components/common/LoadingScreen';
+import { ErrorState } from '../components/common/ErrorState';
 
 const StatsScreen: React.FC = () => {
-  // Mock data for demonstration
+  const [statistics, setStatistics] = useState<RoundStatistics | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadStatistics();
+  }, []);
+
+  const loadStatistics = async () => {
+    try {
+      setError(null);
+      const response = await ApiService.getRoundStatistics();
+      
+      if (response.success && response.data) {
+        setStatistics(response.data.statistics);
+      } else {
+        setError('Failed to load statistics');
+      }
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+      const apiError = error as ApiError;
+      setError(apiError.message || 'Failed to load statistics');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await ApiService.clearUserCache();
+      await loadStatistics();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingScreen message="Loading your stats..." />;
+  }
+
+  if (error) {
+    return <ErrorState error={error} onRetry={loadStatistics} />;
+  }
+
+  // Use real statistics data with fallback values
   const stats = {
-    handicapIndex: 14.2,
-    averageScore: 87,
-    totalRounds: 24,
+    handicapIndex: statistics?.handicap_index || 0,
+    averageScore: statistics?.average_score || 0,
+    totalRounds: statistics?.total_rounds || 0,
+    verifiedRounds: statistics?.verified_rounds || 0,
+    lowestScore: statistics?.lowest_score || 0,
+    // Mock data for advanced stats (to be implemented later)
     fairwaysInRegulation: 62.5,
     greensInRegulation: 47.2,
     averagePutts: 2.1,
@@ -49,17 +103,23 @@ const StatsScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+      >
         {/* Overview Stats */}
         <SectionCard title="Overview">
           <View style={styles.statRow}>
             <StatCard 
               title="Handicap Index" 
-              value={stats.handicapIndex.toFixed(1)} 
+              value={stats.handicapIndex ? stats.handicapIndex.toFixed(1) : '--'} 
             />
             <StatCard 
               title="Average Score" 
-              value={Math.round(stats.averageScore)} 
+              value={stats.averageScore ? Math.round(stats.averageScore) : '--'} 
             />
           </View>
           <View style={styles.statRow}>
@@ -70,8 +130,8 @@ const StatsScreen: React.FC = () => {
             />
             <StatCard 
               title="Best Round" 
-              value={79} 
-              subtitle="Last Month"
+              value={stats.lowestScore || '--'} 
+              subtitle="All Time"
             />
           </View>
         </SectionCard>
