@@ -38,9 +38,6 @@ export const DashboardScreen: React.FC = () => {
     try {
       setError(null);
       
-      // Clear user cache to ensure fresh data
-      await ApiService.clearUserCache();
-      
       // Load statistics and recent rounds in parallel
       const [statsResponse, roundsResponse] = await Promise.all([
         ApiService.getRoundStatistics(),
@@ -58,7 +55,14 @@ export const DashboardScreen: React.FC = () => {
     } catch (error) {
       console.error('Error loading dashboard data:', error);
       const apiError = error as ApiError;
-      setError(apiError.message || 'Failed to load dashboard data');
+      
+      // Handle authentication errors specifically
+      if (apiError.message?.includes('refresh token') || apiError.status === 401) {
+        setError('Session expired. Please log in again.');
+        // Note: The auth context will handle the logout/redirect
+      } else {
+        setError(apiError.message || 'Failed to load dashboard data');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -66,8 +70,16 @@ export const DashboardScreen: React.FC = () => {
 
   const onRefresh = async () => {
     setIsRefreshing(true);
-    await loadDashboardData();
-    setIsRefreshing(false);
+    try {
+      // Clear user cache only on manual refresh to ensure fresh data
+      await ApiService.clearUserCache();
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Error during refresh:', error);
+      setError('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const handleLogout = async () => {
