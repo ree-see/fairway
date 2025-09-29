@@ -61,15 +61,15 @@ const StatsScreen: React.FC = () => {
 
   // Use real statistics data with fallback values
   const stats = {
-    handicapIndex: statistics?.handicap_index || 0,
-    averageScore: statistics?.average_score || 0,
+    handicapIndex: statistics?.handicap_index ?? null,
+    averageScore: statistics?.average_score ?? null,
     totalRounds: statistics?.total_rounds || 0,
     verifiedRounds: statistics?.verified_rounds || 0,
-    lowestScore: statistics?.lowest_score || 0,
+    lowestScore: statistics?.lowest_score ?? null,
     // Real performance stats from API
     fairwaysInRegulation: statistics?.fairway_percentage || 0,
     greensInRegulation: statistics?.gir_percentage || 0,
-    averagePutts: statistics?.average_putts || 0,
+    averagePutts: statistics?.average_putts ?? null,
     scrambling: statistics?.scrambling_percentage || 0,
     strokesGained: {
       driving: statistics?.strokes_gained_driving || 0,
