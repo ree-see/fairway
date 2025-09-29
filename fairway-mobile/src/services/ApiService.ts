@@ -20,6 +20,7 @@ import {
 class ApiService {
   private api: AxiosInstance;
   private refreshTokenPromise: Promise<string> | null = null;
+  private authFailureCallback: (() => void) | null = null;
 
   constructor() {
     this.api = axios.create({
@@ -46,7 +47,7 @@ class ApiService {
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        const originalRequest = error.config;
+        const originalRequest = error.config as any;
         
         if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
           originalRequest._retry = true;
@@ -56,10 +57,16 @@ class ApiService {
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return this.api(originalRequest);
           } catch (refreshError) {
-            // Refresh failed, clear auth and let app handle redirect
+            // Refresh failed, clear auth and notify auth context
             await this.clearStoredAuth();
             console.error('Token refresh failed:', refreshError);
-            throw new Error('No refresh token available');
+            
+            // Trigger auth failure callback to log out user
+            if (this.authFailureCallback) {
+              this.authFailureCallback();
+            }
+            
+            throw new Error('Authentication failed - refresh token invalid');
           }
         }
         
@@ -126,6 +133,10 @@ class ApiService {
       'refresh_token', 
       'user',
     ]);
+  }
+
+  setAuthFailureCallback(callback: () => void): void {
+    this.authFailureCallback = callback;
   }
 
   private async getCurrentUserId(): Promise<string> {

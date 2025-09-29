@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import ApiService from '../services/ApiService';
 import { RoundStatistics, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -131,11 +131,11 @@ const StatsScreen: React.FC = () => {
           <View style={styles.statRow}>
             <StatCard 
               title="Handicap Index" 
-              value={stats.handicapIndex ? stats.handicapIndex.toFixed(1) : '--'} 
+              value={(stats.handicapIndex != null) ? stats.handicapIndex.toFixed(1) : '--'} 
             />
             <StatCard 
               title="Average Score" 
-              value={stats.averageScore ? Math.round(stats.averageScore) : '--'} 
+              value={(stats.averageScore != null) ? Math.round(stats.averageScore) : '--'} 
             />
           </View>
           <View style={styles.statRow}>
@@ -167,7 +167,7 @@ const StatsScreen: React.FC = () => {
           <View style={styles.statRow}>
             <StatCard 
               title="Average Putts" 
-              value={stats.averagePutts.toFixed(1)} 
+              value={(stats.averagePutts != null) ? stats.averagePutts.toFixed(1) : '--'} 
             />
             <StatCard 
               title="Scrambling" 

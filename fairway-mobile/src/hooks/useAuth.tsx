@@ -26,7 +26,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const handleAuthFailure = async (): Promise<void> => {
+    console.log('Authentication failed completely, clearing stored auth');
+    await clearStoredAuth();
+  };
+
+  const clearStoredAuth = async () => {
+    await AsyncStorage.multiRemove(['user', 'access_token', 'refresh_token']);
+    setUser(null);
+  };
+
   useEffect(() => {
+    // Set up auth failure callback
+    ApiService.setAuthFailureCallback(handleAuthFailure);
+    
     loadStoredAuth();
   }, []);
 
@@ -44,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (error) {
           // Token might be expired but refresh token could still be valid
           console.log('Token validation failed, but user will remain logged in for retry attempts');
-          // Don't clear stored auth immediately - let the API service handle token refresh
+          // If refresh token also fails, ApiService will trigger handleAuthFailure callback
         }
       }
     } catch (error) {
@@ -52,11 +65,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const clearStoredAuth = async () => {
-    await AsyncStorage.multiRemove(['user', 'access_token', 'refresh_token']);
-    setUser(null);
   };
 
   const refreshUser = async () => {
@@ -165,11 +173,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         error: apiError.message || 'Failed to update profile' 
       };
     }
-  };
-
-  const handleAuthFailure = async (): Promise<void> => {
-    console.log('Authentication failed completely, clearing stored auth');
-    await clearStoredAuth();
   };
 
   return (
