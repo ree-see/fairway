@@ -63,6 +63,13 @@ export const MainNavigator: React.FC = () => {
         tabBarActiveTintColor: '#2E7D32',
         tabBarInactiveTintColor: 'gray',
         headerShown: false,
+        tabBarStyle: {
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+        },
       })}
     >
       <Tab.Screen name="Home" component={DashboardStack} />
