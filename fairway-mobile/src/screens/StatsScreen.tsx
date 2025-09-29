@@ -131,11 +131,11 @@ const StatsScreen: React.FC = () => {
           <View style={styles.statRow}>
             <StatCard 
               title="Handicap Index" 
-              value={(stats.handicapIndex != null) ? stats.handicapIndex.toFixed(1) : '--'} 
+              value={(stats.handicapIndex != null && typeof stats.handicapIndex === 'number') ? stats.handicapIndex.toFixed(1) : '--'} 
             />
             <StatCard 
               title="Average Score" 
-              value={(stats.averageScore != null) ? Math.round(stats.averageScore) : '--'} 
+              value={(stats.averageScore != null && typeof stats.averageScore === 'number') ? Math.round(stats.averageScore) : '--'} 
             />
           </View>
           <View style={styles.statRow}>
@@ -167,7 +167,7 @@ const StatsScreen: React.FC = () => {
           <View style={styles.statRow}>
             <StatCard 
               title="Average Putts" 
-              value={(stats.averagePutts != null) ? stats.averagePutts.toFixed(1) : '--'} 
+              value={(stats.averagePutts != null && typeof stats.averagePutts === 'number') ? stats.averagePutts.toFixed(1) : '--'} 
             />
             <StatCard 
               title="Scrambling" 
