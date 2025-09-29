@@ -2,6 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { CourseSelectScreen } from '../screens/CourseSelectScreen';
@@ -65,11 +66,14 @@ export const MainNavigator: React.FC = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'transparent',
+          backgroundColor: 'rgba(255, 255, 255, 0.1)',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
         },
+        tabBarBackground: () => (
+          <BlurView intensity={80} style={{ flex: 1 }} />
+        ),
       })}
     >
       <Tab.Screen name="Home" component={DashboardStack} />
