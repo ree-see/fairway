@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface ScoringHole {
   id: string;
@@ -26,11 +26,7 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Select Hole</Text>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.gridContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.gridContainer}>
         {activeHoles.map((hole) => {
           const holeIndex = holes.findIndex(h => h.number === hole.number);
           const isCurrentHole = holeIndex === currentHoleIndex;
@@ -56,7 +52,7 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -76,7 +72,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
-    maxHeight: 200,
   },
   title: {
     fontSize: 14,
@@ -85,14 +80,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
   },
-  scrollView: {
-    maxHeight: 140,
-  },
   gridContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 8,
+    paddingBottom: 8,
   },
   selector: {
     width: 40,
