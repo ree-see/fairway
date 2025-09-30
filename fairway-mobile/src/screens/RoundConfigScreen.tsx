@@ -159,12 +159,12 @@ export const RoundConfigScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Set up your round</Text>
-          <Text style={styles.courseName}>{course.name}</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.title}>Set up your round</Text>
+        <Text style={styles.courseName}>{course.name}</Text>
+      </View>
 
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Round Type Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Round Type</Text>
@@ -307,15 +307,22 @@ export const RoundConfigScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
-  },
-  content: {
-    flex: 1,
+    backgroundColor: theme.colors.primary.main,
   },
   header: {
     backgroundColor: theme.colors.primary.main,
     padding: theme.spacing.lg,
     paddingTop: 60,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    backgroundColor: theme.colors.background.primary,
+    borderTopLeftRadius: theme.radius.card,
+    borderTopRightRadius: theme.radius.card,
+    paddingTop: theme.spacing.lg,
+    paddingBottom: theme.spacing.lg,
   },
   title: {
     fontSize: theme.fontSize.xxl,
@@ -331,11 +338,9 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: theme.colors.background.secondary,
     marginHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.lg,
     marginBottom: theme.spacing.lg,
     padding: theme.spacing.lg,
-    borderTopLeftRadius: theme.radius.card,
-    borderTopRightRadius: theme.radius.card,
+    borderRadius: theme.radius.card,
     ...theme.shadows.md,
   },
   sectionTitle: {
