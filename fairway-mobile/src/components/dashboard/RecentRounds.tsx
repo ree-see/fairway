@@ -85,17 +85,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 16,
   },
   roundCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   courseName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: '#EEEEEE',
     flex: 1,
   },
   roundBadges: {
@@ -132,11 +132,11 @@ const styles = StyleSheet.create({
   roundScore: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
   },
   roundDate: {
     fontSize: 14,
-    color: '#666666',
+    color: '#AAAAAA',
   },
   trendText: {
     fontSize: 12,
@@ -150,12 +150,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#666666',
+    color: '#AAAAAA',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999999',
+    color: '#888888',
     textAlign: 'center',
   },
 });

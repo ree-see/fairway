@@ -44,17 +44,17 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     paddingTop: 60,
   },
   welcomeText: {
     fontSize: 16,
-    color: '#666666',
+    color: '#AAAAAA',
   },
   nameText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
   },
   logoutButton: {
     padding: 8,

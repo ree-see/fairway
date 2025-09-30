@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 16,
   },
   handicapCards: {
@@ -60,13 +60,13 @@ const styles = StyleSheet.create({
   },
   handicapCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 20,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -76,17 +76,17 @@ const styles = StyleSheet.create({
   },
   handicapLabel: {
     fontSize: 14,
-    color: '#666666',
+    color: '#AAAAAA',
     marginBottom: 8,
   },
   handicapValue: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
   },
   handicapNote: {
     fontSize: 10,
-    color: '#999999',
+    color: '#888888',
     marginTop: 4,
   },
   verifiedBadge: {

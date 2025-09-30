@@ -42,16 +42,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 16,
   },
   subscriptionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   subscriptionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
   },
   subscriptionStatus: {
     fontSize: 14,
@@ -73,12 +73,12 @@ const styles = StyleSheet.create({
   },
   subscriptionDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: '#AAAAAA',
     marginBottom: 16,
     lineHeight: 20,
   },
   upgradeButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#4CAF50',
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',

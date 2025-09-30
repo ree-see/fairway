@@ -26,11 +26,11 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 4,
   },
   versionText: {
     fontSize: 12,
-    color: '#666666',
+    color: '#AAAAAA',
   },
 });

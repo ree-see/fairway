@@ -24,10 +24,10 @@ export const MenuSection: React.FC<MenuSectionProps> = ({ title, items }) => {
           onPress={item.action}
         >
           <View style={styles.menuItemLeft}>
-            <Ionicons name={item.icon as any} size={24} color="#666666" />
+            <Ionicons name={item.icon as any} size={24} color="#AAAAAA" />
             <Text style={styles.menuItemText}>{item.title}</Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+          <Ionicons name="chevron-forward" size={20} color="#666666" />
         </TouchableOpacity>
       ))}
     </View>
@@ -41,21 +41,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 16,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 2,
     elevation: 2,
   },
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontSize: 16,
-    color: '#333333',
+    color: '#EEEEEE',
     marginLeft: 16,
   },
 });

@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   primaryButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#4CAF50',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',

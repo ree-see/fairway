@@ -35,7 +35,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#1E1E1E',
     paddingTop: 60,
     paddingBottom: 30,
     alignItems: 'center',
@@ -60,11 +60,11 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#EEEEEE',
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: '#AAAAAA',
   },
 });

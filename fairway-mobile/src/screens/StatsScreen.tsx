@@ -107,7 +107,7 @@ const StatsScreen: React.FC = () => {
       case "declining":
         return "#F44336";
       default:
-        return "#666";
+        return "#AAAAAA";
     }
   };
 
@@ -259,7 +259,7 @@ const StatsScreen: React.FC = () => {
                 ? `${Math.round(stats.averageScore)} avg`
                 : "--"}
             </Text>
-            <Text style={[styles.trendChange, { color: "#666" }]}>
+            <Text style={[styles.trendChange, { color: "#AAAAAA" }]}>
               {stats.totalRounds > 1 ? "Over all rounds" : "Need more data"}
             </Text>
           </View>
@@ -279,14 +279,14 @@ const StatsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#2E7D32",
+    backgroundColor: "#121212",
   },
   content: {
     padding: 20,
     paddingBottom: 100, // Extra space for tab bar
   },
   sectionCard: {
-    backgroundColor: "white",
+    backgroundColor: "#1E1E1E",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -295,14 +295,14 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 3.84,
     elevation: 5,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#2E7D32",
+    color: "#4CAF50",
     marginBottom: 16,
     textAlign: "center",
   },
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#2A2A2A",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 4,
@@ -321,19 +321,19 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 12,
-    color: "#666",
+    color: "#AAAAAA",
     marginBottom: 4,
     textAlign: "center",
   },
   statValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#2E7D32",
+    color: "#4CAF50",
     marginBottom: 2,
   },
   statSubtitle: {
     fontSize: 10,
-    color: "#999",
+    color: "#888888",
     textAlign: "center",
   },
   trendContainer: {
@@ -348,13 +348,13 @@ const styles = StyleSheet.create({
   },
   trendLabel: {
     fontSize: 12,
-    color: "#666",
+    color: "#AAAAAA",
     marginBottom: 4,
   },
   trendValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: "#EEEEEE",
     marginBottom: 2,
   },
   trendChange: {

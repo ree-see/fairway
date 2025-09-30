@@ -97,7 +97,7 @@ export const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#121212',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     paddingTop: 60,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: '#2A2A2A',
   },
   modalCancelText: {
     fontSize: 16,
@@ -116,15 +116,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
   },
   modalSaveText: {
     fontSize: 16,
-    color: '#2E7D32',
+    color: '#4CAF50',
     fontWeight: '600',
   },
   modalSaveTextDisabled: {
-    color: '#CCCCCC',
+    color: '#666666',
   },
   modalContent: {
     padding: 20,
@@ -135,15 +135,16 @@ const styles = StyleSheet.create({
   formLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 8,
   },
   formInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#2A2A2A',
     borderRadius: 8,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#DDDDDD',
+    borderColor: '#3A3A3A',
+    color: '#EEEEEE',
   },
 });

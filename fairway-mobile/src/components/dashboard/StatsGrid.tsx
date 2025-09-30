@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#EEEEEE',
     marginBottom: 16,
   },
   statsGrid: {
@@ -56,25 +56,25 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   statValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: '#4CAF50',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: '#AAAAAA',
     textAlign: 'center',
   },
 });
