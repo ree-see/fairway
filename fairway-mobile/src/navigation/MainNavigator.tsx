@@ -62,7 +62,7 @@ export const MainNavigator: React.FC = () => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#2E7D32',
-        tabBarInactiveTintColor: '#666',
+        tabBarInactiveTintColor: '#000000',
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
