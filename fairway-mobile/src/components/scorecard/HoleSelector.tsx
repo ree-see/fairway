@@ -1,7 +1,15 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, FlatList, Dimensions } from 'react-native';
+import React, { useRef, useEffect } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Animated,
+  FlatList,
+  Dimensions,
+} from "react-native";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const ITEM_SIZE = 70;
 const SPACING = 16;
 
@@ -22,17 +30,21 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   holes,
   activeHoleNumbers,
   currentHoleIndex,
-  onSelectHole
+  onSelectHole,
 }) => {
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
-  const activeHoles = holes.filter(hole => activeHoleNumbers.includes(hole.number));
+  const activeHoles = holes.filter((hole) =>
+    activeHoleNumbers.includes(hole.number),
+  );
+  const isScrolling = useRef(false);
 
-  // Auto-scroll to current hole when it changes
+  // Auto-scroll to current hole when it changes (only when not scrolling)
   useEffect(() => {
-    if (flatListRef.current && activeHoles.length > 0) {
+    if (flatListRef.current && activeHoles.length > 0 && !isScrolling.current) {
       const activeIndex = activeHoles.findIndex(
-        hole => holes.findIndex(h => h.number === hole.number) === currentHoleIndex
+        (hole) =>
+          holes.findIndex((h) => h.number === hole.number) === currentHoleIndex,
       );
 
       if (activeIndex !== -1) {
@@ -45,8 +57,35 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
     }
   }, [currentHoleIndex, activeHoles]);
 
-  const renderHole = ({ item, index }: { item: ScoringHole; index: number }) => {
-    const holeIndex = holes.findIndex(h => h.number === item.number);
+  // Handle scroll end to change hole
+  const handleMomentumScrollEnd = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / (ITEM_SIZE + SPACING));
+
+    if (index >= 0 && index < activeHoles.length) {
+      const hole = activeHoles[index];
+      const holeIndex = holes.findIndex((h) => h.number === hole.number);
+
+      if (holeIndex !== currentHoleIndex) {
+        onSelectHole(holeIndex);
+      }
+    }
+
+    isScrolling.current = false;
+  };
+
+  const handleScrollBeginDrag = () => {
+    isScrolling.current = true;
+  };
+
+  const renderHole = ({
+    item,
+    index,
+  }: {
+    item: ScoringHole;
+    index: number;
+  }) => {
+    const holeIndex = holes.findIndex((h) => h.number === item.number);
     const isCurrentHole = holeIndex === currentHoleIndex;
     const isCompleted = item.strokes !== undefined && item.strokes > 0;
 
@@ -61,13 +100,13 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
     const scale = scrollX.interpolate({
       inputRange,
       outputRange: [0.7, 0.85, 1, 0.85, 0.7],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
 
     const opacity = scrollX.interpolate({
       inputRange,
       outputRange: [0.5, 0.7, 1, 0.7, 0.5],
-      extrapolate: 'clamp',
+      extrapolate: "clamp",
     });
 
     return (
@@ -80,6 +119,7 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
           style={[
             styles.holeItem,
             isCurrentHole && styles.holeItemActive,
+            isCompleted && !isCurrentHole && styles.holeItemCompleted,
             {
               transform: [{ scale }],
               opacity,
@@ -90,11 +130,11 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
             style={[
               styles.holeNumber,
               isCurrentHole && styles.holeNumberActive,
+              isCompleted && !isCurrentHole && styles.holeNumberCompleted,
             ]}
           >
             {item.number}
           </Text>
-          {isCompleted && <View style={styles.completedDot} />}
         </Animated.View>
       </TouchableOpacity>
     );
@@ -115,8 +155,10 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
         snapToAlignment="center"
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: true }
+          { useNativeDriver: true },
         )}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
         scrollEventThrottle={16}
         getItemLayout={(data, index) => ({
           length: ITEM_SIZE + SPACING,
@@ -130,11 +172,10 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
     paddingVertical: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -143,46 +184,42 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: SCREEN_WIDTH / 2 - ITEM_SIZE / 2,
-    alignItems: 'center',
+    alignItems: "center",
   },
   itemContainer: {
     width: ITEM_SIZE + SPACING,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   holeItem: {
     width: ITEM_SIZE,
     height: ITEM_SIZE,
     borderRadius: ITEM_SIZE / 2,
-    backgroundColor: '#F5F5F5',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F5F5F5",
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
-    borderColor: 'transparent',
-    position: 'relative',
+    borderColor: "transparent",
+    position: "relative",
   },
   holeItemActive: {
-    backgroundColor: '#1B5E20',
-    borderColor: '#1B5E20',
+    backgroundColor: "#C41E3A",
+    borderColor: "#C41E3A",
+  },
+  holeItemCompleted: {
+    backgroundColor: "#4CAF50",
+    borderColor: "#4CAF50",
   },
   holeNumber: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#666666',
+    fontWeight: "bold",
+    color: "#666666",
   },
   holeNumberActive: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 24,
   },
-  completedDot: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#4CAF50',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+  holeNumberCompleted: {
+    color: "#FFFFFF",
   },
 });
