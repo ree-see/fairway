@@ -32,6 +32,9 @@ class RoundAttestation < ApplicationRecord
   scope :recent, -> { order(attested_at: :desc) }
   scope :pending_response, -> { where(attested_at: nil) }
   scope :location_verified, -> { where(location_verified: true) }
+  scope :via_link, -> { where(verified_via_link: true) }
+  scope :via_app, -> { where(verified_via_link: false) }
+  scope :token_not_expired, -> { where('token_expires_at > ?', Time.current) }
 
   # Callbacks
   before_save :verify_attester_location
@@ -81,15 +84,31 @@ class RoundAttestation < ApplicationRecord
 
   def fraud_risk_indicators
     indicators = []
-    
+
     indicators << 'Attester not at course' unless location_verified
     indicators << 'Very quick response' if response_time_minutes && response_time_minutes < 5
     indicators << 'Very slow response' if response_time_minutes && response_time_minutes > 1440 # 24 hours
     indicators << 'Attester not in same group' unless same_group?
     indicators << 'Unverified attester' unless attester.verified?
     indicators << 'New attester account' if attester.rounds_played < 3
-    
+
     indicators
+  end
+
+  def token_expired?
+    token_expires_at.present? && token_expires_at < Time.current
+  end
+
+  def token_valid?
+    verification_token.present? && !token_expired?
+  end
+
+  def verified_via_link?
+    verified_via_link
+  end
+
+  def pending_verification?
+    attested_at.nil? && token_valid?
   end
 
   private

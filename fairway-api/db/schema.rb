@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_25_153047) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_30_154001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -144,6 +144,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_25_153047) do
     t.boolean "location_verified", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "verification_token"
+    t.string "verifier_phone"
+    t.string "verifier_name"
+    t.datetime "token_expires_at"
+    t.boolean "verified_via_link", default: false
+    t.datetime "link_clicked_at"
+    t.integer "link_click_count", default: 0
     t.index ["attested_at"], name: "index_round_attestations_on_attested_at"
     t.index ["attester_id", "attested_at"], name: "index_attestations_on_attester_and_date"
     t.index ["attester_id"], name: "index_round_attestations_on_attester_id"
@@ -154,6 +161,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_25_153047) do
     t.index ["round_id", "attester_id"], name: "index_round_attestations_on_round_id_and_attester_id", unique: true
     t.index ["round_id", "is_approved"], name: "index_attestations_on_round_and_approval"
     t.index ["round_id"], name: "index_round_attestations_on_round_id"
+    t.index ["token_expires_at"], name: "index_round_attestations_on_token_expires_at"
+    t.index ["verification_token"], name: "index_round_attestations_on_verification_token", unique: true
+    t.index ["verifier_phone"], name: "index_round_attestations_on_verifier_phone"
   end
 
   create_table "rounds", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
