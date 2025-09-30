@@ -72,16 +72,23 @@ class VerificationLinkService
     # Try to find existing user by phone number first
     attester = User.find_by(phone: @phone_number) || find_or_create_system_user
 
-    @round.round_attestations.create(
+    # Find existing attestation or create new one
+    attestation = @round.round_attestations.find_or_initialize_by(
+      attester_id: attester.id
+    )
+
+    attestation.assign_attributes(
       verification_token: token,
       verifier_phone: @phone_number,
       verifier_name: @verifier_name,
       token_expires_at: TOKEN_EXPIRY_DAYS.days.from_now,
       requested_at: Time.current,
       request_method: 'sms',
-      is_approved: false,
-      attester_id: attester.id
+      is_approved: false
     )
+
+    attestation.save!
+    attestation
   end
 
   def find_or_create_system_user
