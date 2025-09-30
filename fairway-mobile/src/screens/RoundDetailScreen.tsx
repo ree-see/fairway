@@ -4,8 +4,10 @@ import {
   Text,
   ScrollView,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import ApiService from '../services/ApiService';
 import { Round, HoleScore, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -16,6 +18,7 @@ import { CourseInfo } from '../components/rounds/CourseInfo';
 import { RoundStatistics } from '../components/rounds/RoundStatistics';
 import { ScorecardOptions } from '../components/rounds/ScorecardOptions';
 import { ScorecardNine } from '../components/rounds/ScorecardNine';
+import { useAuth } from '../hooks/useAuth';
 import { theme } from '../theme';
 
 type RoundDetailRouteProp = RouteProp<{ RoundDetail: { roundId: string } }, 'RoundDetail'>;
@@ -42,6 +45,8 @@ interface ScorecardNineProps {
 
 export const RoundDetailScreen: React.FC = () => {
   const route = useRoute<RoundDetailRouteProp>();
+  const navigation = useNavigation<StackNavigationProp<any>>();
+  const { user } = useAuth();
   const { roundId } = route.params;
   
   const [roundDetail, setRoundDetail] = useState<RoundDetailData | null>(null);
@@ -239,7 +244,26 @@ export const RoundDetailScreen: React.FC = () => {
 
       {/* Statistics View */}
       {activeTab === 'statistics' && (
-        <RoundStatistics round={round} />
+        <>
+          <RoundStatistics round={round} />
+
+          {/* Request Verification Button - only show for unverified rounds */}
+          {!round.is_verified && (
+            <View style={styles.verificationButtonContainer}>
+              <TouchableOpacity
+                style={styles.verificationButton}
+                onPress={() => navigation.navigate('VerificationRequest', {
+                  roundId: round.id,
+                  playerName: user?.full_name || 'Player',
+                  courseName: round.course_name,
+                  score: round.total_strokes,
+                })}
+              >
+                <Text style={styles.verificationButtonText}>Request Verification</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </>
       )}
     </ScrollView>
   );
@@ -321,5 +345,22 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: theme.fontSize.base,
     color: theme.colors.text.tertiary,
+  },
+  verificationButtonContainer: {
+    margin: theme.spacing.xl,
+    marginTop: theme.spacing.lg,
+  },
+  verificationButton: {
+    backgroundColor: theme.colors.primary.main,
+    borderRadius: theme.radius.button,
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.xl,
+    alignItems: 'center',
+    ...theme.shadows.md,
+  },
+  verificationButtonText: {
+    color: theme.colors.text.inverse,
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.bold,
   },
 });

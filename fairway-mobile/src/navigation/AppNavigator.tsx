@@ -6,6 +6,7 @@ import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
 import { ScorecardScreen } from '../screens/ScorecardScreen';
 import { RoundConfigScreen } from '../screens/RoundConfigScreen';
+import { VerificationRequestScreen } from '../screens/VerificationRequestScreen';
 import { useAuth } from '../hooks/useAuth';
 
 const Stack = createStackNavigator();
@@ -35,13 +36,28 @@ export const AppNavigator: React.FC = () => {
                 headerShown: false,
               }}
             />
-            <Stack.Screen 
-              name="FocusedRound" 
+            <Stack.Screen
+              name="FocusedRound"
               component={ScorecardScreen}
               options={{
                 presentation: 'modal',
                 gestureEnabled: false, // Disable swipe to dismiss
                 headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="VerificationRequest"
+              component={VerificationRequestScreen}
+              options={{
+                headerShown: true,
+                headerTitle: 'Request Verification',
+                headerStyle: {
+                  backgroundColor: '#1E1E1E',
+                },
+                headerTintColor: '#4CAF50',
+                headerTitleStyle: {
+                  fontWeight: 'bold',
+                },
               }}
             />
           </>
