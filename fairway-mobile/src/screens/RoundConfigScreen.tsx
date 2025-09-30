@@ -316,8 +316,6 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary.main,
     padding: theme.spacing.lg,
     paddingTop: 60,
-    borderBottomLeftRadius: theme.radius.card,
-    borderBottomRightRadius: theme.radius.card,
   },
   title: {
     fontSize: theme.fontSize.xxl,
@@ -332,9 +330,12 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: theme.colors.background.secondary,
-    margin: theme.spacing.lg,
+    marginHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
     padding: theme.spacing.lg,
-    borderRadius: theme.radius.card,
+    borderTopLeftRadius: theme.radius.card,
+    borderTopRightRadius: theme.radius.card,
     ...theme.shadows.md,
   },
   sectionTitle: {
