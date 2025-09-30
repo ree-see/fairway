@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,12 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { Course } from '../types/api';
+import { Course, DetailedCourse } from '../types/api';
 import { theme } from '../theme';
+import ApiService from '../services/ApiService';
 
 interface TeeBox {
   color: string;
@@ -25,14 +27,72 @@ export const RoundConfigScreen: React.FC = () => {
   const [roundType, setRoundType] = useState<'9' | '18' | null>(null);
   const [nineHoleOption, setNineHoleOption] = useState<'front' | 'back' | null>(null);
   const [selectedTees, setSelectedTees] = useState<string>('white');
+  const [teeOptions, setTeeOptions] = useState<TeeBox[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Common tee options - in a real app, this would come from course data
-  const teeOptions: TeeBox[] = [
-    { color: 'black', name: 'Championship Tees', distance: 7200 },
-    { color: 'blue', name: 'Blue Tees', distance: 6800 },
-    { color: 'white', name: 'White Tees', distance: 6400 },
-    { color: 'red', name: 'Red Tees', distance: 5800 },
-  ];
+  useEffect(() => {
+    loadCourseDetails();
+  }, []);
+
+  const loadCourseDetails = async () => {
+    try {
+      const response = await ApiService.getCourse(course.id);
+      if (response.success && response.data) {
+        const detailedCourse: DetailedCourse = response.data.course;
+        const tees = calculateTeeOptions(detailedCourse);
+        setTeeOptions(tees);
+      }
+    } catch (error) {
+      console.error('Error loading course details:', error);
+      // Fallback to basic tee options
+      setTeeOptions([
+        { color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const calculateTeeOptions = (detailedCourse: DetailedCourse): TeeBox[] => {
+    if (!detailedCourse.holes || detailedCourse.holes.length === 0) {
+      return [{ color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 }];
+    }
+
+    const teeColors: { [key: string]: { name: string; total: number; count: number } } = {
+      black: { name: 'Championship Tees', total: 0, count: 0 },
+      blue: { name: 'Blue Tees', total: 0, count: 0 },
+      white: { name: 'White Tees', total: 0, count: 0 },
+      red: { name: 'Red Tees', total: 0, count: 0 },
+      gold: { name: 'Gold Tees', total: 0, count: 0 },
+    };
+
+    // Sum yardages for each tee color
+    detailedCourse.holes.forEach((hole) => {
+      Object.keys(teeColors).forEach((color) => {
+        const yardage = hole.yardages[color as keyof typeof hole.yardages];
+        if (yardage) {
+          teeColors[color].total += yardage;
+          teeColors[color].count++;
+        }
+      });
+    });
+
+    // Only include tees that have data for all 18 holes
+    const availableTees: TeeBox[] = [];
+    Object.entries(teeColors).forEach(([color, data]) => {
+      if (data.count === 18) {
+        availableTees.push({
+          color,
+          name: data.name,
+          distance: data.total,
+        });
+      }
+    });
+
+    return availableTees.length > 0 ? availableTees : [
+      { color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 }
+    ];
+  };
 
   const startRound = () => {
     if (!roundType) {
@@ -63,15 +123,25 @@ export const RoundConfigScreen: React.FC = () => {
       blue: '#2196F3',
       white: '#FFFFFF',
       red: '#F44336',
+      gold: '#FFD700',
     };
     return colorMap[color] || '#FFFFFF';
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={theme.colors.primary.main} />
+        <Text style={styles.loadingText}>Loading course details...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Configure Your Round</Text>
+          <Text style={styles.title}>Set up your round</Text>
           <Text style={styles.courseName}>{course.name}</Text>
         </View>
 
@@ -227,7 +297,8 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   optionButtonTextSelected: {
-    color: theme.colors.primary.main,
+    color: theme.colors.primary.dark,
+    fontWeight: theme.fontWeight.bold,
   },
   optionButtonSubtext: {
     fontSize: theme.fontSize.xs,
@@ -271,7 +342,8 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   teeOptionTextSelected: {
-    color: theme.colors.primary.main,
+    color: theme.colors.primary.dark,
+    fontWeight: theme.fontWeight.bold,
   },
   teeDistance: {
     fontSize: theme.fontSize.sm,
@@ -282,6 +354,15 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.lg,
     color: theme.colors.primary.main,
     fontWeight: theme.fontWeight.bold,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
   },
   footer: {
     padding: theme.spacing.lg,
