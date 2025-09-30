@@ -62,17 +62,17 @@ export const MainNavigator: React.FC = () => {
           return <Ionicons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: '#2E7D32',
-        tabBarInactiveTintColor: 'gray',
+        tabBarInactiveTintColor: '#666',
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'rgba(255, 255, 255, 0.05)',
+          backgroundColor: 'rgba(255, 255, 255, 0.3)',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarBackground: () => (
-          <BlurView intensity={10} style={{ flex: 1 }} />
+          <BlurView intensity={10} tint="light" style={{ flex: 1 }} />
         ),
       })}
     >
