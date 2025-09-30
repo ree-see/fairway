@@ -43,7 +43,7 @@ export const ScorecardScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const config = route.params as RoundConfig;
-  
+
   const [holes, setHoles] = useState<ScoringHole[]>([]);
   const [activeHoleNumbers, setActiveHoleNumbers] = useState<number[]>([]);
   const [currentHoleIndex, setCurrentHoleIndex] = useState(0);
@@ -53,8 +53,9 @@ export const ScorecardScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [roundPersistedToDb, setRoundPersistedToDb] = useState(false);
-  
+
   const translateX = useRef(new Animated.Value(0)).current;
+  const cardOpacity = useRef(new Animated.Value(1)).current;
   const panRef = useRef<PanGestureHandler>(null);
 
   useEffect(() => {
@@ -271,12 +272,28 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
-  // Custom setCurrentHoleIndex that saves before switching
+  // Custom setCurrentHoleIndex that saves before switching with animation
   const navigateToHole = (newHoleIndex: number) => {
     if (newHoleIndex !== currentHoleIndex) {
       saveStagedHole(); // Save current hole before switching
-      setCurrentHoleIndex(newHoleIndex);
-      loadHoleData(newHoleIndex); // Load new hole data
+
+      // Fade out animation
+      Animated.timing(cardOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        // Switch hole
+        setCurrentHoleIndex(newHoleIndex);
+        loadHoleData(newHoleIndex);
+
+        // Fade in animation
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }).start();
+      });
     }
   };
 
@@ -452,13 +469,16 @@ export const ScorecardScreen: React.FC = () => {
         onGestureEvent={onPanGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
       >
-        <Animated.View 
+        <Animated.View
           style={[
-            styles.holeContainer, 
-            { transform: [{ translateX }] }
+            styles.holeContainer,
+            {
+              transform: [{ translateX }],
+              opacity: cardOpacity,
+            }
           ]}
         >
-          <HoleCard 
+          <HoleCard
             hole={currentHole}
             onUpdateScore={updateHoleScore}
             onUpdateBool={updateHoleBool}
