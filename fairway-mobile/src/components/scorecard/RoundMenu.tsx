@@ -11,6 +11,7 @@ interface RoundMenuProps {
   scoreDisplay: string;
   canSubmit: boolean;
   onSubmit: () => void;
+  onPauseRound: () => void;
 }
 
 export const RoundMenu: React.FC<RoundMenuProps> = ({
@@ -20,7 +21,8 @@ export const RoundMenu: React.FC<RoundMenuProps> = ({
   totalHoles,
   scoreDisplay,
   canSubmit,
-  onSubmit
+  onSubmit,
+  onPauseRound
 }) => {
   const navigation = useNavigation();
 
@@ -31,7 +33,7 @@ export const RoundMenu: React.FC<RoundMenuProps> = ({
       'Save progress and return to Dashboard?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Pause & Exit', onPress: () => navigation.goBack() }
+        { text: 'Save & Exit', onPress: onPauseRound }
       ]
     );
   };

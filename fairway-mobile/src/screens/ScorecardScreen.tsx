@@ -52,6 +52,7 @@ export const ScorecardScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [roundPersistedToDb, setRoundPersistedToDb] = useState(false);
   
   const translateX = useRef(new Animated.Value(0)).current;
   const panRef = useRef<PanGestureHandler>(null);
@@ -115,29 +116,26 @@ export const ScorecardScreen: React.FC = () => {
       
       setHoles(courseHoles);
       setActiveHoleNumbers(activeHoleNumbers);
-      
-      // Create a new round
-      const roundData = {
+
+      // Create a temporary round object (not saved to DB yet)
+      const tempRound: Partial<Round> = {
+        id: 'temp-' + Date.now(), // Temporary ID
         course_id: config.course.id,
+        course_name: config.course.name,
         started_at: new Date().toISOString(),
         tee_color: config.selectedTees,
         is_provisional: true,
-        holes_played: config.totalHoles,
+        status: 'in_progress',
       };
-      
-      const roundResponse = await ApiService.createRound(roundData);
-      if (!roundResponse.success || !roundResponse.data) {
-        throw new Error('Failed to create round');
-      }
-      
-      setCurrentRound(roundResponse.data.round);
+
+      setCurrentRound(tempRound as Round);
 
       // Start Live Activity for iOS Dynamic Island
       if (LiveActivityService.isLiveActivitySupported()) {
         await LiveActivityService.startRoundActivity({
           courseId: parseInt(config.course.id) || 0,
           courseName: config.course.name,
-          startTime: roundData.started_at,
+          startTime: tempRound.started_at!,
           currentHole: 1,
           totalHoles: courseHoles.length,
           scoreToPar: 0,
@@ -174,9 +172,45 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
+  const saveRoundToDB = async (): Promise<Round> => {
+    if (!currentRound) {
+      throw new Error('No current round to save');
+    }
+
+    // If already persisted, just return the current round
+    if (roundPersistedToDb && !currentRound.id.startsWith('temp-')) {
+      return currentRound;
+    }
+
+    try {
+      // Create the round in the database
+      const roundData = {
+        course_id: currentRound.course_id,
+        started_at: currentRound.started_at,
+        tee_color: currentRound.tee_color,
+        is_provisional: true,
+        holes_played: config.totalHoles,
+      };
+
+      const roundResponse = await ApiService.createRound(roundData);
+      if (!roundResponse.success || !roundResponse.data) {
+        throw new Error('Failed to create round');
+      }
+
+      const savedRound = roundResponse.data.round;
+      setCurrentRound(savedRound);
+      setRoundPersistedToDb(true);
+
+      return savedRound;
+    } catch (error) {
+      console.error('Error saving round to DB:', error);
+      throw error;
+    }
+  };
+
   const updateHoleScore = async (field: 'strokes' | 'putts', value: string) => {
     const numValue = parseInt(value) || undefined;
-    
+
     // Update staged hole only - don't save to main holes array yet
     setStagedHole(prev => {
       if (!prev) return prev;
@@ -299,6 +333,26 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
+  const handlePauseRound = async () => {
+    try {
+      // Save round to database if not already persisted
+      if (!roundPersistedToDb) {
+        await saveRoundToDB();
+        Alert.alert('Round Saved', 'Your progress has been saved', [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]);
+      } else {
+        navigation.goBack();
+      }
+    } catch (error) {
+      console.error('Error pausing round:', error);
+      Alert.alert('Error', 'Failed to save round. Try again?', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Retry', onPress: handlePauseRound }
+      ]);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!currentRound) {
       Alert.alert('Error', 'No active round found');
@@ -307,10 +361,16 @@ export const ScorecardScreen: React.FC = () => {
 
     try {
       setIsSubmitting(true);
-      
+
+      // Save round to DB first if not already persisted
+      let roundToSubmit = currentRound;
+      if (!roundPersistedToDb) {
+        roundToSubmit = await saveRoundToDB();
+      }
+
       // Save all hole scores to the backend
       const holesWithScores = holes.filter(hole => hole.strokes && hole.strokes > 0);
-      
+
       for (const hole of holesWithScores) {
         const holeScoreData: HoleScoreInput = {
           hole_number: hole.number,
@@ -325,7 +385,7 @@ export const ScorecardScreen: React.FC = () => {
         };
 
         try {
-          await ApiService.addHoleScore(currentRound.id, holeScoreData);
+          await ApiService.addHoleScore(roundToSubmit.id, holeScoreData);
         } catch (error) {
           console.error(`Failed to save hole ${hole.number} score:`, error);
         }
@@ -348,7 +408,7 @@ export const ScorecardScreen: React.FC = () => {
         total_penalties: 0,
       };
 
-      const response = await ApiService.updateRound(currentRound.id, roundUpdateData);
+      const response = await ApiService.updateRound(roundToSubmit.id, roundUpdateData);
       
       if (response.success) {
         // End Live Activity
@@ -421,7 +481,7 @@ export const ScorecardScreen: React.FC = () => {
 
       <MenuButton onPress={() => setShowMenu(true)} />
 
-      <RoundMenu 
+      <RoundMenu
         visible={showMenu}
         onClose={() => setShowMenu(false)}
         completedHoles={getCompletedHoles()}
@@ -429,6 +489,7 @@ export const ScorecardScreen: React.FC = () => {
         scoreDisplay={getScoreDisplay()}
         canSubmit={shouldShowSubmitButton()}
         onSubmit={submitRound}
+        onPauseRound={handlePauseRound}
       />
     </View>
   );
