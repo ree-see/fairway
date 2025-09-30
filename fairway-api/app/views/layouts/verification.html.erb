@@ -202,6 +202,32 @@
       border-color: #4CAF50;
     }
 
+    .app-promo {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .app-promo p {
+      color: white;
+      font-weight: 600;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+
+    .btn-download {
+      background: white;
+      color: #667eea;
+      font-weight: 700;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+    }
+
     .footer {
       text-align: center;
       padding: 20px;
@@ -267,11 +293,7 @@
   <%= yield %>
 
   <div class="footer">
-    <div class="app-download">
-      <p>Want to track your own golf rounds?</p>
-      <a href="#" class="btn">Download Fairway App</a>
-    </div>
-    <p style="margin-top: 20px; font-size: 12px; opacity: 0.8;">
+    <p style="font-size: 12px; opacity: 0.8;">
       © <%= Time.current.year %> Fairway - The Verified Handicap
     </p>
   </div>
