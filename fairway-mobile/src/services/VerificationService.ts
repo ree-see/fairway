@@ -23,7 +23,7 @@ class VerificationService {
   ): Promise<{ success: boolean; data?: VerificationResponse; error?: string }> {
     try {
       const response = await ApiService.post(
-        `/rounds/${roundId}/request_verification_link`,
+        `/api/v1/rounds/${roundId}/request_verification_link`,
         {
           phone_number: phoneNumber,
           verifier_name: verifierName,
@@ -55,7 +55,7 @@ class VerificationService {
    */
   async getVerificationStatus(roundId: string) {
     try {
-      const response = await ApiService.get(`/rounds/${roundId}`);
+      const response = await ApiService.get(`/api/v1/rounds/${roundId}`);
 
       if (response.success && response.data) {
         return {
