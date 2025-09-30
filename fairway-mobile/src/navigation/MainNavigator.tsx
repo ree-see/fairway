@@ -72,7 +72,7 @@ export const MainNavigator: React.FC = () => {
           shadowOpacity: 0,
           borderRadius: 25,
           marginHorizontal: 10,
-          marginBottom: 10,
+          marginBottom: 20,
           height: 60,
           paddingBottom: 5,
         },
