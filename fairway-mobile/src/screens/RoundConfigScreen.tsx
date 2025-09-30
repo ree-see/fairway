@@ -288,8 +288,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   optionButtonSelected: {
-    backgroundColor: theme.colors.primary.light,
-    borderColor: theme.colors.primary.main,
+    borderColor: '#F44336',
+    borderWidth: 2,
   },
   optionButtonText: {
     fontSize: theme.fontSize.md,
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.secondary,
   },
   optionButtonTextSelected: {
-    color: theme.colors.primary.dark,
+    color: theme.colors.text.primary,
     fontWeight: theme.fontWeight.bold,
   },
   optionButtonSubtext: {
@@ -317,8 +317,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   teeOptionSelected: {
-    backgroundColor: theme.colors.primary.light,
-    borderColor: theme.colors.primary.main,
+    borderColor: '#F44336',
+    borderWidth: 2,
   },
   teeRow: {
     flexDirection: 'row',
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text.primary,
   },
   teeOptionTextSelected: {
-    color: theme.colors.primary.dark,
+    color: theme.colors.text.primary,
     fontWeight: theme.fontWeight.bold,
   },
   teeDistance: {
@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   },
   selectedIndicator: {
     fontSize: theme.fontSize.lg,
-    color: theme.colors.primary.main,
+    color: '#F44336',
     fontWeight: theme.fontWeight.bold,
   },
   loadingContainer: {
