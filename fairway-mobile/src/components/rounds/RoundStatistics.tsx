@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Round } from '../../types/api';
+import { theme } from '../../theme';
 
 interface RoundStatisticsProps {
   round: Round;
@@ -52,45 +53,41 @@ export const RoundStatistics: React.FC<RoundStatisticsProps> = ({ round }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: theme.colors.background.secondary,
+    margin: theme.spacing.xl,
+    padding: theme.padding.card,
+    borderRadius: theme.radius.card,
+    ...theme.shadows.md,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.lg,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginBottom: 16,
+    gap: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   statCard: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    padding: 16,
+    backgroundColor: theme.colors.background.tertiary,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.lg,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 4,
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary.main,
+    marginBottom: theme.spacing.xs,
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666666',
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
   },
   statusRow: {
@@ -99,20 +96,20 @@ const styles = StyleSheet.create({
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    gap: 8,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.badge,
+    gap: theme.spacing.sm,
   },
   verifiedBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: theme.colors.status.success,
   },
   provisionalBadge: {
-    backgroundColor: '#FF9800',
+    backgroundColor: theme.colors.status.warning,
   },
   statusText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    color: theme.colors.text.inverse,
+    fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
   },
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { theme } from '../../theme';
 
 interface ScorecardDisplayOptions {
   showPutts: boolean;
@@ -54,48 +55,44 @@ export const ScorecardOptions: React.FC<ScorecardOptionsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    margin: 20,
+    backgroundColor: theme.colors.background.secondary,
+    margin: theme.spacing.xl,
     marginBottom: 0,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: theme.padding.card,
+    borderRadius: theme.radius.card,
+    ...theme.shadows.md,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.lg,
   },
   toggleRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: theme.spacing.md,
     justifyContent: 'center',
   },
   toggleButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: theme.colors.background.tertiary,
+    borderRadius: theme.radius.badge,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.xl,
     borderWidth: 2,
     borderColor: 'transparent',
     minWidth: 80,
     alignItems: 'center',
   },
   toggleButtonActive: {
-    backgroundColor: '#E8F5E8',
-    borderColor: '#2E7D32',
+    backgroundColor: theme.colors.background.tertiary,
+    borderColor: theme.colors.primary.main,
   },
   toggleButtonText: {
-    fontSize: 14,
-    color: '#666666',
-    fontWeight: '600',
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
+    fontWeight: theme.fontWeight.semibold,
   },
   toggleButtonTextActive: {
-    color: '#2E7D32',
+    color: theme.colors.primary.main,
   },
 });
