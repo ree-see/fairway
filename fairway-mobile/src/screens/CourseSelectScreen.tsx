@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ApiService from '../services/ApiService';
 import { Course, ApiError } from '../types/api';
 import { useDebouncedSearch } from '../hooks/useDebounce';
+import { theme } from '../theme';
 
 export const CourseSelectScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -124,22 +125,23 @@ export const CourseSelectScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color="#666666" style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color={theme.colors.text.secondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search courses by name or location"
+            placeholderTextColor={theme.colors.text.tertiary}
             value={searchText}
             onChangeText={setSearchText}
           />
           {isSearching && (
-            <ActivityIndicator size="small" color="#2E7D32" style={styles.searchLoading} />
+            <ActivityIndicator size="small" color={theme.colors.primary.main} style={styles.searchLoading} />
           )}
         </View>
       </View>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#2E7D32" />
+          <ActivityIndicator size="large" color={theme.colors.primary.main} />
           <Text style={styles.loadingText}>Loading courses...</Text>
         </View>
       ) : (
@@ -151,7 +153,7 @@ export const CourseSelectScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="golf" size={48} color="#CCCCCC" />
+              <Ionicons name="golf" size={48} color={theme.colors.text.tertiary} />
               <Text style={styles.emptyText}>
                 {searchText ? 'No courses found matching your search' : 'No courses available'}
               </Text>
@@ -166,30 +168,30 @@ export const CourseSelectScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: theme.colors.background.primary,
   },
   searchSection: {
-    padding: 20,
-    backgroundColor: '#FFFFFF',
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.background.secondary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: theme.colors.background.tertiary,
+    borderRadius: theme.radius.input,
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: theme.spacing.sm,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: '#333333',
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
   },
   searchLoading: {
-    marginLeft: 8,
+    marginLeft: theme.spacing.sm,
   },
   loadingContainer: {
     flex: 1,
@@ -198,9 +200,9 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
   },
   emptyContainer: {
     flex: 1,
@@ -209,66 +211,62 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
+    marginTop: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
     textAlign: 'center',
     paddingHorizontal: 40,
   },
   coursesList: {
-    padding: 20,
+    padding: theme.spacing.lg,
   },
   courseCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: theme.colors.background.secondary,
+    borderRadius: theme.radius.card,
+    padding: theme.padding.card,
+    marginBottom: theme.spacing.md,
+    ...theme.shadows.md,
   },
   courseHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   courseName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333333',
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
     flex: 1,
-    marginRight: 12,
+    marginRight: theme.spacing.sm,
   },
   courseDistance: {
-    fontSize: 14,
-    color: '#2E7D32',
-    fontWeight: '600',
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary.main,
+    fontWeight: theme.fontWeight.semibold,
   },
   courseLocation: {
-    fontSize: 16,
-    color: '#666666',
-    marginBottom: 16,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.md,
   },
   courseStats: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 16,
+    gap: theme.spacing.md,
     justifyContent: 'space-between',
   },
   statItem: {
     alignItems: 'center',
   },
   statLabel: {
-    fontSize: 12,
-    color: '#666666',
-    marginBottom: 4,
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2E7D32',
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary.main,
   },
 });
