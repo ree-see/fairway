@@ -66,13 +66,13 @@ export const MainNavigator: React.FC = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
+          backgroundColor: 'rgba(255, 255, 255, 0.05)',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarBackground: () => (
-          <BlurView intensity={80} style={{ flex: 1 }} />
+          <BlurView intensity={40} style={{ flex: 1 }} />
         ),
       })}
     >
