@@ -1,3 +1,8 @@
 
 # api server logs
 fairway-api/log
+
+# Environment variables (contains secrets)
+.env
+fairway-api/.env
+fairway-mobile/.env

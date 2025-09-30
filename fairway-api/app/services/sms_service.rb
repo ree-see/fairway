@@ -55,15 +55,16 @@ class SmsService
     end
 
     def twilio_account_sid
-      Rails.application.credentials.dig(:twilio, :account_sid)
+      # Check environment variables first, then fall back to credentials
+      ENV['TWILIO_ACCOUNT_SID'] || Rails.application.credentials.dig(:twilio, :account_sid)
     end
 
     def twilio_auth_token
-      Rails.application.credentials.dig(:twilio, :auth_token)
+      ENV['TWILIO_AUTH_TOKEN'] || Rails.application.credentials.dig(:twilio, :auth_token)
     end
 
     def twilio_phone_number
-      Rails.application.credentials.dig(:twilio, :phone_number)
+      ENV['TWILIO_PHONE_NUMBER'] || Rails.application.credentials.dig(:twilio, :phone_number)
     end
 
     def mock_send_sms(to, body)
