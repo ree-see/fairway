@@ -3,7 +3,11 @@
  */
 
 import { StyleSheet } from 'react-native';
-import { theme } from './index';
+import { colors } from './colors';
+import { spacing, padding, margin } from './spacing';
+import { fontSize, fontWeight, textStyles } from './typography';
+import { shadows } from './shadows';
+import { borderRadius, radius } from './borderRadius';
 
 /**
  * Common container styles
@@ -11,11 +15,11 @@ import { theme } from './index';
 export const containers = StyleSheet.create({
   screenContainer: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: colors.background.primary,
   },
 
   contentContainer: {
-    padding: theme.padding.screen,
+    padding: padding.screen,
   },
 
   centeredContainer: {
@@ -41,25 +45,25 @@ export const containers = StyleSheet.create({
  */
 export const cards = StyleSheet.create({
   baseCard: {
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: theme.radius.card,
-    padding: theme.padding.card,
-    ...theme.shadows.md,
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.card,
+    padding: padding.card,
+    ...shadows.md,
   },
 
   statCard: {
-    backgroundColor: theme.colors.background.tertiary,
-    borderRadius: theme.radius.card,
-    padding: theme.padding.cardVertical,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: radius.card,
+    padding: padding.cardVertical,
     alignItems: 'center',
   },
 
   sectionCard: {
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: theme.radius.card,
-    padding: theme.padding.card,
-    marginBottom: theme.margin.cardBottom,
-    ...theme.shadows.md,
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.card,
+    padding: padding.card,
+    marginBottom: margin.cardBottom,
+    ...shadows.md,
   },
 });
 
@@ -68,33 +72,33 @@ export const cards = StyleSheet.create({
  */
 export const buttons = StyleSheet.create({
   primary: {
-    backgroundColor: theme.colors.primary.main,
-    borderRadius: theme.radius.button,
-    padding: theme.padding.button,
+    backgroundColor: colors.primary.main,
+    borderRadius: radius.button,
+    padding: padding.button,
     alignItems: 'center',
   },
 
   secondary: {
-    backgroundColor: theme.colors.background.secondary,
-    borderRadius: theme.radius.button,
-    padding: theme.padding.button,
+    backgroundColor: colors.background.secondary,
+    borderRadius: radius.button,
+    padding: padding.button,
     alignItems: 'center',
-    ...theme.shadows.sm,
+    ...shadows.sm,
   },
 
   danger: {
-    backgroundColor: theme.colors.status.error,
-    borderRadius: theme.radius.button,
-    padding: theme.padding.button,
+    backgroundColor: colors.status.error,
+    borderRadius: radius.button,
+    padding: padding.button,
     alignItems: 'center',
   },
 
   outline: {
     backgroundColor: 'transparent',
-    borderRadius: theme.radius.button,
+    borderRadius: radius.button,
     borderWidth: 1,
-    borderColor: theme.colors.primary.main,
-    padding: theme.padding.button,
+    borderColor: colors.primary.main,
+    padding: padding.button,
     alignItems: 'center',
   },
 });
@@ -105,90 +109,90 @@ export const buttons = StyleSheet.create({
 export const text = StyleSheet.create({
   // Headers
   h1: {
-    ...theme.textStyles.h1,
-    color: theme.colors.text.primary,
+    ...textStyles.h1,
+    color: colors.text.primary,
   },
 
   h2: {
-    ...theme.textStyles.h2,
-    color: theme.colors.text.primary,
+    ...textStyles.h2,
+    color: colors.text.primary,
   },
 
   h3: {
-    ...theme.textStyles.h3,
-    color: theme.colors.text.primary,
+    ...textStyles.h3,
+    color: colors.text.primary,
   },
 
   h4: {
-    ...theme.textStyles.h4,
-    color: theme.colors.text.primary,
+    ...textStyles.h4,
+    color: colors.text.primary,
   },
 
   // Body text
   body: {
-    ...theme.textStyles.body,
-    color: theme.colors.text.primary,
+    ...textStyles.body,
+    color: colors.text.primary,
   },
 
   bodySecondary: {
-    ...theme.textStyles.body,
-    color: theme.colors.text.secondary,
+    ...textStyles.body,
+    color: colors.text.secondary,
   },
 
   bodySmall: {
-    ...theme.textStyles.bodySmall,
-    color: theme.colors.text.primary,
+    ...textStyles.bodySmall,
+    color: colors.text.primary,
   },
 
   caption: {
-    ...theme.textStyles.caption,
-    color: theme.colors.text.secondary,
+    ...textStyles.caption,
+    color: colors.text.secondary,
   },
 
   captionSmall: {
-    ...theme.textStyles.tiny,
-    color: theme.colors.text.tertiary,
+    ...textStyles.tiny,
+    color: colors.text.tertiary,
   },
 
   // Section titles
   sectionTitle: {
-    ...theme.textStyles.h3,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.lg,
+    ...textStyles.h3,
+    color: colors.text.primary,
+    marginBottom: spacing.lg,
   },
 
   // Stat values
   statValue: {
-    ...theme.textStyles.statMedium,
-    color: theme.colors.primary.main,
+    ...textStyles.statMedium,
+    color: colors.primary.main,
   },
 
   statLabel: {
-    ...theme.textStyles.caption,
-    color: theme.colors.text.secondary,
+    ...textStyles.caption,
+    color: colors.text.secondary,
     textAlign: 'center',
   },
 
   // Button text
   buttonText: {
-    ...theme.textStyles.button,
-    color: theme.colors.text.inverse,
+    ...textStyles.button,
+    color: colors.text.inverse,
   },
 
   buttonTextLarge: {
-    ...theme.textStyles.buttonLarge,
-    color: theme.colors.text.inverse,
+    ...textStyles.buttonLarge,
+    color: colors.text.inverse,
   },
 
   // Status text
   errorText: {
-    ...theme.textStyles.body,
-    color: theme.colors.status.error,
+    ...textStyles.body,
+    color: colors.status.error,
   },
 
   successText: {
-    ...theme.textStyles.body,
-    color: theme.colors.status.success,
+    ...textStyles.body,
+    color: colors.status.success,
   },
 });
 
@@ -197,19 +201,19 @@ export const text = StyleSheet.create({
  */
 export const inputs = StyleSheet.create({
   base: {
-    backgroundColor: theme.colors.background.tertiary,
-    borderRadius: theme.radius.input,
-    padding: theme.padding.input,
-    fontSize: theme.fontSize.base,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: radius.input,
+    padding: padding.input,
+    fontSize: fontSize.base,
     borderWidth: 1,
-    borderColor: theme.colors.ui.border,
-    color: theme.colors.text.primary,
+    borderColor: colors.ui.border,
+    color: colors.text.primary,
   },
 
   label: {
-    ...theme.textStyles.bodyBold,
-    color: theme.colors.text.primary,
-    marginBottom: theme.spacing.sm,
+    ...textStyles.bodyBold,
+    color: colors.text.primary,
+    marginBottom: spacing.sm,
   },
 });
 
@@ -243,36 +247,36 @@ export const layout = StyleSheet.create({
 
   // Common gaps
   gap4: {
-    gap: theme.spacing.xs,
+    gap: spacing.xs,
   },
 
   gap8: {
-    gap: theme.spacing.sm,
+    gap: spacing.sm,
   },
 
   gap12: {
-    gap: theme.spacing.md,
+    gap: spacing.md,
   },
 
   gap16: {
-    gap: theme.spacing.lg,
+    gap: spacing.lg,
   },
 
   // Common margins
   mb8: {
-    marginBottom: theme.spacing.sm,
+    marginBottom: spacing.sm,
   },
 
   mb12: {
-    marginBottom: theme.spacing.md,
+    marginBottom: spacing.md,
   },
 
   mb16: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: spacing.lg,
   },
 
   mb20: {
-    marginBottom: theme.spacing.xl,
+    marginBottom: spacing.xl,
   },
 });
 
@@ -281,20 +285,20 @@ export const layout = StyleSheet.create({
  */
 export const badges = StyleSheet.create({
   success: {
-    backgroundColor: theme.colors.status.success,
-    borderRadius: theme.radius.badge,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
+    backgroundColor: colors.status.success,
+    borderRadius: radius.badge,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
 
   successText: {
-    ...theme.textStyles.captionBold,
-    color: theme.colors.text.inverse,
+    ...textStyles.captionBold,
+    color: colors.text.inverse,
   },
 
   verified: {
-    backgroundColor: theme.colors.functional.verified,
-    borderRadius: theme.borderRadius.round,
+    backgroundColor: colors.functional.verified,
+    borderRadius: borderRadius.round,
     width: 24,
     height: 24,
     justifyContent: 'center',
@@ -302,8 +306,8 @@ export const badges = StyleSheet.create({
   },
 
   verifiedText: {
-    ...theme.textStyles.caption,
-    color: theme.colors.text.inverse,
-    fontWeight: theme.fontWeight.bold,
+    ...textStyles.caption,
+    color: colors.text.inverse,
+    fontWeight: fontWeight.bold,
   },
 });
