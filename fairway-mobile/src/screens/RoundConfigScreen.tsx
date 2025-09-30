@@ -316,16 +316,19 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary.main,
     padding: theme.spacing.lg,
     paddingTop: 60,
+    borderBottomLeftRadius: theme.radius.card,
+    borderBottomRightRadius: theme.radius.card,
   },
   title: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.bold,
-    color: "#F44336",
+    color: theme.colors.text.inverse,
     marginBottom: theme.spacing.sm,
   },
   courseName: {
+    fontWeight: theme.fontWeight.semibold,
     fontSize: theme.fontSize.md,
-    color: theme.colors.primary.light,
+    color: "#F44336",
   },
   section: {
     backgroundColor: theme.colors.background.secondary,
