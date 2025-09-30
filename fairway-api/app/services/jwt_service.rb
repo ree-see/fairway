@@ -1,6 +1,6 @@
 class JwtService
   ACCESS_TOKEN_EXPIRY = 15.minutes
-  REFRESH_TOKEN_EXPIRY = 7.days
+  REFRESH_TOKEN_EXPIRY = Rails.env.development? ? 30.days : 7.days
   ALGORITHM = 'HS256'
   
   # Token blacklist for immediate revocation
