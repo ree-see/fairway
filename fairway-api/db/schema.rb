@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_30_154001) do
+ActiveRecord::Schema[8.0].define(version: 2025_09_30_172403) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -135,7 +135,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_154001) do
     t.uuid "attester_id", null: false
     t.boolean "is_approved", null: false
     t.text "comments"
-    t.datetime "attested_at", null: false
+    t.datetime "attested_at"
     t.uuid "attester_round_id"
     t.datetime "requested_at", null: false
     t.string "request_method", default: "push_notification"
