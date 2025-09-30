@@ -159,12 +159,12 @@ export const RoundConfigScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Set up your round</Text>
-        <Text style={styles.courseName}>{course.name}</Text>
-      </View>
+      <ScrollView style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Set up your round</Text>
+          <Text style={styles.courseName}>{course.name}</Text>
+        </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Round Type Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Round Type</Text>
@@ -307,22 +307,17 @@ export const RoundConfigScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: theme.colors.background.primary,
+  },
+  content: {
+    flex: 1,
   },
   header: {
     backgroundColor: theme.colors.primary.main,
     padding: theme.spacing.lg,
     paddingTop: 60,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    backgroundColor: theme.colors.background.primary,
-    borderTopLeftRadius: theme.radius.card,
-    borderTopRightRadius: theme.radius.card,
-    paddingTop: theme.spacing.lg,
-    paddingBottom: theme.spacing.lg,
+    borderBottomLeftRadius: theme.radius.card,
+    borderBottomRightRadius: theme.radius.card,
   },
   title: {
     fontSize: theme.fontSize.xxl,
@@ -337,8 +332,7 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: theme.colors.background.secondary,
-    marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.lg,
+    margin: theme.spacing.lg,
     padding: theme.spacing.lg,
     borderRadius: theme.radius.card,
     ...theme.shadows.md,
@@ -347,7 +341,7 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text.primary,
-    marginBottom: theme.spacing.md,
+    marginBottom: theme.spacing.lg,
   },
   buttonRow: {
     flexDirection: "row",
