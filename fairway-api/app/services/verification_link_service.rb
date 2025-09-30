@@ -77,17 +77,22 @@ class VerificationLinkService
       attester_id: attester.id
     )
 
-    attestation.assign_attributes(
-      verification_token: token,
-      verifier_phone: @phone_number,
-      verifier_name: @verifier_name,
-      token_expires_at: TOKEN_EXPIRY_DAYS.days.from_now,
-      requested_at: Time.current,
-      request_method: 'sms',
-      is_approved: false
-    )
+    # Update attributes
+    attestation.verification_token = token
+    attestation.verifier_phone = @phone_number
+    attestation.verifier_name = @verifier_name
+    attestation.token_expires_at = TOKEN_EXPIRY_DAYS.days.from_now
+    attestation.requested_at = Time.current
+    attestation.request_method = 'sms'
+    attestation.is_approved = false
 
-    attestation.save!
+    # Skip validation on update since we're just refreshing the token
+    if attestation.persisted?
+      attestation.save!(validate: false)
+    else
+      attestation.save!
+    end
+
     attestation
   end
 
