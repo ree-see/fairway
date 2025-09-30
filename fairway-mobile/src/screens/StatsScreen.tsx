@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   RefreshControl,
-} from 'react-native';
-import ApiService from '../services/ApiService';
-import { RoundStatistics, ApiError } from '../types/api';
-import { LoadingScreen } from '../components/common/LoadingScreen';
-import { ErrorState } from '../components/common/ErrorState';
+} from "react-native";
+import ApiService from "../services/ApiService";
+import { RoundStatistics, ApiError } from "../types/api";
+import { LoadingScreen } from "../components/common/LoadingScreen";
+import { ErrorState } from "../components/common/ErrorState";
 
 const StatsScreen: React.FC = () => {
   const [statistics, setStatistics] = useState<RoundStatistics | null>(null);
@@ -25,16 +25,16 @@ const StatsScreen: React.FC = () => {
     try {
       setError(null);
       const response = await ApiService.getRoundStatistics();
-      
+
       if (response.success && response.data) {
         setStatistics(response.data.statistics);
       } else {
-        setError('Failed to load statistics');
+        setError("Failed to load statistics");
       }
     } catch (error) {
-      console.error('Error loading statistics:', error);
+      console.error("Error loading statistics:", error);
       const apiError = error as ApiError;
-      setError(apiError.message || 'Failed to load statistics');
+      setError(apiError.message || "Failed to load statistics");
     } finally {
       setIsLoading(false);
     }
@@ -74,15 +74,15 @@ const StatsScreen: React.FC = () => {
       driving: statistics?.strokes_gained_driving || 0,
       approach: statistics?.strokes_gained_approach || 0,
       shortGame: statistics?.strokes_gained_short_game || 0,
-      putting: statistics?.strokes_gained_putting || 0
-    }
+      putting: statistics?.strokes_gained_putting || 0,
+    },
   };
 
-  const StatCard: React.FC<{ title: string; value: string | number; subtitle?: string }> = ({ 
-    title, 
-    value, 
-    subtitle 
-  }) => (
+  const StatCard: React.FC<{
+    title: string;
+    value: string | number;
+    subtitle?: string;
+  }> = ({ title, value, subtitle }) => (
     <View style={styles.statCard}>
       <Text style={styles.statTitle}>{title}</Text>
       <Text style={styles.statValue}>{value}</Text>
@@ -90,9 +90,9 @@ const StatsScreen: React.FC = () => {
     </View>
   );
 
-  const SectionCard: React.FC<{ title: string; children: React.ReactNode }> = ({ 
-    title, 
-    children 
+  const SectionCard: React.FC<{ title: string; children: React.ReactNode }> = ({
+    title,
+    children,
   }) => (
     <View style={styles.sectionCard}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -102,17 +102,23 @@ const StatsScreen: React.FC = () => {
 
   const getTrendColor = (trend?: string | null) => {
     switch (trend) {
-      case 'improving': return '#4CAF50';
-      case 'declining': return '#F44336';
-      default: return '#666';
+      case "improving":
+        return "#4CAF50";
+      case "declining":
+        return "#F44336";
+      default:
+        return "#666";
     }
   };
 
   const getTrendIcon = (trend?: string | null) => {
     switch (trend) {
-      case 'improving': return '↗ Improving';
-      case 'declining': return '↘ Declining';
-      default: return '→ Stable';
+      case "improving":
+        return "↗ Improving";
+      case "declining":
+        return "↘ Declining";
+      default:
+        return "→ Stable";
     }
   };
 
@@ -124,118 +130,148 @@ const StatsScreen: React.FC = () => {
         <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
       }
     >
-        {/* Overview Stats */}
-        <SectionCard title="Overview">
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Handicap Index" 
-              value={(stats.handicapIndex != null && typeof stats.handicapIndex === 'number') ? stats.handicapIndex.toFixed(1) : '--'} 
-            />
-            <StatCard 
-              title="Average Score" 
-              value={(stats.averageScore != null && typeof stats.averageScore === 'number') ? Math.round(stats.averageScore) : '--'} 
-            />
-          </View>
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Total Rounds" 
-              value={stats.totalRounds} 
-              subtitle="This Season"
-            />
-            <StatCard 
-              title="Best Round" 
-              value={stats.lowestScore || '--'} 
-              subtitle="All Time"
-            />
-          </View>
-        </SectionCard>
+      {/* Overview Stats */}
+      <SectionCard title="Overview">
+        <View style={styles.statRow}>
+          <StatCard
+            title="Handicap Index"
+            value={
+              stats.handicapIndex != null &&
+              typeof stats.handicapIndex === "number"
+                ? stats.handicapIndex.toFixed(1)
+                : "--"
+            }
+          />
+          <StatCard
+            title="Average Score"
+            value={
+              stats.averageScore != null &&
+              typeof stats.averageScore === "number"
+                ? Math.round(stats.averageScore)
+                : "--"
+            }
+          />
+        </View>
+        <View style={styles.statRow}>
+          <StatCard
+            title="Total Rounds"
+            value={stats.totalRounds}
+            subtitle="This Season"
+          />
+          <StatCard
+            title="Best Round"
+            value={stats.lowestScore || "--"}
+            subtitle="All Time"
+          />
+        </View>
+      </SectionCard>
 
-        {/* Performance Stats */}
-        <SectionCard title="Performance">
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Fairways in Regulation" 
-              value={`${stats.fairwaysInRegulation}%`} 
-            />
-            <StatCard 
-              title="Greens in Regulation" 
-              value={`${stats.greensInRegulation}%`} 
-            />
-          </View>
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Average Putts" 
-              value={(stats.averagePutts != null && typeof stats.averagePutts === 'number') ? stats.averagePutts.toFixed(1) : '--'} 
-            />
-            <StatCard 
-              title="Scrambling" 
-              value={`${stats.scrambling}%`} 
-            />
-          </View>
-        </SectionCard>
+      {/* Performance Stats */}
+      <SectionCard title="Performance">
+        <View style={styles.statRow}>
+          <StatCard
+            title="Fairways in Regulation"
+            value={`${stats.fairwaysInRegulation}%`}
+          />
+          <StatCard
+            title="Greens in Regulation"
+            value={`${stats.greensInRegulation}%`}
+          />
+        </View>
+        <View style={styles.statRow}>
+          <StatCard
+            title="Average Putts"
+            value={
+              stats.averagePutts != null &&
+              typeof stats.averagePutts === "number"
+                ? stats.averagePutts.toFixed(1)
+                : "--"
+            }
+          />
+          <StatCard title="Scrambling" value={`${stats.scrambling}%`} />
+        </View>
+      </SectionCard>
 
-        {/* Strokes Gained */}
-        <SectionCard title="Strokes Gained">
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Driving" 
-              value={stats.strokesGained.driving > 0 ? `+${stats.strokesGained.driving}` : stats.strokesGained.driving} 
-            />
-            <StatCard 
-              title="Approach" 
-              value={stats.strokesGained.approach > 0 ? `+${stats.strokesGained.approach}` : stats.strokesGained.approach} 
-            />
-          </View>
-          <View style={styles.statRow}>
-            <StatCard 
-              title="Short Game" 
-              value={stats.strokesGained.shortGame > 0 ? `+${stats.strokesGained.shortGame}` : stats.strokesGained.shortGame} 
-            />
-            <StatCard 
-              title="Putting" 
-              value={stats.strokesGained.putting > 0 ? `+${stats.strokesGained.putting}` : stats.strokesGained.putting} 
-            />
-          </View>
-        </SectionCard>
+      {/* Strokes Gained */}
+      <SectionCard title="Strokes Gained">
+        <View style={styles.statRow}>
+          <StatCard
+            title="Driving"
+            value={
+              stats.strokesGained.driving > 0
+                ? `+${stats.strokesGained.driving}`
+                : stats.strokesGained.driving
+            }
+          />
+          <StatCard
+            title="Approach"
+            value={
+              stats.strokesGained.approach > 0
+                ? `+${stats.strokesGained.approach}`
+                : stats.strokesGained.approach
+            }
+          />
+        </View>
+        <View style={styles.statRow}>
+          <StatCard
+            title="Short Game"
+            value={
+              stats.strokesGained.shortGame > 0
+                ? `+${stats.strokesGained.shortGame}`
+                : stats.strokesGained.shortGame
+            }
+          />
+          <StatCard
+            title="Putting"
+            value={
+              stats.strokesGained.putting > 0
+                ? `+${stats.strokesGained.putting}`
+                : stats.strokesGained.putting
+            }
+          />
+        </View>
+      </SectionCard>
 
-        {/* Trends */}
-        <SectionCard title="Recent Trends">
-          <View style={styles.trendContainer}>
-            <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>Overall Trend</Text>
-              <Text style={styles.trendValue}>
-                {statistics?.recent_trend ? 
-                  statistics.recent_trend.charAt(0).toUpperCase() + statistics.recent_trend.slice(1) 
-                  : 'Stable'
-                }
-              </Text>
-              <Text style={[
-                styles.trendChange, 
-                { color: getTrendColor(statistics?.recent_trend) }
-              ]}>
-                {getTrendIcon(statistics?.recent_trend)}
-              </Text>
-            </View>
-            <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>Average Score</Text>
-              <Text style={styles.trendValue}>
-                {stats.averageScore ? `${Math.round(stats.averageScore)} avg` : '--'}
-              </Text>
-              <Text style={[styles.trendChange, { color: '#666' }]}>
-                {stats.totalRounds > 1 ? 'Over all rounds' : 'Need more data'}
-              </Text>
-            </View>
-            <View style={styles.trendItem}>
-              <Text style={styles.trendLabel}>Best Round</Text>
-              <Text style={styles.trendValue}>
-                {stats.lowestScore || '--'}
-              </Text>
-              <Text style={[styles.trendChange, { color: '#4CAF50' }]}>
-                Personal best
-              </Text>
-            </View>
+      {/* Trends */}
+      <SectionCard title="Recent Trends">
+        <View style={styles.trendContainer}>
+          <View style={styles.trendItem}>
+            <Text style={styles.trendLabel}>Overall Trend</Text>
+            <Text style={styles.trendValue}>
+              {statistics?.recent_trend
+                ? statistics.recent_trend.charAt(0).toUpperCase() +
+                  statistics.recent_trend.slice(1)
+                : "Stable"}
+            </Text>
+            <Text
+              style={[
+                styles.trendChange,
+                { color: getTrendColor(statistics?.recent_trend) },
+              ]}
+            >
+              {getTrendIcon(statistics?.recent_trend)}
+            </Text>
           </View>
-        </SectionCard>
+          <View style={styles.trendItem}>
+            <Text style={styles.trendLabel}>Average Score</Text>
+            <Text style={styles.trendValue}>
+              {stats.averageScore
+                ? `${Math.round(stats.averageScore)} avg`
+                : "--"}
+            </Text>
+            <Text style={[styles.trendChange, { color: "#666" }]}>
+              {stats.totalRounds > 1 ? "Over all rounds" : "Need more data"}
+            </Text>
+          </View>
+          <View style={styles.trendItem}>
+            <Text style={styles.trendLabel}>Best Round</Text>
+            <Text style={styles.trendValue}>{stats.lowestScore || "--"}</Text>
+            <Text style={[styles.trendChange, { color: "#4CAF50" }]}>
+              Personal best
+            </Text>
+          </View>
+        </View>
+      </SectionCard>
     </ScrollView>
   );
 };
@@ -243,18 +279,18 @@ const StatsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E7D32',
+    backgroundColor: "#2E7D32",
   },
   content: {
     padding: 20,
     paddingBottom: 100, // Extra space for tab bar
   },
   sectionCard: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -265,65 +301,65 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2E7D32',
+    fontWeight: "bold",
+    color: "#2E7D32",
     marginBottom: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 4,
-    alignItems: 'center',
+    alignItems: "center",
   },
   statTitle: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
+    fontWeight: "bold",
+    color: "#2E7D32",
     marginBottom: 2,
   },
   statSubtitle: {
     fontSize: 10,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
   },
   trendContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   trendItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 12,
     marginHorizontal: 4,
   },
   trendLabel: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
   },
   trendValue: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 2,
   },
   trendChange: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 
