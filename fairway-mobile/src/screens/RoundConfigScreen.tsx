@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   courseName: {
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.semiBold,
     fontSize: theme.fontSize.md,
     color: "#F44336",
   },
@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: theme.fontSize.lg,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.semiBold,
     color: theme.colors.text.primary,
     marginBottom: theme.spacing.lg,
   },
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   optionButtonText: {
     fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.semibold,
+    fontWeight: theme.fontWeight.semiBold,
     color: theme.colors.text.secondary,
   },
   optionButtonTextSelected: {
