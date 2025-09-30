@@ -489,6 +489,43 @@ class ApiService {
   async clearAllCache(): Promise<void> {
     await CacheService.clear();
   }
+
+  // Generic HTTP methods for services that need direct API access
+  async get<T = any>(url: string): Promise<ApiResponse<T>> {
+    try {
+      const response: AxiosResponse<ApiResponse<T>> = await this.api.get(url);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async post<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+    try {
+      const response: AxiosResponse<ApiResponse<T>> = await this.api.post(url, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async put<T = any>(url: string, data?: any): Promise<ApiResponse<T>> {
+    try {
+      const response: AxiosResponse<ApiResponse<T>> = await this.api.put(url, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async delete<T = any>(url: string): Promise<ApiResponse<T>> {
+    try {
+      const response: AxiosResponse<ApiResponse<T>> = await this.api.delete(url);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance
