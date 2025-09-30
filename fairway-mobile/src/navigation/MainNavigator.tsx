@@ -70,9 +70,14 @@ export const MainNavigator: React.FC = () => {
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
+          borderRadius: 25,
+          marginHorizontal: 10,
+          marginBottom: 10,
+          height: 60,
+          paddingBottom: 5,
         },
         tabBarBackground: () => (
-          <BlurView intensity={10} tint="light" style={{ flex: 1 }} />
+          <BlurView intensity={10} tint="light" style={{ flex: 1, borderRadius: 25, overflow: 'hidden' }} />
         ),
       })}
     >
