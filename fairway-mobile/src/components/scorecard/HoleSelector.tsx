@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
 interface ScoringHole {
   id: string;
@@ -14,21 +14,28 @@ interface HoleSelectorProps {
   onSelectHole: (index: number) => void;
 }
 
-export const HoleSelector: React.FC<HoleSelectorProps> = ({ 
-  holes, 
-  activeHoleNumbers, 
-  currentHoleIndex, 
-  onSelectHole 
+export const HoleSelector: React.FC<HoleSelectorProps> = ({
+  holes,
+  activeHoleNumbers,
+  currentHoleIndex,
+  onSelectHole
 }) => {
+  // Filter to only show active holes
+  const activeHoles = holes.filter(hole => activeHoleNumbers.includes(hole.number));
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Select Hole</Text>
-      <View style={styles.gridContainer}>
-        {holes.map((hole, index) => {
-          const isActive = activeHoleNumbers.includes(hole.number);
-          const isCurrentHole = index === currentHoleIndex;
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.gridContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {activeHoles.map((hole) => {
+          const holeIndex = holes.findIndex(h => h.number === hole.number);
+          const isCurrentHole = holeIndex === currentHoleIndex;
           const isCompleted = hole.strokes !== undefined;
-          
+
           return (
             <TouchableOpacity
               key={hole.id}
@@ -36,23 +43,20 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
                 styles.selector,
                 isCurrentHole && styles.selectorActive,
                 isCompleted && styles.selectorCompleted,
-                !isActive && styles.selectorInactive
               ]}
-              onPress={() => isActive ? onSelectHole(index) : null}
-              disabled={!isActive}
+              onPress={() => onSelectHole(holeIndex)}
             >
               <Text style={[
                 styles.selectorText,
                 isCurrentHole && styles.selectorTextActive,
                 isCompleted && styles.selectorTextCompleted,
-                !isActive && styles.selectorTextInactive
               ]}>
                 {hole.number}
               </Text>
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
     </View>
   );
 };
@@ -64,13 +68,15 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginBottom: 16,
     borderRadius: 16,
-    paddingVertical: 20,
+    paddingTop: 20,
     paddingHorizontal: 16,
+    paddingBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
+    maxHeight: 200,
   },
   title: {
     fontSize: 14,
@@ -78,6 +84,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
     fontWeight: '600',
+  },
+  scrollView: {
+    maxHeight: 140,
   },
   gridContainer: {
     flexDirection: 'row',
@@ -104,11 +113,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8F5E8',
     borderColor: '#2E7D32',
   },
-  selectorInactive: {
-    backgroundColor: '#F0F0F0',
-    borderColor: '#E0E0E0',
-    opacity: 0.5,
-  },
   selectorText: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -119,8 +123,5 @@ const styles = StyleSheet.create({
   },
   selectorTextCompleted: {
     color: '#2E7D32',
-  },
-  selectorTextInactive: {
-    color: '#CCCCCC',
   },
 });

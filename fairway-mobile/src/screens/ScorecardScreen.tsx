@@ -137,7 +137,7 @@ export const ScorecardScreen: React.FC = () => {
           courseName: config.course.name,
           startTime: tempRound.started_at!,
           currentHole: 1,
-          totalHoles: courseHoles.length,
+          totalHoles: activeHoleNumbers.length,
           scoreToPar: 0,
           currentScore: 0,
         });
@@ -242,17 +242,17 @@ export const ScorecardScreen: React.FC = () => {
   const getScoreDisplay = () => {
     const completedHoles = getCompletedHoles();
     const scoreToPar = getScoreToPar();
-    
+
     if (completedHoles === 0) {
       return 'E';
     }
-    
+
     if (scoreToPar === 0) {
-      return completedHoles === holes.length ? 'E' : `E thru ${completedHoles}`;
+      return completedHoles === activeHoleNumbers.length ? 'E' : `E thru ${completedHoles}`;
     }
-    
+
     const scoreText = scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
-    return completedHoles === holes.length ? scoreText : `${scoreText} thru ${completedHoles}`;
+    return completedHoles === activeHoleNumbers.length ? scoreText : `${scoreText} thru ${completedHoles}`;
   };
 
   // Save staged hole data to the main holes array
@@ -323,12 +323,12 @@ export const ScorecardScreen: React.FC = () => {
 
   const shouldShowSubmitButton = () => {
     const completedHoles = getCompletedHoles();
-    return completedHoles === holes.length; // Show when all holes are completed
+    return completedHoles === activeHoleNumbers.length; // Show when all active holes are completed
   };
 
   const submitRound = () => {
     const completedHoles = getCompletedHoles();
-    if (completedHoles === holes.length) {
+    if (completedHoles === activeHoleNumbers.length) {
       handleSubmit();
     }
   };
@@ -485,7 +485,7 @@ export const ScorecardScreen: React.FC = () => {
         visible={showMenu}
         onClose={() => setShowMenu(false)}
         completedHoles={getCompletedHoles()}
-        totalHoles={holes.length}
+        totalHoles={activeHoleNumbers.length}
         scoreDisplay={getScoreDisplay()}
         canSubmit={shouldShowSubmitButton()}
         onSubmit={submitRound}
