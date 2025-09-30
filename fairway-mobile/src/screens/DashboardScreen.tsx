@@ -16,6 +16,7 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { HandicapCards } from '../components/dashboard/HandicapCards';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentRounds } from '../components/dashboard/RecentRounds';
+import { containers } from '../theme/commonStyles';
 
 interface DashboardData {
   statistics: RoundStatistics;
@@ -138,7 +139,6 @@ export const DashboardScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#121212',
+    ...containers.screenContainer,
   },
 });

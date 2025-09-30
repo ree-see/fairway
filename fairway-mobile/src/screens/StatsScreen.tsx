@@ -10,6 +10,8 @@ import ApiService from "../services/ApiService";
 import { RoundStatistics, ApiError } from "../types/api";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ErrorState } from "../components/common/ErrorState";
+import { theme } from "../theme";
+import { containers, cards, text as textStyles, layout } from "../theme/commonStyles";
 
 const StatsScreen: React.FC = () => {
   const [statistics, setStatistics] = useState<RoundStatistics | null>(null);
@@ -103,11 +105,11 @@ const StatsScreen: React.FC = () => {
   const getTrendColor = (trend?: string | null) => {
     switch (trend) {
       case "improving":
-        return "#4CAF50";
+        return theme.colors.status.success;
       case "declining":
-        return "#F44336";
+        return theme.colors.status.error;
       default:
-        return "#AAAAAA";
+        return theme.colors.text.secondary;
     }
   };
 
@@ -259,14 +261,14 @@ const StatsScreen: React.FC = () => {
                 ? `${Math.round(stats.averageScore)} avg`
                 : "--"}
             </Text>
-            <Text style={[styles.trendChange, { color: "#AAAAAA" }]}>
+            <Text style={[styles.trendChange, { color: theme.colors.text.secondary }]}>
               {stats.totalRounds > 1 ? "Over all rounds" : "Need more data"}
             </Text>
           </View>
           <View style={styles.trendItem}>
             <Text style={styles.trendLabel}>Best Round</Text>
             <Text style={styles.trendValue}>{stats.lowestScore || "--"}</Text>
-            <Text style={[styles.trendChange, { color: "#4CAF50" }]}>
+            <Text style={[styles.trendChange, { color: theme.colors.status.success }]}>
               Personal best
             </Text>
           </View>
@@ -278,88 +280,68 @@ const StatsScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#121212",
+    ...containers.screenContainer,
   },
   content: {
-    padding: 20,
+    padding: theme.padding.screen,
     paddingBottom: 100, // Extra space for tab bar
   },
   sectionCard: {
-    backgroundColor: "#1E1E1E",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...cards.sectionCard,
+    ...theme.shadows.lg,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#4CAF50",
-    marginBottom: 16,
+    ...theme.textStyles.h3,
+    color: theme.colors.primary.main,
+    marginBottom: theme.spacing.lg,
     textAlign: "center",
   },
   statRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    ...layout.rowSpaceBetween,
+    marginBottom: theme.spacing.md,
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#2A2A2A",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 4,
-    alignItems: "center",
+    ...cards.statCard,
+    marginHorizontal: theme.spacing.xs,
   },
   statTitle: {
-    fontSize: 12,
-    color: "#AAAAAA",
-    marginBottom: 4,
+    ...theme.textStyles.caption,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
     textAlign: "center",
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#4CAF50",
+    ...textStyles.statValue,
     marginBottom: 2,
   },
   statSubtitle: {
-    fontSize: 10,
-    color: "#888888",
+    ...theme.textStyles.tiny,
+    color: theme.colors.text.tertiary,
     textAlign: "center",
   },
   trendContainer: {
-    flexDirection: "row",
+    ...layout.row,
     justifyContent: "space-between",
   },
   trendItem: {
     flex: 1,
     alignItems: "center",
-    paddingVertical: 12,
-    marginHorizontal: 4,
+    paddingVertical: theme.spacing.md,
+    marginHorizontal: theme.spacing.xs,
   },
   trendLabel: {
-    fontSize: 12,
-    color: "#AAAAAA",
-    marginBottom: 4,
+    ...theme.textStyles.caption,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.xs,
   },
   trendValue: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#EEEEEE",
+    ...theme.textStyles.bodyBold,
+    color: theme.colors.text.primary,
     marginBottom: 2,
   },
   trendChange: {
-    fontSize: 12,
-    fontWeight: "600",
+    ...theme.textStyles.captionBold,
   },
 });
 

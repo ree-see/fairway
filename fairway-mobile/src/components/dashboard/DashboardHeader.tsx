@@ -1,5 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { theme } from '../../theme';
+import { layout, text as textStyles } from '../../theme/commonStyles';
 
 interface DashboardHeaderProps {
   firstName?: string;
@@ -40,28 +42,25 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
 const styles = StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#1E1E1E',
-    paddingTop: 60,
+    ...layout.rowSpaceBetween,
+    padding: theme.padding.screen,
+    backgroundColor: theme.colors.background.secondary,
+    paddingTop: theme.spacing.massive,
   },
   welcomeText: {
-    fontSize: 16,
-    color: '#AAAAAA',
+    ...theme.textStyles.body,
+    color: theme.colors.text.secondary,
   },
   nameText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    ...theme.textStyles.h2,
+    color: theme.colors.primary.main,
   },
   logoutButton: {
-    padding: 8,
+    padding: theme.spacing.sm,
   },
   logoutText: {
-    color: '#F44336',
-    fontSize: 14,
-    fontWeight: '500',
+    ...textStyles.errorText,
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
   },
 });
