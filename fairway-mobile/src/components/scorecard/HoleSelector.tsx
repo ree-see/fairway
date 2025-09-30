@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Animated, FlatList, Dimensions } from 'react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HOLE_ITEM_WIDTH = 60;
-const HOLE_ITEM_SPACING = 12;
+const ITEM_SIZE = 70;
+const SPACING = 16;
 
 interface ScoringHole {
   id: string;
@@ -24,67 +24,106 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   currentHoleIndex,
   onSelectHole
 }) => {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const scrollX = useRef(new Animated.Value(0)).current;
   const activeHoles = holes.filter(hole => activeHoleNumbers.includes(hole.number));
 
   // Auto-scroll to current hole when it changes
   useEffect(() => {
-    if (scrollViewRef.current && activeHoles.length > 0) {
+    if (flatListRef.current && activeHoles.length > 0) {
       const activeIndex = activeHoles.findIndex(
         hole => holes.findIndex(h => h.number === hole.number) === currentHoleIndex
       );
 
       if (activeIndex !== -1) {
-        const scrollPosition = activeIndex * (HOLE_ITEM_WIDTH + HOLE_ITEM_SPACING) -
-                             (SCREEN_WIDTH / 2) + (HOLE_ITEM_WIDTH / 2);
-
-        scrollViewRef.current.scrollTo({
-          x: Math.max(0, scrollPosition),
+        flatListRef.current.scrollToIndex({
+          index: activeIndex,
           animated: true,
+          viewPosition: 0.5,
         });
       }
     }
   }, [currentHoleIndex, activeHoles]);
 
+  const renderHole = ({ item, index }: { item: ScoringHole; index: number }) => {
+    const holeIndex = holes.findIndex(h => h.number === item.number);
+    const isCurrentHole = holeIndex === currentHoleIndex;
+    const isCompleted = item.strokes !== undefined && item.strokes > 0;
+
+    const inputRange = [
+      (index - 2) * (ITEM_SIZE + SPACING),
+      (index - 1) * (ITEM_SIZE + SPACING),
+      index * (ITEM_SIZE + SPACING),
+      (index + 1) * (ITEM_SIZE + SPACING),
+      (index + 2) * (ITEM_SIZE + SPACING),
+    ];
+
+    const scale = scrollX.interpolate({
+      inputRange,
+      outputRange: [0.7, 0.85, 1, 0.85, 0.7],
+      extrapolate: 'clamp',
+    });
+
+    const opacity = scrollX.interpolate({
+      inputRange,
+      outputRange: [0.5, 0.7, 1, 0.7, 0.5],
+      extrapolate: 'clamp',
+    });
+
+    return (
+      <TouchableOpacity
+        onPress={() => onSelectHole(holeIndex)}
+        activeOpacity={0.8}
+        style={styles.itemContainer}
+      >
+        <Animated.View
+          style={[
+            styles.holeItem,
+            isCurrentHole && styles.holeItemActive,
+            {
+              transform: [{ scale }],
+              opacity,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.holeNumber,
+              isCurrentHole && styles.holeNumberActive,
+            ]}
+          >
+            {item.number}
+          </Text>
+          {isCompleted && <View style={styles.completedDot} />}
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        ref={scrollViewRef}
+      <Animated.FlatList
+        ref={flatListRef}
+        data={activeHoles}
+        renderItem={renderHole}
+        keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        snapToInterval={ITEM_SIZE + SPACING}
         decelerationRate="fast"
-        snapToInterval={HOLE_ITEM_WIDTH + HOLE_ITEM_SPACING}
         snapToAlignment="center"
-      >
-        {activeHoles.map((hole) => {
-          const holeIndex = holes.findIndex(h => h.number === hole.number);
-          const isCurrentHole = holeIndex === currentHoleIndex;
-          const isCompleted = hole.strokes !== undefined && hole.strokes > 0;
-
-          return (
-            <TouchableOpacity
-              key={hole.id}
-              style={[
-                styles.holeItem,
-                isCurrentHole && styles.holeItemActive,
-              ]}
-              onPress={() => onSelectHole(holeIndex)}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                styles.holeNumber,
-                isCurrentHole && styles.holeNumberActive,
-              ]}>
-                {hole.number}
-              </Text>
-              {isCompleted && (
-                <View style={styles.completedDot} />
-              )}
-            </TouchableOpacity>
-          );
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+        getItemLayout={(data, index) => ({
+          length: ITEM_SIZE + SPACING,
+          offset: (ITEM_SIZE + SPACING) * index,
+          index,
         })}
-      </ScrollView>
+      />
     </View>
   );
 };
@@ -92,7 +131,7 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     shadowColor: '#000',
@@ -100,15 +139,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 8,
+    height: 120,
   },
   scrollContent: {
-    paddingHorizontal: (SCREEN_WIDTH - HOLE_ITEM_WIDTH) / 2,
-    gap: HOLE_ITEM_SPACING,
+    paddingHorizontal: SCREEN_WIDTH / 2 - ITEM_SIZE / 2,
+    alignItems: 'center',
+  },
+  itemContainer: {
+    width: ITEM_SIZE + SPACING,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   holeItem: {
-    width: HOLE_ITEM_WIDTH,
-    height: HOLE_ITEM_WIDTH,
-    borderRadius: HOLE_ITEM_WIDTH / 2,
+    width: ITEM_SIZE,
+    height: ITEM_SIZE,
+    borderRadius: ITEM_SIZE / 2,
     backgroundColor: '#F5F5F5',
     justifyContent: 'center',
     alignItems: 'center',
@@ -119,24 +164,25 @@ const styles = StyleSheet.create({
   holeItemActive: {
     backgroundColor: '#1B5E20',
     borderColor: '#1B5E20',
-    transform: [{ scale: 1.15 }],
   },
   holeNumber: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#666666',
   },
   holeNumberActive: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 24,
   },
   completedDot: {
     position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    top: 6,
+    right: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#4CAF50',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
   },
 });
