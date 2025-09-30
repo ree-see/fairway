@@ -15,7 +15,6 @@ import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiErro
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ScoreHeader } from '../components/scorecard/ScoreHeader';
 import { HoleCard } from '../components/scorecard/HoleCard';
-import { HoleSelector } from '../components/scorecard/HoleSelector';
 import { SubmitButton } from '../components/scorecard/SubmitButton';
 import { MenuButton } from '../components/scorecard/MenuButton';
 import { RoundMenu } from '../components/scorecard/RoundMenu';
@@ -465,13 +464,6 @@ export const ScorecardScreen: React.FC = () => {
           />
         </Animated.View>
       </PanGestureHandler>
-
-      <HoleSelector 
-        holes={holes}
-        activeHoleNumbers={activeHoleNumbers}
-        currentHoleIndex={currentHoleIndex}
-        onSelectHole={navigateToHole}
-      />
 
       <SubmitButton 
         visible={shouldShowSubmitButton()}
