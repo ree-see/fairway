@@ -69,6 +69,9 @@ class VerificationLinkService
   end
 
   def create_attestation(token)
+    # Try to find existing user by phone number first
+    attester = User.find_by(phone: @phone_number) || find_or_create_system_user
+
     @round.round_attestations.create(
       verification_token: token,
       verifier_phone: @phone_number,
@@ -77,14 +80,19 @@ class VerificationLinkService
       requested_at: Time.current,
       request_method: 'sms',
       is_approved: false,
-      attester_id: find_or_create_placeholder_user.id
+      attester_id: attester.id
     )
   end
 
-  def find_or_create_placeholder_user
-    # For now, we'll use the round owner as a placeholder since attester_id is required
-    # In a future update, we can make attester_id optional or create a system user
-    @round.user
+  def find_or_create_system_user
+    # Create a system user for link-based verifications
+    # This user represents non-app users who verify via SMS link
+    User.find_or_create_by!(email: 'system+verifications@fairway.app') do |user|
+      user.first_name = 'System'
+      user.last_name = 'Verifier'
+      user.password = SecureRandom.hex(32)
+      user.phone = nil
+    end
   end
 
   def send_verification_sms(attestation)
