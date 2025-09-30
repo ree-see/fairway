@@ -5,7 +5,7 @@ class Api::V1::RoundsController < ApplicationController
   def index
     # Fix N+1 query by including all necessary associations
     rounds = current_user.rounds.includes(:course, :hole_scores, :round_attestations, course: :holes).recent
-    
+
     # Filter by status if provided
     case params[:status]
     when 'completed'
@@ -16,12 +16,24 @@ class Api::V1::RoundsController < ApplicationController
       rounds = rounds.verified
     end
 
-    # Limit results
-    limit = [params[:limit]&.to_i || 20, 50].min
-    rounds = rounds.limit(limit)
+    # Pagination support
+    limit = [params[:limit]&.to_i || 10, 50].min
+    offset = [params[:offset]&.to_i || 0, 0].max
+
+    # Get total count before pagination
+    total_count = rounds.count
+
+    # Apply pagination
+    rounds = rounds.limit(limit).offset(offset)
 
     render_success({
-      rounds: rounds.map { |round| round_response(round) }
+      rounds: rounds.map { |round| round_response(round) },
+      pagination: {
+        limit: limit,
+        offset: offset,
+        total: total_count,
+        has_more: (offset + limit) < total_count
+      }
     })
   end
 

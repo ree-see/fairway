@@ -338,27 +338,23 @@ class ApiService {
   }
 
   // Round Methods
-  async getRounds(status?: 'completed' | 'in_progress' | 'verified', limit?: number): Promise<ApiResponse<{ rounds: Round[] }>> {
+  async getRounds(
+    status?: 'completed' | 'in_progress' | 'verified',
+    limit?: number,
+    offset?: number
+  ): Promise<ApiResponse<{ rounds: Round[]; pagination?: { limit: number; offset: number; total: number; has_more: boolean } }>> {
     try {
-      const userId = await this.getCurrentUserId();
-      const cacheKey = `rounds:${userId}:${status || 'all'}:${limit || 'all'}`;
-      
-      return await CacheService.getOrSet(
-        cacheKey,
-        async () => {
-          const params = new URLSearchParams();
-          if (status) params.append('status', status);
-          if (limit) params.append('limit', limit.toString());
-          
-          const url = params.toString() 
-            ? `${API_CONFIG.ENDPOINTS.ROUNDS}?${params.toString()}`
-            : API_CONFIG.ENDPOINTS.ROUNDS;
-            
-          const response: AxiosResponse<ApiResponse<{ rounds: Round[] }>> = await this.api.get(url);
-          return response.data;
-        },
-        10 // Cache rounds for 10 minutes
-      );
+      const params = new URLSearchParams();
+      if (status) params.append('status', status);
+      if (limit) params.append('limit', limit.toString());
+      if (offset) params.append('offset', offset.toString());
+
+      const url = params.toString()
+        ? `${API_CONFIG.ENDPOINTS.ROUNDS}?${params.toString()}`
+        : API_CONFIG.ENDPOINTS.ROUNDS;
+
+      const response: AxiosResponse<ApiResponse<{ rounds: Round[]; pagination?: any }>> = await this.api.get(url);
+      return response.data;
     } catch (error) {
       throw error;
     }

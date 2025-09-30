@@ -8,6 +8,7 @@ import { DashboardScreen } from '../screens/DashboardScreen';
 import { CourseSelectScreen } from '../screens/CourseSelectScreen';
 import { ScorecardScreen } from '../screens/ScorecardScreen';
 import { RoundDetailScreen } from '../screens/RoundDetailScreen';
+import { RoundsScreen } from '../screens/RoundsScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import StatsScreen from '../screens/StatsScreen';
 
@@ -16,26 +17,44 @@ const Stack = createStackNavigator();
 
 const DashboardStack = () => (
   <Stack.Navigator>
-    <Stack.Screen 
-      name="Dashboard" 
+    <Stack.Screen
+      name="Dashboard"
       component={DashboardScreen}
       options={{ headerShown: false }}
     />
-    <Stack.Screen 
-      name="CourseSelect" 
+    <Stack.Screen
+      name="CourseSelect"
       component={CourseSelectScreen}
-      options={{ 
+      options={{
         title: 'Select Course',
         headerStyle: { backgroundColor: '#2E7D32' },
         headerTintColor: '#FFFFFF'
       }}
     />
-    <Stack.Screen 
-      name="RoundDetail" 
+    <Stack.Screen
+      name="RoundDetail"
       component={RoundDetailScreen}
-      options={{ 
+      options={{
         headerShown: false,
         // Force new screen instance for each navigation
+        animationEnabled: true,
+      }}
+    />
+  </Stack.Navigator>
+);
+
+const RoundsStack = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="RoundsList"
+      component={RoundsScreen}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name="RoundDetail"
+      component={RoundDetailScreen}
+      options={{
+        headerShown: false,
         animationEnabled: true,
       }}
     />
@@ -51,6 +70,8 @@ export const MainNavigator: React.FC = () => {
 
           if (route.name === 'Home') {
             iconName = focused ? 'home' : 'home-outline';
+          } else if (route.name === 'Rounds') {
+            iconName = focused ? 'golf' : 'golf-outline';
           } else if (route.name === 'Stats') {
             iconName = focused ? 'stats-chart' : 'stats-chart-outline';
           } else if (route.name === 'Profile') {
@@ -83,6 +104,7 @@ export const MainNavigator: React.FC = () => {
       })}
     >
       <Tab.Screen name="Home" component={DashboardStack} />
+      <Tab.Screen name="Rounds" component={RoundsStack} />
       <Tab.Screen name="Stats" component={StatsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
