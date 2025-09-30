@@ -26,11 +26,10 @@ class Api::V1::RoundsController < ApplicationController
   end
 
   def show
-    # Preload associations to avoid N+1 queries
-    @round = @round.includes(:course, hole_scores: :hole)
-    render_success({ 
+    # Associations are already preloaded in set_round
+    render_success({
       round: detailed_round_response(@round),
-      hole_scores: @round.hole_scores.includes(:hole).order('holes.number').map { |score| hole_score_response(score) }
+      hole_scores: @round.hole_scores.sort_by { |score| score.hole.number }.map { |score| hole_score_response(score) }
     })
   end
 
@@ -195,8 +194,8 @@ class Api::V1::RoundsController < ApplicationController
   private
 
   def set_round
-    # Preload course association to avoid N+1 queries
-    @round = current_user.rounds.includes(:course).find(params[:id])
+    # Preload associations to avoid N+1 queries
+    @round = current_user.rounds.includes(:course, hole_scores: :hole).find(params[:id])
   end
 
   def round_params
