@@ -72,7 +72,7 @@ export const MainNavigator: React.FC = () => {
           shadowOpacity: 0,
         },
         tabBarBackground: () => (
-          <BlurView intensity={40} style={{ flex: 1 }} />
+          <BlurView intensity={20} style={{ flex: 1 }} />
         ),
       })}
     >
