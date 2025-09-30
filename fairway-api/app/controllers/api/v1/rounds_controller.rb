@@ -1,6 +1,6 @@
 class Api::V1::RoundsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_round, only: [:show, :update, :complete, :request_attestation, :hole_scores, :add_hole_score]
+  before_action :set_round, only: [:show, :update, :complete, :request_attestation, :request_verification_link, :hole_scores, :add_hole_score]
 
   def index
     # Fix N+1 query by including all necessary associations
@@ -86,7 +86,7 @@ class Api::V1::RoundsController < ApplicationController
 
   def request_attestation
     return render_error("Round must be completed first") unless @round.completed?
-    
+
     attester_email = params[:attester_email]&.downcase&.strip
     return render_error("Attester email required") unless attester_email
 
@@ -98,6 +98,29 @@ class Api::V1::RoundsController < ApplicationController
       render_success(nil, "Attestation request sent successfully")
     else
       render_error("Failed to send attestation request")
+    end
+  end
+
+  def request_verification_link
+    return render_error("Round must be completed first") unless @round.completed?
+
+    phone_number = params[:phone_number]
+    return render_error("Phone number required") unless phone_number
+
+    verifier_name = params[:verifier_name]
+
+    service = VerificationLinkService.new(@round, phone_number, verifier_name: verifier_name)
+    result = service.create_and_send_link
+
+    if result[:success]
+      render_success({
+        attestation_id: result[:attestation].id,
+        verification_token: result[:attestation].verification_token,
+        expires_at: result[:attestation].token_expires_at,
+        message_sid: result[:message_sid]
+      }, "Verification link sent successfully")
+    else
+      render_error(result[:error], :unprocessable_entity, result[:details])
     end
   end
 

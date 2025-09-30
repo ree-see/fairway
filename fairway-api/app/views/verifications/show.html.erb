@@ -1,0 +1,81 @@
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <div class="logo">⛳</div>
+      <h1>Round Verification</h1>
+    </div>
+
+    <div class="card-body">
+      <% if @already_verified %>
+        <div class="<%= @verification_status == 'approved' ? 'success-message' : 'error-message' %>">
+          <div class="icon"><%= @verification_status == 'approved' ? '✓' : '✗' %></div>
+          <div>
+            This round has already been <%= @verification_status == 'approved' ? 'verified' : 'declined' %>.
+          </div>
+        </div>
+        <p style="text-align: center; color: #666;">You can close this page now.</p>
+      <% else %>
+        <div class="player-info">
+          <div class="player-avatar">
+            <%= @player.first_name[0].upcase %><%= @player.last_name[0].upcase %>
+          </div>
+          <div class="player-name"><%= @player.full_name %></div>
+          <div class="player-subtitle">requests your verification</div>
+        </div>
+
+        <div class="round-details">
+          <div class="detail-row">
+            <span class="detail-label">Course</span>
+            <span class="detail-value"><%= @course.name %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Score</span>
+            <span class="detail-value score-highlight"><%= @round.total_strokes %></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date</span>
+            <span class="detail-value"><%= @round.started_at.strftime("%B %d, %Y") %></span>
+          </div>
+          <% if @round.weather_conditions.present? %>
+            <div class="detail-row">
+              <span class="detail-label">Conditions</span>
+              <span class="detail-value"><%= @round.weather_conditions.titleize %></span>
+            </div>
+          <% end %>
+        </div>
+
+        <div class="optional-name">
+          <label for="verifier_name">Your Name (Optional)</label>
+          <input
+            type="text"
+            id="verifier_name"
+            placeholder="Enter your name"
+            value="<%= @attestation.verifier_name %>"
+          >
+        </div>
+
+        <div class="button-group">
+          <button
+            class="btn btn-primary"
+            onclick="verifyRound(true)"
+            data-token="<%= @attestation.verification_token %>"
+          >
+            ✓ Yes, I Verify
+          </button>
+          <button
+            class="btn btn-secondary"
+            onclick="verifyRound(false)"
+            data-token="<%= @attestation.verification_token %>"
+          >
+            ✗ No, I Don't Verify
+          </button>
+        </div>
+
+        <p style="text-align: center; font-size: 12px; color: #999;">
+          By verifying, you confirm you played golf with <%= @player.first_name %>
+          on this date and this score is accurate.
+        </p>
+      <% end %>
+    </div>
+  </div>
+</div>

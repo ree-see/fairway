@@ -38,10 +38,11 @@ Rails.application.routes.draw do
         collection do
           get :statistics
         end
-        
+
         member do
           patch :complete
           post :request_attestation
+          post :request_verification_link
           get :hole_scores
           post 'hole_scores', to: 'rounds#add_hole_score'
         end
@@ -56,6 +57,10 @@ Rails.application.routes.draw do
       end
     end
   end
+
+  # Public verification routes (no authentication required)
+  get 'verify/:token', to: 'verifications#show', as: :verify
+  post 'verify/:token/confirm', to: 'verifications#confirm', as: :confirm_verification
 
   # Root route
   root "application#health_check"
