@@ -6,10 +6,10 @@ class RoundAttestation < ApplicationRecord
 
   # Validations
   validates :is_approved, inclusion: { in: [true, false] }
-  validates :attested_at, presence: true
+  validates :attested_at, presence: true, if: :is_approved?
   validates :requested_at, presence: true
   validates :request_method, inclusion: { in: %w[push_notification email sms] }
-  validates :attester_id, uniqueness: { scope: :round_id }
+  validates :attester_id, uniqueness: { scope: :round_id }, on: :create
   
   # GPS coordinate validations
   validates :attester_latitude, numericality: { 
