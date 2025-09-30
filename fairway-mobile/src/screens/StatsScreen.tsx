@@ -6,7 +6,6 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import ApiService from '../services/ApiService';
 import { RoundStatistics, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -118,14 +117,13 @@ const StatsScreen: React.FC = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-        }
-      >
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+      }
+    >
         {/* Overview Stats */}
         <SectionCard title="Overview">
           <View style={styles.statRow}>
@@ -238,8 +236,7 @@ const StatsScreen: React.FC = () => {
             </View>
           </View>
         </SectionCard>
-      </ScrollView>
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 
@@ -247,9 +244,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#2E7D32',
-  },
-  scrollView: {
-    flex: 1,
   },
   content: {
     padding: 20,

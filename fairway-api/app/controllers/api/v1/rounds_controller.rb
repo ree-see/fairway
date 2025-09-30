@@ -141,6 +141,10 @@ class Api::V1::RoundsController < ApplicationController
     # Preload all associations needed for statistics
     rounds = current_user.rounds.completed.includes(:hole_scores, :course, :round_attestations)
     
+    # Use UserStatsService to calculate comprehensive statistics
+    user_stats_service = UserStatsService.new(current_user)
+    comprehensive_stats = user_stats_service.generate_comprehensive_stats
+    
     stats = {
       total_rounds: rounds.count,
       verified_rounds: rounds.verified.count,
@@ -148,7 +152,18 @@ class Api::V1::RoundsController < ApplicationController
       lowest_score: rounds.minimum(:total_strokes),
       handicap_index: current_user.handicap_index,
       verified_handicap: current_user.verified_handicap,
-      recent_trend: calculate_recent_trend(rounds.limit(10))
+      recent_trend: calculate_recent_trend(rounds.limit(10)),
+      
+      # Performance statistics
+      average_putts: comprehensive_stats[:average_putts],
+      fairway_percentage: comprehensive_stats[:fairway_percentage],
+      gir_percentage: comprehensive_stats[:gir_percentage],
+      scrambling_percentage: comprehensive_stats[:scrambling_percentage],
+      
+      # Round averages
+      total_putts: rounds.average(:total_putts)&.round(1),
+      fairways_hit: rounds.average(:fairways_hit)&.round(1),
+      greens_in_regulation: rounds.average(:greens_in_regulation)&.round(1)
     }
 
     render_success({ statistics: stats })

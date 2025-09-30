@@ -194,13 +194,13 @@ puts "⛳ Creating rounds with hole scores..."
 
 courses = [pebble, torrey, augusta]
 
-# Create 3 rounds for each user
+# Create 25 rounds for each user with varied data
 test_users.each_with_index do |user, user_index|
-  3.times do |round_index|
+  25.times do |round_index|
     course = courses[round_index % courses.count]
     
-    # Create round with realistic dates (last 30 days)
-    started_at = rand(30.days).seconds.ago
+    # Create round with realistic dates (last 6 months for more data variety)
+    started_at = rand(180.days).seconds.ago
     completed_at = started_at + rand(3..5).hours
     
     round = user.rounds.find_or_create_by!(
@@ -209,54 +209,97 @@ test_users.each_with_index do |user, user_index|
     ) do |r|
       r.completed_at = completed_at
       r.submitted_at = completed_at
-      r.tee_color = ['white', 'blue'].sample
-      r.course_rating = course.course_rating
-      r.slope_rating = course.slope_rating
-      r.is_provisional = [true, false].sample
-      r.is_verified = r.is_provisional ? false : [true, false].sample
+      r.tee_color = ['white', 'blue', 'red', 'gold'].sample
+      r.course_rating = course.course_rating + rand(-1.0..1.0).round(1)
+      r.slope_rating = course.slope_rating + rand(-5..5)
+      r.is_provisional = rand(0..10) < 3  # 30% provisional rounds
+      r.is_verified = r.is_provisional ? false : (rand(0..10) < 7)  # 70% verified if not provisional
       r.verification_count = r.is_verified ? rand(1..3) : 0
-      r.location_verified = true
-      r.fraud_risk_score = rand(0.0..25.0).round(1)
+      r.location_verified = rand(0..10) < 9  # 90% location verified
+      r.fraud_risk_score = rand(0.0..30.0).round(1)
+      
+      # Add weather conditions for variety
+      r.weather_conditions = ['sunny', 'cloudy', 'light_rain', 'windy', 'overcast'].sample
+      r.temperature = rand(45..85)
+      r.wind_speed = rand(0..15)
+      r.wind_direction = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].sample
     end
 
     # Create hole scores for each hole
     course.holes.order(:number).each do |hole|
       next if round.hole_scores.exists?(hole: hole) # Skip if already exists
       
-      # Generate realistic scores based on user handicap and hole difficulty
+      # Generate realistic scores based on user handicap and hole difficulty with more variation
       user_skill = case user.handicap_index
-                  when 0..10 then :scratch
-                  when 11..20 then :average  
-                  else :high_handicap
+                  when 0..5 then :scratch
+                  when 6..12 then :low_handicap
+                  when 13..20 then :average  
+                  when 21..28 then :high_handicap
+                  else :beginner
                   end
       
-      # Base score on par + handicap adjustment
+      # Add performance variation based on round progression
+      performance_factor = case round_index % 5
+                          when 0 then 0.8   # Great round
+                          when 1 then 0.9   # Good round
+                          when 2 then 1.0   # Average round
+                          when 3 then 1.1   # Poor round
+                          when 4 then 1.2   # Bad round
+                          end
+      
+      # Base score on par + handicap adjustment with performance variation
       base_score = case user_skill
                   when :scratch
-                    rand(0..2) == 0 ? hole.par - 1 : hole.par + rand(0..1)
+                    score = rand(0..3) == 0 ? hole.par - 1 : hole.par + rand(0..1)
+                    (score * performance_factor).round
+                  when :low_handicap
+                    score = hole.par + rand(0..2)
+                    (score * performance_factor).round
                   when :average
-                    hole.par + rand(0..2)
+                    score = hole.par + rand(0..3)
+                    (score * performance_factor).round
                   when :high_handicap
-                    hole.par + rand(1..3)
+                    score = hole.par + rand(1..4)
+                    (score * performance_factor).round
+                  when :beginner
+                    score = hole.par + rand(2..5)
+                    (score * performance_factor).round
                   end
       
       strokes = [base_score, 1].max # Minimum 1 stroke
       strokes = [strokes, 8].min    # Maximum 8 strokes
       
-      # Calculate realistic stats
+      # Calculate realistic stats with more variation
       putts = case hole.par
-              when 3 then rand(1..3)
-              when 4 then rand(1..3) 
-              when 5 then rand(2..4)
+              when 3 then rand(1..4)
+              when 4 then rand(1..4) 
+              when 5 then rand(1..5)
               end
       
-      # Fairway hit (only for par 4 and 5)
+      # Add putting performance based on skill level
+      putting_skill_modifier = case user_skill
+                              when :scratch then -0.3
+                              when :low_handicap then -0.1
+                              when :average then 0.0
+                              when :high_handicap then 0.2
+                              when :beginner then 0.5
+                              end
+      
+      putts = [(putts + putting_skill_modifier).round, 1].max
+      putts = [putts, 5].min  # Max 5 putts per hole
+      
+      # Fairway hit (only for par 4 and 5) with weather impact
+      weather_impact = round.weather_conditions == 'windy' ? 0.8 : 1.0
+      
       fairway_hit = if hole.par >= 4
-                     case user_skill
-                     when :scratch then rand(0..10) < 7  # 70% fairway hit rate
-                     when :average then rand(0..10) < 5   # 50% fairway hit rate  
-                     when :high_handicap then rand(0..10) < 3 # 30% fairway hit rate
-                     end
+                     hit_rate = case user_skill
+                               when :scratch then 0.75
+                               when :low_handicap then 0.65
+                               when :average then 0.50
+                               when :high_handicap then 0.35
+                               when :beginner then 0.25
+                               end
+                     rand < (hit_rate * weather_impact)
                    else
                      false
                    end
@@ -265,16 +308,54 @@ test_users.each_with_index do |user, user_index|
       regulation_strokes = hole.par - 2
       green_in_regulation = (strokes - putts) <= regulation_strokes
       
-      # Up and down (if missed green)
+      # Up and down (if missed green) with skill-based rates
       up_and_down = if !green_in_regulation
-                     case user_skill
-                     when :scratch then rand(0..10) < 6    # 60% up and down
-                     when :average then rand(0..10) < 4    # 40% up and down
-                     when :high_handicap then rand(0..10) < 2 # 20% up and down  
-                     end
+                     up_down_rate = case user_skill
+                                   when :scratch then 0.65
+                                   when :low_handicap then 0.50
+                                   when :average then 0.35
+                                   when :high_handicap then 0.25
+                                   when :beginner then 0.15
+                                   end
+                     rand < up_down_rate
                    else
                      false
                    end
+
+      # Penalties with variation based on skill and weather
+      penalty_chance = case user_skill
+                      when :scratch then 0.05
+                      when :low_handicap then 0.08
+                      when :average then 0.12
+                      when :high_handicap then 0.18
+                      when :beginner then 0.25
+                      end
+      
+      # Increase penalties in bad weather
+      penalty_chance *= 1.5 if ['light_rain', 'windy'].include?(round.weather_conditions)
+      penalties = rand < penalty_chance ? rand(1..2) : 0
+      
+      # Drive distance based on skill and weather
+      drive_distance = if hole.par >= 4
+                        base_distance = case user_skill
+                                       when :scratch then rand(260..300)
+                                       when :low_handicap then rand(240..280)
+                                       when :average then rand(220..260)
+                                       when :high_handicap then rand(180..230)
+                                       when :beginner then rand(150..200)
+                                       end
+                        
+                        # Weather impact on distance
+                        weather_modifier = case round.weather_conditions
+                                          when 'windy' then 0.9
+                                          when 'light_rain' then 0.85
+                                          else 1.0
+                                          end
+                        
+                        (base_distance * weather_modifier).round
+                      else
+                        nil
+                      end
 
       round.hole_scores.create!(
         hole: hole,
@@ -284,9 +365,9 @@ test_users.each_with_index do |user, user_index|
         fairway_hit: fairway_hit,
         green_in_regulation: green_in_regulation,
         up_and_down: up_and_down,
-        penalties: rand(0..1), # Occasional penalty
-        drive_distance: hole.par >= 4 ? rand(200..280) : nil,
-        approach_distance: hole.par >= 4 ? rand(50..150) : nil,
+        penalties: penalties,
+        drive_distance: drive_distance,
+        approach_distance: hole.par >= 4 ? rand(30..180) : nil,
         started_at: started_at + (hole.number * 10).minutes,
         completed_at: started_at + (hole.number * 10 + rand(5..15)).minutes
       )

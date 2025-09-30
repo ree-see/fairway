@@ -1,6 +1,87 @@
 class UserStatsService
   PERFORMANCE_CATEGORIES = %w[driving approach putting short_game overall].freeze
 
+  def initialize(user)
+    @user = user
+  end
+
+  def generate_comprehensive_stats
+    rounds = @user.rounds.completed.includes(:hole_scores, :course)
+    return empty_comprehensive_stats if rounds.empty?
+
+    # Calculate basic stats directly since they're private class methods
+    average_putts = calculate_average_putts(rounds)
+    fairway_percentage = calculate_fairway_percentage(rounds)
+    gir_percentage = calculate_gir_percentage(rounds)
+    scrambling_percentage = calculate_scrambling_percentage(rounds)
+
+    # Get strokes gained analysis
+    strokes_gained = self.class.strokes_gained_analysis(@user)
+
+    {
+      average_putts: average_putts,
+      fairway_percentage: fairway_percentage,
+      gir_percentage: gir_percentage,
+      scrambling_percentage: scrambling_percentage,
+      strokes_gained_driving: strokes_gained[:driving] || 0.0,
+      strokes_gained_approach: strokes_gained[:approach] || 0.0,
+      strokes_gained_short_game: strokes_gained[:short_game] || 0.0,
+      strokes_gained_putting: strokes_gained[:putting] || 0.0
+    }
+  end
+
+  def calculate_average_putts(rounds)
+    total_putts = rounds.sum(&:total_putts)
+    total_holes = rounds.sum { |r| r.course.holes.count }
+    
+    return 0.0 if total_holes.zero?
+    total_putts.to_f / total_holes
+  end
+
+  def calculate_fairway_percentage(rounds)
+    total_fairways_hit = rounds.sum(&:fairways_hit)
+    total_driveable_holes = rounds.sum { |r| r.course.holes.where('par >= ?', 4).count }
+    
+    return 0.0 if total_driveable_holes.zero?
+    (total_fairways_hit.to_f / total_driveable_holes * 100).round(1)
+  end
+
+  def calculate_gir_percentage(rounds)
+    total_gir = rounds.sum(&:greens_in_regulation)
+    total_holes = rounds.sum { |r| r.course.holes.count }
+    
+    return 0.0 if total_holes.zero?
+    (total_gir.to_f / total_holes * 100).round(1)
+  end
+
+  private
+
+  def empty_comprehensive_stats
+    {
+      average_putts: 0.0,
+      fairway_percentage: 0.0,
+      gir_percentage: 0.0,
+      scrambling_percentage: 0.0,
+      strokes_gained_driving: 0.0,
+      strokes_gained_approach: 0.0,
+      strokes_gained_short_game: 0.0,
+      strokes_gained_putting: 0.0
+    }
+  end
+
+  def calculate_scrambling_percentage(rounds)
+    # Simplified scrambling calculation - would need more detailed hole-by-hole data
+    # For now, estimate based on GIR and putting performance
+    gir_pct = calculate_gir_percentage(rounds)
+    avg_putts = calculate_average_putts(rounds)
+    
+    # Rough estimate: if low GIR but good putting, scrambling is better
+    base_scrambling = 100 - gir_pct
+    putting_factor = [2.0 - avg_putts, 0].max * 20
+    
+    [base_scrambling + putting_factor, 100].min.round(1)
+  end
+
   class << self
     def calculate_user_statistics(user, limit: 10)
       recent_rounds = user.rounds.completed
@@ -246,6 +327,20 @@ class UserStatsService
       
       avg_gir_pct = gir_percentages.sum / gir_percentages.count.to_f
       (avg_gir_pct - benchmark) / 8.0 # Convert to approximate strokes gained
+    end
+
+    def calculate_round_fairway_percentage(round)
+      driveable_holes = round.course.holes.where('par >= ?', 4).count
+      return 0.0 if driveable_holes.zero?
+      
+      (round.fairways_hit.to_f / driveable_holes * 100).round(1)
+    end
+
+    def calculate_round_gir_percentage(round)
+      total_holes = round.course.holes.count
+      return 0.0 if total_holes.zero?
+      
+      (round.greens_in_regulation.to_f / total_holes * 100).round(1)
     end
 
     def calculate_strokes_gained_short_game(rounds)

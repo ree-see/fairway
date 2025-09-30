@@ -199,3 +199,4 @@ The app's unique value proposition centers on a multi-layered verification syste
 - Ensure `golf_course_api_key` is configured in Rails credentials for production
 - Consider upgrading to Pro tier ($6.99/month) for faster initial course population
 - Set up monitoring for API rate limits and sync failures
+- frequently commit changes

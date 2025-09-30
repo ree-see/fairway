@@ -1,19 +1,19 @@
 class Api::V1::AuthController < ApplicationController
   include InputSanitizer
-  
-  before_action :authenticate_user!, except: [:login, :register]
+
+  before_action :authenticate_user!, except: [ :login, :register ]
 
   def login
-    return unless validate_required_params(params, [:email, :password])
-    
+    return unless validate_required_params(params, [ :email, :password ])
+
     email = sanitize_email(params[:email])
     password = params[:password]
-    
+
     return render_error("Invalid email format", :bad_request) unless email
     return render_error("Password too short", :bad_request) if password.length < 8
 
     user = User.find_by(email: email)
-    
+
     if user&.authenticate(password)
       tokens = generate_jwt_tokens(user)
       render_success({
@@ -28,8 +28,8 @@ class Api::V1::AuthController < ApplicationController
   end
 
   def register
-    return unless validate_required_params(params, [:email, :password, :first_name, :last_name])
-    
+    return unless validate_required_params(params, [ :email, :password, :first_name, :last_name ])
+
     # Sanitize inputs
     sanitized_params = {
       email: sanitize_email(params[:email]),
@@ -38,15 +38,15 @@ class Api::V1::AuthController < ApplicationController
       last_name: sanitize_string(params[:last_name]),
       phone: sanitize_string(params[:phone])
     }
-    
+
     # Validate sanitized inputs
     return render_error("Invalid email format", :bad_request) unless sanitized_params[:email]
     return render_error("Password must be at least 8 characters", :bad_request) if sanitized_params[:password].length < 8
     return render_error("First name is required", :bad_request) if sanitized_params[:first_name].blank?
     return render_error("Last name is required", :bad_request) if sanitized_params[:last_name].blank?
-    
+
     user = User.new(sanitized_params)
-    
+
     if user.save
       tokens = generate_jwt_tokens(user)
       render_success({
@@ -102,16 +102,16 @@ class Api::V1::AuthController < ApplicationController
   def logout
     # Revoke refresh token if provided
     refresh_token = params[:refresh_token]
-    
+
     if refresh_token
       begin
-        payload = JwtService.decode_token(refresh_token, 'refresh')
-        JwtService.revoke_refresh_token(payload['user_id'], payload['jti'])
+        payload = JwtService.decode_token(refresh_token, "refresh")
+        JwtService.revoke_refresh_token(payload["user_id"], payload["jti"])
       rescue JWT::DecodeError, JWT::ExpiredSignature, JWT::InvalidPayload
         # Token already invalid, nothing to revoke
       end
     end
-    
+
     render_success(nil, "Logout successful")
   end
 
@@ -128,27 +128,6 @@ class Api::V1::AuthController < ApplicationController
     # In a real implementation, this would send an email
     # For now, we'll just return success
     render_success(nil, "Verification email sent")
-  end
-
-  def stats
-    stats_data = {
-      rounds_played: current_user.rounds_played,
-      verified_rounds: current_user.verified_rounds,
-      handicap_index: current_user.handicap_index,
-      verified_handicap: current_user.verified_handicap,
-      average_score: current_user.average_score,
-      recent_rounds: current_user.recent_rounds(5).map { |round|
-        {
-          id: round.id,
-          course_name: round.course.name,
-          total_strokes: round.total_strokes,
-          started_at: round.started_at,
-          is_verified: round.is_verified
-        }
-      }
-    }
-    
-    render_success({ stats: stats_data })
   end
 
   private
