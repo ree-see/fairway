@@ -159,12 +159,13 @@ export const RoundConfigScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Set up your round</Text>
-          <Text style={styles.courseName}>{course.name}</Text>
-        </View>
+      <View style={styles.header}>
+        <Text style={styles.courseLabel}>COURSE</Text>
+        <Text style={styles.courseName}>{course.name}</Text>
+        <Text style={styles.title}>Set up your round</Text>
+      </View>
 
+      <ScrollView style={styles.content}>
         {/* Round Type Selection */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Round Type</Text>
@@ -313,22 +314,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    backgroundColor: theme.colors.primary.main,
-    padding: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
     paddingTop: 60,
-    borderBottomLeftRadius: theme.radius.card,
-    borderBottomRightRadius: theme.radius.card,
+    paddingBottom: theme.spacing.xl,
   },
-  title: {
-    fontSize: theme.fontSize.xxl,
-    fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.inverse,
-    marginBottom: theme.spacing.sm,
+  courseLabel: {
+    fontSize: theme.fontSize.xs,
+    fontWeight: theme.fontWeight.semiBold,
+    color: theme.colors.text.tertiary,
+    letterSpacing: 1.5,
+    marginBottom: theme.spacing.xs,
   },
   courseName: {
-    fontWeight: theme.fontWeight.semiBold,
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.md,
+  },
+  title: {
     fontSize: theme.fontSize.md,
-    color: "#F44336",
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text.secondary,
   },
   section: {
     backgroundColor: theme.colors.background.secondary,
