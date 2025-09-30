@@ -6,38 +6,68 @@ interface ScoreHeaderProps {
   scoreDisplay: string;
 }
 
-export const ScoreHeader: React.FC<ScoreHeaderProps> = ({ 
-  courseName, 
-  scoreDisplay 
+export const ScoreHeader: React.FC<ScoreHeaderProps> = ({
+  courseName,
+  scoreDisplay
 }) => {
   return (
-    <View style={styles.header}>
-      <Text style={styles.courseName}>{courseName}</Text>
-      <Text style={styles.scoreDisplay}>{scoreDisplay}</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.courseInfo}>
+          <Text style={styles.courseLabel}>ROUND</Text>
+          <Text style={styles.courseName} numberOfLines={1}>{courseName}</Text>
+        </View>
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreDisplay}>{scoreDisplay}</Text>
+          <Text style={styles.scoreLabel}>Score</Text>
+        </View>
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#1B5E20',
+  },
   header: {
-    backgroundColor: '#2E7D32',
-    paddingTop: Platform.OS === 'ios' ? 50 : 20,
-    paddingBottom: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 30,
+    paddingBottom: 24,
     paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: Platform.OS === 'ios' ? 100 : 80,
+    alignItems: 'flex-start',
+  },
+  courseInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  courseLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 1.2,
+    marginBottom: 4,
   },
   courseName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    flex: 1,
-  },
-  scoreDisplay: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#FFFFFF',
+  },
+  scoreContainer: {
+    alignItems: 'flex-end',
+  },
+  scoreDisplay: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    lineHeight: 40,
+  },
+  scoreLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255, 255, 255, 0.7)',
+    letterSpacing: 1.2,
+    marginTop: 2,
   },
 });

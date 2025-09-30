@@ -15,6 +15,7 @@ import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiErro
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ScoreHeader } from '../components/scorecard/ScoreHeader';
 import { HoleCard } from '../components/scorecard/HoleCard';
+import { HoleSelector } from '../components/scorecard/HoleSelector';
 import { SubmitButton } from '../components/scorecard/SubmitButton';
 import { MenuButton } from '../components/scorecard/MenuButton';
 import { RoundMenu } from '../components/scorecard/RoundMenu';
@@ -465,6 +466,13 @@ export const ScorecardScreen: React.FC = () => {
         </Animated.View>
       </PanGestureHandler>
 
+      <HoleSelector 
+        holes={holes}
+        activeHoleNumbers={activeHoleNumbers}
+        currentHoleIndex={currentHoleIndex}
+        onSelectHole={navigateToHole}
+      />
+
       <SubmitButton 
         visible={shouldShowSubmitButton()}
         isSubmitting={isSubmitting}
@@ -490,13 +498,13 @@ export const ScorecardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#F5F5F5',
   },
   holeContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 0,
-    paddingBottom: 8,
-    justifyContent: 'flex-start',
+    paddingTop: 20,
+    paddingBottom: 20,
+    justifyContent: 'center',
   },
 });

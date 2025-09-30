@@ -19,72 +19,119 @@ interface HoleCardProps {
   onUpdateBool: (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => void;
 }
 
-export const HoleCard: React.FC<HoleCardProps> = ({ 
-  hole, 
-  onUpdateScore, 
-  onUpdateBool 
+export const HoleCard: React.FC<HoleCardProps> = ({
+  hole,
+  onUpdateScore,
+  onUpdateBool
 }) => {
+  const getScoreToPar = () => {
+    if (!hole.strokes) return null;
+    const diff = hole.strokes - hole.par;
+    if (diff === 0) return 'E';
+    return diff > 0 ? `+${diff}` : `${diff}`;
+  };
+
+  const scoreToPar = getScoreToPar();
+
   return (
     <View style={styles.card}>
+      {/* Hole Header */}
       <View style={styles.header}>
-        <Text style={styles.holeNumber}>Hole {hole.number}</Text>
-        <Text style={styles.holeDetails}>Par {hole.par} • {hole.distance}yd</Text>
+        <View style={styles.holeInfo}>
+          <Text style={styles.holeNumber}>HOLE {hole.number}</Text>
+          <Text style={styles.holeDetails}>Par {hole.par} • {hole.distance} yards</Text>
+        </View>
+        {scoreToPar && (
+          <View style={styles.scoreChip}>
+            <Text style={styles.scoreChipText}>{scoreToPar}</Text>
+          </View>
+        )}
       </View>
-      
-      <View style={styles.scoreRow}>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Strokes</Text>
+
+      {/* Score Inputs */}
+      <View style={styles.scoreSection}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>STROKES</Text>
           <TextInput
             style={styles.scoreInput}
             value={hole.strokes?.toString() || ''}
             onChangeText={(value) => onUpdateScore('strokes', value)}
             keyboardType="numeric"
             maxLength={2}
+            placeholder="-"
+            placeholderTextColor="#CCCCCC"
           />
         </View>
-        
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Putts</Text>
+
+        <View style={styles.divider} />
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.inputLabel}>PUTTS</Text>
           <TextInput
             style={styles.scoreInput}
             value={hole.putts?.toString() || ''}
             onChangeText={(value) => onUpdateScore('putts', value)}
             keyboardType="numeric"
             maxLength={2}
+            placeholder="-"
+            placeholderTextColor="#CCCCCC"
           />
         </View>
       </View>
 
-      {hole.par >= 4 && (
+      {/* Stats Section */}
+      <View style={styles.statsSection}>
+        <Text style={styles.statsTitle}>HOLE STATS</Text>
+
+        {hole.par >= 4 && (
+          <TouchableOpacity
+            style={[styles.statButton, hole.fairway_hit && styles.statButtonActive]}
+            onPress={() => onUpdateBool('fairway_hit', !hole.fairway_hit)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, hole.fairway_hit && styles.checkboxActive]}>
+              {hole.fairway_hit && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={[styles.statButtonText, hole.fairway_hit && styles.statButtonTextActive]}>
+              Fairway Hit
+            </Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
-          style={[styles.boolButton, hole.fairway_hit && styles.boolButtonActive]}
-          onPress={() => onUpdateBool('fairway_hit', !hole.fairway_hit)}
+          style={[styles.statButton, hole.green_in_regulation && styles.statButtonActive]}
+          onPress={() => onUpdateBool('green_in_regulation', !hole.green_in_regulation)}
+          activeOpacity={0.7}
         >
-          <Text style={[styles.boolButtonText, hole.fairway_hit && styles.boolButtonTextActive]}>
-            Fairway Hit
+          <View style={[styles.checkbox, hole.green_in_regulation && styles.checkboxActive]}>
+            {hole.green_in_regulation && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={[styles.statButtonText, hole.green_in_regulation && styles.statButtonTextActive]}>
+            Green in Regulation
           </Text>
         </TouchableOpacity>
-      )}
 
-      <TouchableOpacity
-        style={[styles.boolButton, hole.green_in_regulation && styles.boolButtonActive]}
-        onPress={() => onUpdateBool('green_in_regulation', !hole.green_in_regulation)}
-      >
-        <Text style={[styles.boolButtonText, hole.green_in_regulation && styles.boolButtonTextActive]}>
-          Green in Regulation
-        </Text>
-      </TouchableOpacity>
+        {!hole.green_in_regulation && (
+          <TouchableOpacity
+            style={[styles.statButton, hole.up_and_down && styles.statButtonActive]}
+            onPress={() => onUpdateBool('up_and_down', !hole.up_and_down)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, hole.up_and_down && styles.checkboxActive]}>
+              {hole.up_and_down && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={[styles.statButtonText, hole.up_and_down && styles.statButtonTextActive]}>
+              Up & Down
+            </Text>
+          </TouchableOpacity>
+        )}
+      </View>
 
-      {!hole.green_in_regulation && (
-        <TouchableOpacity
-          style={[styles.boolButton, hole.up_and_down && styles.boolButtonActive]}
-          onPress={() => onUpdateBool('up_and_down', !hole.up_and_down)}
-        >
-          <Text style={[styles.boolButtonText, hole.up_and_down && styles.boolButtonTextActive]}>
-            Up & Down
-          </Text>
-        </TouchableOpacity>
-      )}
+      {/* Swipe Hint */}
+      <View style={styles.swipeHint}>
+        <View style={styles.swipeIndicator} />
+        <Text style={styles.swipeText}>Swipe to navigate holes</Text>
+      </View>
     </View>
   );
 };
@@ -92,73 +139,153 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 24,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 28,
+  },
+  holeInfo: {
+    flex: 1,
   },
   holeNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1B5E20',
+    letterSpacing: 1.2,
+    marginBottom: 6,
   },
   holeDetails: {
     fontSize: 16,
     color: '#666666',
+    fontWeight: '500',
   },
-  scoreRow: {
+  scoreChip: {
+    backgroundColor: '#1B5E20',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    minWidth: 50,
+    alignItems: 'center',
+  },
+  scoreChipText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  scoreSection: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 24,
-    marginBottom: 24,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 28,
+    alignItems: 'center',
   },
-  inputContainer: {
+  inputGroup: {
+    flex: 1,
     alignItems: 'center',
   },
   inputLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#999999',
+    letterSpacing: 1.2,
+    marginBottom: 12,
   },
   scoreInput: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    width: 80,
-    height: 60,
+    width: '100%',
+    height: 64,
     textAlign: 'center',
-    fontSize: 20,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#1B5E20',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
   },
-  boolButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+  divider: {
+    width: 1,
+    height: '100%',
+    backgroundColor: '#E0E0E0',
+    marginHorizontal: 20,
+  },
+  statsSection: {
+    marginBottom: 20,
+  },
+  statsTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#999999',
+    letterSpacing: 1.2,
+    marginBottom: 16,
+  },
+  statButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    marginBottom: 10,
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  boolButtonActive: {
-    backgroundColor: '#E8F5E8',
-    borderColor: '#2E7D32',
+  statButtonActive: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#1B5E20',
   },
-  boolButtonText: {
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: '#CCCCCC',
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  checkboxActive: {
+    backgroundColor: '#1B5E20',
+    borderColor: '#1B5E20',
+  },
+  checkmark: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  statButtonText: {
     fontSize: 16,
     color: '#666666',
     fontWeight: '600',
+    flex: 1,
   },
-  boolButtonTextActive: {
-    color: '#2E7D32',
+  statButtonTextActive: {
+    color: '#1B5E20',
+  },
+  swipeHint: {
+    alignItems: 'center',
+    paddingTop: 12,
+  },
+  swipeIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E0E0E0',
+    borderRadius: 2,
+    marginBottom: 8,
+  },
+  swipeText: {
+    fontSize: 12,
+    color: '#BBBBBB',
+    fontWeight: '500',
   },
 });
