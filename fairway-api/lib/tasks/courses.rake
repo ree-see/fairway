@@ -258,11 +258,67 @@ namespace :courses do
     desc "Clean up orphaned external courses (courses that no longer exist in API)"
     task cleanup: :environment do
       puts "🧹 Starting cleanup of orphaned external courses..."
-      
+
       # This would require checking each external course against the API
       # Implementation would depend on specific business rules
       puts "⚠️  Cleanup task not yet implemented"
       puts "   This should check external courses against the API and handle orphaned records"
+    end
+
+    desc "Backfill hole data for existing courses from API"
+    task backfill_holes: :environment do
+      puts "🕳️  Backfilling hole data from API..."
+
+      service = CoursesSyncService.new
+
+      # Find courses with generic hole data (yardage_white = 150, 350, or 500)
+      courses_needing_holes = Course.from_external_source('golfcourseapi')
+                                    .joins(:holes)
+                                    .where(holes: { yardage_white: [150, 350, 500] })
+                                    .distinct
+
+      puts "📊 Found #{courses_needing_holes.count} courses with generic hole data"
+
+      if courses_needing_holes.count == 0
+        puts "✅ All courses already have detailed hole data!"
+        exit
+      end
+
+      synced_count = 0
+      error_count = 0
+
+      courses_needing_holes.find_each do |course|
+        begin
+          next unless course.external_id.present?
+
+          puts "  Syncing holes for: #{course.name}..."
+
+          # Fetch course data from API
+          course_data = service.send(:fetch_course_by_id, course.external_id)
+
+          if course_data && course_data['tees']
+            # Delete existing generic holes
+            course.holes.destroy_all
+
+            # Sync real holes from API
+            service.send(:sync_holes_for_course, course, course_data)
+            synced_count += 1
+          else
+            puts "    ⚠️  No hole data available in API"
+          end
+
+          # Rate limiting
+          sleep(1)
+
+        rescue => e
+          puts "    ❌ Error: #{e.message}"
+          error_count += 1
+        end
+      end
+
+      puts "\n✅ Hole backfill completed!"
+      puts "   Courses updated: #{synced_count}"
+      puts "   Errors: #{error_count}"
     end
   end
 

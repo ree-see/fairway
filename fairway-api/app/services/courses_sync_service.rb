@@ -287,33 +287,44 @@ class CoursesSyncService
   def sync_course(course_data, existing_course: nil, is_initial: false)
     # Transform API data to our schema format
     transformed_data = transform_course_data(course_data)
-    
+
     if existing_course
       # Update existing course
       existing_course.update_from_external_data!(transformed_data)
+
+      # Sync holes if API provides them
+      sync_holes_for_course(existing_course, course_data) if course_data['tees']
+
       @logger.debug "Updated course: #{existing_course.name}"
       existing_course
     else
       # Check for duplicates before creating new course
       duplicate_course = find_duplicate_course(transformed_data, course_data['id'].to_s)
-      
+
       if duplicate_course
         @logger.info "Duplicate course found: #{duplicate_course.name} (ID: #{duplicate_course.id}) - skipping #{transformed_data['name']}"
         return duplicate_course
       end
-      
-      # Create new course
+
+      # Create new course (skip default hole creation callback)
       course = Course.new(transformed_data)
       course.external_source = 'golfcourseapi'
       course.external_id = course_data['id'].to_s
       course.sync_enabled = true
       course.last_synced_at = Time.current
-      
+
       # Set defaults for required fields if not provided
       course.geofence_radius ||= 500
       course.active = true
-      
+
+      # Skip automatic hole creation since we'll create them from API data
+      course.skip_default_holes = true
+
       course.save!
+
+      # Create holes from API data
+      sync_holes_for_course(course, course_data) if course_data['tees']
+
       @logger.debug "Created course: #{course.name}"
       course
     end
@@ -462,6 +473,94 @@ class CoursesSyncService
       raise DataValidationError.new("Missing required fields for course #{course_id}: #{missing_fields.join(', ')}", 
                                    details: { course_id: course_id, missing_fields: missing_fields })
     end
+  end
+
+  def sync_holes_for_course(course, course_data)
+    tees_data = course_data['tees']
+    return unless tees_data
+
+    # Extract all tee sets and build a comprehensive hole data structure
+    # We'll create one hole record per hole number with yardages from all tees
+    hole_data_by_number = {}
+
+    # Process male tees first (preferred for par and handicap)
+    if tees_data['male']&.any?
+      primary_tee = tees_data['male'].first
+      primary_tee['holes']&.each_with_index do |hole_info, index|
+        hole_number = index + 1
+        hole_data_by_number[hole_number] = {
+          number: hole_number,
+          par: hole_info['par'],
+          handicap: hole_info['handicap'] || hole_number, # Default to hole number if not provided
+          yardages: {}
+        }
+      end
+
+      # Map yardages from all male tees
+      tees_data['male'].each do |tee_set|
+        tee_color = map_tee_name_to_color(tee_set['tee_name'])
+        tee_set['holes']&.each_with_index do |hole_info, index|
+          hole_number = index + 1
+          if hole_data_by_number[hole_number]
+            hole_data_by_number[hole_number][:yardages][tee_color] = hole_info['yardage']
+          end
+        end
+      end
+    end
+
+    # Add female tee yardages
+    if tees_data['female']&.any?
+      tees_data['female'].each do |tee_set|
+        tee_color = map_tee_name_to_color(tee_set['tee_name'])
+        tee_set['holes']&.each_with_index do |hole_info, index|
+          hole_number = index + 1
+
+          # Initialize if not already created (some courses only have female tees)
+          unless hole_data_by_number[hole_number]
+            hole_data_by_number[hole_number] = {
+              number: hole_number,
+              par: hole_info['par'],
+              handicap: hole_info['handicap'] || hole_number, # Default to hole number if not provided
+              yardages: {}
+            }
+          end
+
+          hole_data_by_number[hole_number][:yardages][tee_color] = hole_info['yardage']
+        end
+      end
+    end
+
+    # Create or update holes
+    hole_data_by_number.each do |hole_number, data|
+      hole = course.holes.find_or_initialize_by(number: hole_number)
+      hole.par = data[:par]
+      hole.handicap = data[:handicap]
+
+      # Set yardages for each tee color
+      hole.yardage_black = data[:yardages][:black]
+      hole.yardage_blue = data[:yardages][:blue]
+      hole.yardage_white = data[:yardages][:white]
+      hole.yardage_red = data[:yardages][:red]
+      hole.yardage_gold = data[:yardages][:gold]
+
+      hole.save!
+    end
+
+    @logger.debug "Synced #{hole_data_by_number.size} holes for #{course.name}"
+  end
+
+  def map_tee_name_to_color(tee_name)
+    # Map API tee names to our standard colors
+    normalized_name = tee_name.to_s.downcase
+
+    return :black if normalized_name.include?('black')
+    return :blue if normalized_name.include?('blue')
+    return :white if normalized_name.include?('white')
+    return :red if normalized_name.include?('red')
+    return :gold if normalized_name.include?('gold') || normalized_name.include?('green')
+
+    # Default mapping for unknown tee names
+    :white
   end
 
   def exponential_backoff(attempt)

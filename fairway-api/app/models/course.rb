@@ -52,9 +52,12 @@ class Course < ApplicationRecord
     where(clause_args[0], *clause_args[1..-1])
   }
 
+  # Attribute for skipping default hole creation
+  attr_accessor :skip_default_holes
+
   # Callbacks
   before_save :calculate_course_stats
-  after_create :create_default_holes
+  after_create :create_default_holes, unless: :skip_default_holes
 
   def full_address
     [address, city, state, postal_code].compact.join(', ')
