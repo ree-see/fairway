@@ -16,6 +16,7 @@ import { CourseInfo } from '../components/rounds/CourseInfo';
 import { RoundStatistics } from '../components/rounds/RoundStatistics';
 import { ScorecardOptions } from '../components/rounds/ScorecardOptions';
 import { ScorecardNine } from '../components/rounds/ScorecardNine';
+import { theme } from '../theme';
 
 type RoundDetailRouteProp = RouteProp<{ RoundDetail: { roundId: string } }, 'RoundDetail'>;
 
@@ -159,14 +160,15 @@ export const RoundDetailScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header: Course name + Date */}
-      <View style={styles.header}>
-        <Text style={styles.courseName}>{round.course_name}</Text>
-        <Text style={styles.dateText}>{formatAbbreviatedDate(round.started_at)}</Text>
-      </View>
+      {/* Combined Header Card: Course + Date + Score */}
+      <View style={styles.headerCard}>
+        {/* Course name + Date */}
+        <View style={styles.headerTop}>
+          <Text style={styles.courseName}>{round.course_name}</Text>
+          <Text style={styles.dateText}>{formatAbbreviatedDate(round.started_at)}</Text>
+        </View>
 
-      {/* Score Box */}
-      <View style={styles.scoreBox}>
+        {/* Score Box */}
         <View style={styles.scoreBoxRow}>
           <View style={styles.scoreBoxItem}>
             <Text style={styles.scoreBoxLabel}>Score</Text>
@@ -180,7 +182,9 @@ export const RoundDetailScreen: React.FC = () => {
           <View style={styles.scoreBoxDivider} />
           <View style={styles.scoreBoxItem}>
             <Text style={styles.scoreBoxLabel}>To Par</Text>
-            <Text style={[styles.scoreBoxValue, { color: scoreToPar > 0 ? '#F44336' : scoreToPar < 0 ? '#4CAF50' : '#2196F3' }]}>
+            <Text style={[styles.scoreBoxValue, {
+              color: scoreToPar > 0 ? theme.colors.status.error : scoreToPar < 0 ? theme.colors.status.success : theme.colors.status.info
+            }]}>
               {scoreToPar > 0 ? '+' : ''}{scoreToPar}
             </Text>
           </View>
@@ -244,36 +248,33 @@ export const RoundDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: theme.colors.background.primary,
   },
-  header: {
-    backgroundColor: '#1E1E1E',
-    padding: 20,
-    paddingTop: 60,
+  headerCard: {
+    backgroundColor: theme.colors.background.secondary,
+    margin: theme.spacing.xl,
+    marginTop: theme.spacing.massive,
+    borderRadius: theme.radius.card,
+    padding: theme.padding.card,
+    ...theme.shadows.md,
+  },
+  headerTop: {
     alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    paddingBottom: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.ui.border,
   },
   courseName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginBottom: 4,
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.primary.main,
+    marginBottom: theme.spacing.xs,
     textAlign: 'center',
   },
   dateText: {
-    fontSize: 14,
-    color: '#AAAAAA',
-  },
-  scoreBox: {
-    backgroundColor: '#1E1E1E',
-    margin: 20,
-    marginTop: 0,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3.84,
-    elevation: 5,
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.text.secondary,
   },
   scoreBoxRow: {
     flexDirection: 'row',
@@ -287,41 +288,38 @@ const styles = StyleSheet.create({
   scoreBoxDivider: {
     width: 1,
     height: 50,
-    backgroundColor: '#333',
+    backgroundColor: theme.colors.ui.border,
   },
   scoreBoxLabel: {
-    fontSize: 12,
-    color: '#888',
-    marginBottom: 8,
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
+    fontWeight: theme.fontWeight.semibold,
   },
   scoreBoxValue: {
     fontSize: 32,
-    fontWeight: 'bold',
-    color: '#EEEEEE',
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
   },
   scorecardSection: {
-    backgroundColor: '#1E1E1E',
-    margin: 20,
+    backgroundColor: theme.colors.background.secondary,
+    margin: theme.spacing.xl,
     marginTop: 0,
-    padding: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    padding: theme.padding.card,
+    borderRadius: theme.radius.card,
+    ...theme.shadows.md,
   },
   scorecardContainer: {
-    gap: 16,
+    gap: theme.spacing.lg,
   },
   emptyScorecard: {
     padding: 40,
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#888888',
+    fontSize: theme.fontSize.base,
+    color: theme.colors.text.tertiary,
   },
 });
