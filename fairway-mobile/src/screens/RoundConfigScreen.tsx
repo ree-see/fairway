@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
-} from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { Course, DetailedCourse } from '../types/api';
-import { theme } from '../theme';
-import ApiService from '../services/ApiService';
+} from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { Course, DetailedCourse } from "../types/api";
+import { theme } from "../theme";
+import ApiService from "../services/ApiService";
 
 interface TeeBox {
   color: string;
@@ -24,9 +24,11 @@ export const RoundConfigScreen: React.FC = () => {
   const navigation = useNavigation();
   const { course } = route.params as { course: Course };
 
-  const [roundType, setRoundType] = useState<'9' | '18' | null>(null);
-  const [nineHoleOption, setNineHoleOption] = useState<'front' | 'back' | null>(null);
-  const [selectedTees, setSelectedTees] = useState<string>('white');
+  const [roundType, setRoundType] = useState<"9" | "18" | null>(null);
+  const [nineHoleOption, setNineHoleOption] = useState<"front" | "back" | null>(
+    null,
+  );
+  const [selectedTees, setSelectedTees] = useState<string>("white");
   const [teeOptions, setTeeOptions] = useState<TeeBox[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -43,10 +45,14 @@ export const RoundConfigScreen: React.FC = () => {
         setTeeOptions(tees);
       }
     } catch (error) {
-      console.error('Error loading course details:', error);
+      console.error("Error loading course details:", error);
       // Fallback to basic tee options
       setTeeOptions([
-        { color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 },
+        {
+          color: "white",
+          name: "White Tees",
+          distance: course.total_yardage || 6400,
+        },
       ]);
     } finally {
       setIsLoading(false);
@@ -55,15 +61,23 @@ export const RoundConfigScreen: React.FC = () => {
 
   const calculateTeeOptions = (detailedCourse: DetailedCourse): TeeBox[] => {
     if (!detailedCourse.holes || detailedCourse.holes.length === 0) {
-      return [{ color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 }];
+      return [
+        {
+          color: "white",
+          name: "White Tees",
+          distance: course.total_yardage || 6400,
+        },
+      ];
     }
 
-    const teeColors: { [key: string]: { name: string; total: number; count: number } } = {
-      black: { name: 'Championship Tees', total: 0, count: 0 },
-      blue: { name: 'Blue Tees', total: 0, count: 0 },
-      white: { name: 'White Tees', total: 0, count: 0 },
-      red: { name: 'Red Tees', total: 0, count: 0 },
-      gold: { name: 'Gold Tees', total: 0, count: 0 },
+    const teeColors: {
+      [key: string]: { name: string; total: number; count: number };
+    } = {
+      black: { name: "Championship Tees", total: 0, count: 0 },
+      blue: { name: "Blue Tees", total: 0, count: 0 },
+      white: { name: "White Tees", total: 0, count: 0 },
+      red: { name: "Red Tees", total: 0, count: 0 },
+      gold: { name: "Gold Tees", total: 0, count: 0 },
     };
 
     // Sum yardages for each tee color
@@ -89,19 +103,25 @@ export const RoundConfigScreen: React.FC = () => {
       }
     });
 
-    return availableTees.length > 0 ? availableTees : [
-      { color: 'white', name: 'White Tees', distance: course.total_yardage || 6400 }
-    ];
+    return availableTees.length > 0
+      ? availableTees
+      : [
+          {
+            color: "white",
+            name: "White Tees",
+            distance: course.total_yardage || 6400,
+          },
+        ];
   };
 
   const startRound = () => {
     if (!roundType) {
-      Alert.alert('Round Type Required', 'Please select 9 holes or 18 holes');
+      Alert.alert("Round Type Required", "Please select 9 holes or 18 holes");
       return;
     }
 
-    if (roundType === '9' && !nineHoleOption) {
-      Alert.alert('Nine Hole Selection', 'Please select front 9 or back 9');
+    if (roundType === "9" && !nineHoleOption) {
+      Alert.alert("Nine Hole Selection", "Please select front 9 or back 9");
       return;
     }
 
@@ -110,22 +130,22 @@ export const RoundConfigScreen: React.FC = () => {
       roundType,
       nineHoleOption,
       selectedTees,
-      totalHoles: roundType === '9' ? 9 : 18,
-      startingHole: roundType === '9' && nineHoleOption === 'back' ? 10 : 1,
+      totalHoles: roundType === "9" ? 9 : 18,
+      startingHole: roundType === "9" && nineHoleOption === "back" ? 10 : 1,
     };
 
-    navigation.navigate('FocusedRound' as never, roundConfig as never);
+    navigation.navigate("FocusedRound" as never, roundConfig as never);
   };
 
   const getTeeColor = (color: string) => {
     const colorMap: { [key: string]: string } = {
-      black: '#000000',
-      blue: '#2196F3',
-      white: '#FFFFFF',
-      red: '#F44336',
-      gold: '#FFD700',
+      black: "#000000",
+      blue: "#2196F3",
+      white: "#FFFFFF",
+      red: "#F44336",
+      gold: "#FFD700",
     };
-    return colorMap[color] || '#FFFFFF';
+    return colorMap[color] || "#FFFFFF";
   };
 
   if (isLoading) {
@@ -150,25 +170,41 @@ export const RoundConfigScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Round Type</Text>
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              style={[styles.optionButton, roundType === '9' && styles.optionButtonSelected]}
+              style={[
+                styles.optionButton,
+                roundType === "9" && styles.optionButtonSelected,
+              ]}
               onPress={() => {
-                setRoundType('9');
-                if (nineHoleOption === null) setNineHoleOption('front');
+                setRoundType("9");
+                if (nineHoleOption === null) setNineHoleOption("front");
               }}
             >
-              <Text style={[styles.optionButtonText, roundType === '9' && styles.optionButtonTextSelected]}>
+              <Text
+                style={[
+                  styles.optionButtonText,
+                  roundType === "9" && styles.optionButtonTextSelected,
+                ]}
+              >
                 9 Holes
               </Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity
-              style={[styles.optionButton, roundType === '18' && styles.optionButtonSelected]}
+              style={[
+                styles.optionButton,
+                roundType === "18" && styles.optionButtonSelected,
+              ]}
               onPress={() => {
-                setRoundType('18');
+                setRoundType("18");
                 setNineHoleOption(null);
               }}
             >
-              <Text style={[styles.optionButtonText, roundType === '18' && styles.optionButtonTextSelected]}>
+              <Text
+                style={[
+                  styles.optionButtonText,
+                  roundType === "18" && styles.optionButtonTextSelected,
+                ]}
+              >
                 18 Holes
               </Text>
             </TouchableOpacity>
@@ -176,25 +212,43 @@ export const RoundConfigScreen: React.FC = () => {
         </View>
 
         {/* Nine Hole Options */}
-        {roundType === '9' && (
+        {roundType === "9" && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Which Nine?</Text>
             <View style={styles.buttonRow}>
               <TouchableOpacity
-                style={[styles.optionButton, nineHoleOption === 'front' && styles.optionButtonSelected]}
-                onPress={() => setNineHoleOption('front')}
+                style={[
+                  styles.optionButton,
+                  nineHoleOption === "front" && styles.optionButtonSelected,
+                ]}
+                onPress={() => setNineHoleOption("front")}
               >
-                <Text style={[styles.optionButtonText, nineHoleOption === 'front' && styles.optionButtonTextSelected]}>
+                <Text
+                  style={[
+                    styles.optionButtonText,
+                    nineHoleOption === "front" &&
+                      styles.optionButtonTextSelected,
+                  ]}
+                >
                   Front 9
                 </Text>
                 <Text style={styles.optionButtonSubtext}>Holes 1-9</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
-                style={[styles.optionButton, nineHoleOption === 'back' && styles.optionButtonSelected]}
-                onPress={() => setNineHoleOption('back')}
+                style={[
+                  styles.optionButton,
+                  nineHoleOption === "back" && styles.optionButtonSelected,
+                ]}
+                onPress={() => setNineHoleOption("back")}
               >
-                <Text style={[styles.optionButtonText, nineHoleOption === 'back' && styles.optionButtonTextSelected]}>
+                <Text
+                  style={[
+                    styles.optionButtonText,
+                    nineHoleOption === "back" &&
+                      styles.optionButtonTextSelected,
+                  ]}
+                >
                   Back 9
                 </Text>
                 <Text style={styles.optionButtonSubtext}>Holes 10-18</Text>
@@ -209,13 +263,27 @@ export const RoundConfigScreen: React.FC = () => {
           {teeOptions.map((tee) => (
             <TouchableOpacity
               key={tee.color}
-              style={[styles.teeOption, selectedTees === tee.color && styles.teeOptionSelected]}
+              style={[
+                styles.teeOption,
+                selectedTees === tee.color && styles.teeOptionSelected,
+              ]}
               onPress={() => setSelectedTees(tee.color)}
             >
               <View style={styles.teeRow}>
-                <View style={[styles.teeColorIndicator, { backgroundColor: getTeeColor(tee.color) }]} />
+                <View
+                  style={[
+                    styles.teeColorIndicator,
+                    { backgroundColor: getTeeColor(tee.color) },
+                  ]}
+                />
                 <View style={styles.teeInfo}>
-                  <Text style={[styles.teeOptionText, selectedTees === tee.color && styles.teeOptionTextSelected]}>
+                  <Text
+                    style={[
+                      styles.teeOptionText,
+                      selectedTees === tee.color &&
+                        styles.teeOptionTextSelected,
+                    ]}
+                  >
                     {tee.name}
                   </Text>
                   <Text style={styles.teeDistance}>{tee.distance} yards</Text>
@@ -229,11 +297,9 @@ export const RoundConfigScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.startButton} onPress={startRound}>
-          <Text style={styles.startButtonText}>Start Round</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.startButton} onPress={startRound}>
+        <Text style={styles.startButtonText}>Start Round</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -254,7 +320,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.inverse,
+    color: "#F44336",
     marginBottom: theme.spacing.sm,
   },
   courseName: {
@@ -275,7 +341,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.md,
   },
   buttonRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: theme.spacing.sm,
   },
   optionButton: {
@@ -283,12 +349,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.tertiary,
     borderRadius: theme.radius.input,
     padding: theme.spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   optionButtonSelected: {
-    borderColor: '#F44336',
+    borderColor: "#F44336",
     borderWidth: 2,
   },
   optionButtonText: {
@@ -306,23 +372,23 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.xs,
   },
   teeOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: theme.spacing.md,
     backgroundColor: theme.colors.background.tertiary,
     borderRadius: theme.radius.input,
     marginBottom: theme.spacing.sm,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: "transparent",
   },
   teeOptionSelected: {
-    borderColor: '#F44336',
+    borderColor: "#F44336",
     borderWidth: 2,
   },
   teeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
   teeColorIndicator: {
@@ -352,29 +418,26 @@ const styles = StyleSheet.create({
   },
   selectedIndicator: {
     fontSize: theme.fontSize.lg,
-    color: '#F44336',
+    color: "#F44336",
     fontWeight: theme.fontWeight.bold,
   },
   loadingContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: theme.spacing.md,
     fontSize: theme.fontSize.md,
     color: theme.colors.text.secondary,
   },
-  footer: {
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.background.secondary,
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.ui.border,
-  },
   startButton: {
     backgroundColor: theme.colors.primary.main,
     borderRadius: theme.radius.button,
     paddingVertical: theme.spacing.md,
-    alignItems: 'center',
+    alignItems: "center",
+    width: "75%",
+    alignSelf: "center",
+    marginBottom: theme.spacing.xl,
   },
   startButtonText: {
     color: theme.colors.text.inverse,
