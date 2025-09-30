@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    paddingBottom: 120, // Extra space for tab bar
+    paddingBottom: 100, // Extra space for tab bar
   },
   sectionCard: {
     backgroundColor: 'white',
