@@ -93,6 +93,15 @@ export const RoundDetailScreen: React.FC = () => {
     });
   };
 
+  const formatAbbreviatedDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
@@ -145,39 +154,58 @@ export const RoundDetailScreen: React.FC = () => {
     setDisplayOptions(prev => ({ ...prev, [option]: !prev[option] }));
   };
 
+  const coursePar = hole_scores.reduce((sum, s) => sum + s.par, 0);
+  const scoreToPar = (round.total_strokes || 0) - coursePar;
+
   return (
     <ScrollView style={styles.container}>
-      <RoundDetailHeader title="Round Details" />
-      
-      <CourseInfo 
-        courseName={round.course_name}
-        startedAt={round.started_at}
-        completedAt={round.completed_at}
-      />
+      {/* Header: Course name + Date */}
+      <View style={styles.header}>
+        <Text style={styles.courseName}>{round.course_name}</Text>
+        <Text style={styles.dateText}>{formatAbbreviatedDate(round.started_at)}</Text>
+      </View>
 
-      <TabNavigation 
+      {/* Score Box */}
+      <View style={styles.scoreBox}>
+        <View style={styles.scoreBoxRow}>
+          <View style={styles.scoreBoxItem}>
+            <Text style={styles.scoreBoxLabel}>Score</Text>
+            <Text style={styles.scoreBoxValue}>{round.total_strokes || '--'}</Text>
+          </View>
+          <View style={styles.scoreBoxDivider} />
+          <View style={styles.scoreBoxItem}>
+            <Text style={styles.scoreBoxLabel}>Par</Text>
+            <Text style={styles.scoreBoxValue}>{coursePar}</Text>
+          </View>
+          <View style={styles.scoreBoxDivider} />
+          <View style={styles.scoreBoxItem}>
+            <Text style={styles.scoreBoxLabel}>To Par</Text>
+            <Text style={[styles.scoreBoxValue, { color: scoreToPar > 0 ? '#F44336' : scoreToPar < 0 ? '#4CAF50' : '#2196F3' }]}>
+              {scoreToPar > 0 ? '+' : ''}{scoreToPar}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Toggle Tabs */}
+      <TabNavigation
         activeTab={activeTab}
         onTabChange={setActiveTab}
         tabs={[
-          { key: 'statistics', label: 'Statistics' },
-          { key: 'scorecard', label: 'Scorecard' }
+          { key: 'scorecard', label: 'Scorecard' },
+          { key: 'statistics', label: 'Statistics' }
         ]}
       />
 
-      {activeTab === 'statistics' && (
-        <RoundStatistics round={round} />
-      )}
-
+      {/* Scorecard View */}
       {activeTab === 'scorecard' && (
         <>
-          <ScorecardOptions 
+          <ScorecardOptions
             displayOptions={displayOptions}
             onToggleOption={handleToggleOption}
           />
 
           <View style={styles.scorecardSection}>
-            <Text style={styles.sectionTitle}>Scorecard</Text>
-            
             {hole_scores.length > 0 ? (
               <View style={styles.scorecardContainer}>
                 <ScorecardNine
@@ -195,24 +223,6 @@ export const RoundDetailScreen: React.FC = () => {
                   getScoreColor={getScoreColor}
                   displayOptions={displayOptions}
                 />
-
-                <View style={styles.totalsSection}>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalRowLabel}>Course Total</Text>
-                    <Text style={styles.totalRowValue}>
-                      Par: {hole_scores.reduce((sum, s) => sum + s.par, 0)} | Score: {round.total_strokes || '--'}
-                    </Text>
-                  </View>
-                  <View style={styles.totalRow}>
-                    <Text style={styles.totalRowLabel}>To Par</Text>
-                    <Text style={[styles.totalRowValue, { 
-                      color: (round.total_strokes || 0) - hole_scores.reduce((sum, s) => sum + s.par, 0) > 0 ? '#F44336' : '#4CAF50' 
-                    }]}>
-                      {(round.total_strokes || 0) - hole_scores.reduce((sum, s) => sum + s.par, 0) > 0 ? '+' : ''}
-                      {(round.total_strokes || 0) - hole_scores.reduce((sum, s) => sum + s.par, 0)}
-                    </Text>
-                  </View>
-                </View>
               </View>
             ) : (
               <View style={styles.emptyScorecard}>
@@ -222,6 +232,11 @@ export const RoundDetailScreen: React.FC = () => {
           </View>
         </>
       )}
+
+      {/* Statistics View */}
+      {activeTab === 'statistics' && (
+        <RoundStatistics round={round} />
+      )}
     </ScrollView>
   );
 };
@@ -229,52 +244,77 @@ export const RoundDetailScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#121212',
   },
-  sectionTitle: {
-    fontSize: 20,
+  header: {
+    backgroundColor: '#1E1E1E',
+    padding: 20,
+    paddingTop: 60,
+    alignItems: 'center',
+  },
+  courseName: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 16,
+    color: '#4CAF50',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#AAAAAA',
+  },
+  scoreBox: {
+    backgroundColor: '#1E1E1E',
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  scoreBoxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+  },
+  scoreBoxItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  scoreBoxDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: '#333',
+  },
+  scoreBoxLabel: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  scoreBoxValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#EEEEEE',
   },
   scorecardSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#1E1E1E',
     margin: 20,
     marginTop: 0,
     padding: 20,
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
   scorecardContainer: {
     gap: 16,
-  },
-  totalsSection: {
-    marginTop: 16,
-    padding: 16,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#2E7D32',
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  totalRowLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333333',
-  },
-  totalRowValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#2E7D32',
   },
   emptyScorecard: {
     padding: 40,
@@ -282,6 +322,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#666666',
+    color: '#888888',
   },
 });
