@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { theme } from '../../theme';
 
 interface TabNavigationProps {
   activeTab: string;
@@ -32,34 +33,30 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 12,
-    padding: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: theme.colors.background.secondary,
+    marginHorizontal: theme.spacing.xl,
+    marginTop: theme.spacing.xl,
+    borderRadius: theme.radius.card,
+    padding: theme.spacing.xs,
+    ...theme.shadows.md,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingVertical: theme.spacing.md,
+    paddingHorizontal: theme.spacing.lg,
+    borderRadius: theme.radius.input,
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
   tabButtonActive: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: theme.colors.primary.main,
   },
   tabButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#666666',
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text.secondary,
   },
   tabButtonTextActive: {
-    color: '#FFFFFF',
+    color: theme.colors.text.inverse,
   },
 });
