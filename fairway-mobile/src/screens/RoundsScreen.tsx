@@ -159,7 +159,6 @@ export const RoundsScreen: React.FC = () => {
             </View>
             <View style={styles.scoreDivider} />
             <View style={styles.scoreItem}>
-              <Text style={styles.scoreLabel}>To Par</Text>
               <Text
                 style={[
                   styles.scoreValue,
@@ -173,8 +172,7 @@ export const RoundsScreen: React.FC = () => {
                   },
                 ]}
               >
-                {scoreToPar > 0 ? '+' : ''}
-                {scoreToPar}
+                {scoreToPar === 0 ? 'E' : scoreToPar > 0 ? `+${scoreToPar}` : scoreToPar}
               </Text>
             </View>
           </View>
