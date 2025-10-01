@@ -164,7 +164,10 @@ export const RoundDetailScreen: React.FC = () => {
   const scoreToPar = (round.total_strokes || 0) - coursePar;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       {/* Combined Header Card: Course + Date + Score */}
       <View style={styles.headerCard}>
         {/* Course name + Date */}
@@ -272,6 +275,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background.primary,
+  },
+  scrollContent: {
+    paddingBottom: 120, // Extra space to scroll past the bottom navbar
   },
   headerCard: {
     backgroundColor: theme.colors.background.secondary,
