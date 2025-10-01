@@ -12,7 +12,7 @@ interface ScorecardNineProps {
   title: string;
   holeScores: any[];
   totalLabel: string;
-  getScoreColor: (strokes: number, par: number) => string;
+  getScoreColor: (strokes: number, par: number) => string | null;
   displayOptions: ScorecardDisplayOptions;
 }
 
@@ -66,13 +66,25 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
           <View style={styles.labelCell}>
             <Text style={styles.labelText}>Score</Text>
           </View>
-          {holeScores.map((score: any) => (
-            <View key={`score-${score.id}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
-              <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
-                {score.strokes}
-              </Text>
-            </View>
-          ))}
+          {holeScores.map((score: any) => {
+            const scoreColor = getScoreColor(score.strokes, score.par);
+            return (
+              <View
+                key={`score-${score.id}`}
+                style={[
+                  styles.dataCell,
+                  scoreColor && { backgroundColor: scoreColor + '20' }
+                ]}
+              >
+                <Text style={[
+                  styles.scoreText,
+                  scoreColor ? { color: scoreColor } : styles.parScoreText
+                ]}>
+                  {score.strokes}
+                </Text>
+              </View>
+            );
+          })}
           <View style={styles.totalCell}>
             <Text style={styles.totalText}>
               {holeScores.reduce((sum, s) => sum + s.strokes, 0)}
@@ -238,6 +250,11 @@ const styles = StyleSheet.create({
   scoreText: {
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.bold,
+  },
+  parScoreText: {
+    fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
   },
   detailDataText: {
     fontSize: theme.fontSize.xs,

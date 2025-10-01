@@ -38,7 +38,7 @@ interface ScorecardNineProps {
   title: string;
   holeScores: any[];
   totalLabel: string;
-  getScoreColor: (strokes: number, par: number) => string;
+  getScoreColor: (strokes: number, par: number) => string | null;
   displayOptions: ScorecardDisplayOptions;
 }
 
@@ -134,11 +134,11 @@ export const RoundDetailScreen: React.FC = () => {
     return `+${diff}`;
   };
 
-  const getScoreColor = (strokes: number, par: number): string => {
+  const getScoreColor = (strokes: number, par: number): string | null => {
     const diff = strokes - par;
-    if (diff <= -1) return '#4CAF50'; // Green for under par
-    if (diff === 0) return '#2196F3'; // Blue for par
-    if (diff === 1) return '#FF9800'; // Orange for bogey
+    if (diff <= -1) return '#4CAF50'; // Green for under par (birdie, eagle)
+    if (diff === 0) return null; // No color for par (traditional scorecard)
+    if (diff === 1) return '#000000'; // Black for bogey
     return '#F44336'; // Red for double bogey or worse
   };
 
