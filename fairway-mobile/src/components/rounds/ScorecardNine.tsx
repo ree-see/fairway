@@ -31,7 +31,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
       <View style={styles.scorecardTable}>
         {/* Header Row */}
         <View style={styles.headerRow}>
-          <View style={styles.holeHeaderCell}>
+          <View style={styles.labelHeaderCell}>
             <Text style={styles.headerText}>Hole</Text>
           </View>
           {holeScores.map((score: any) => (
@@ -235,6 +235,14 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background.tertiary,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.ui.border,
+  },
+  labelHeaderCell: {
+    width: 60,
+    paddingVertical: theme.spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.2)',
   },
   holeHeaderCell: {
     width: 40,
