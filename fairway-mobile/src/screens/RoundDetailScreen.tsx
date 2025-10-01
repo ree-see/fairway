@@ -186,11 +186,10 @@ export const RoundDetailScreen: React.FC = () => {
           </View>
           <View style={styles.scoreBoxDivider} />
           <View style={styles.scoreBoxItem}>
-            <Text style={styles.scoreBoxLabel}>To Par</Text>
             <Text style={[styles.scoreBoxValue, {
               color: scoreToPar > 0 ? theme.colors.status.error : scoreToPar < 0 ? theme.colors.status.success : theme.colors.status.info
             }]}>
-              {scoreToPar > 0 ? '+' : ''}{scoreToPar}
+              {scoreToPar === 0 ? 'E' : scoreToPar > 0 ? `+${scoreToPar}` : scoreToPar}
             </Text>
           </View>
         </View>

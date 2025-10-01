@@ -1,26 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { View, StyleSheet, Alert, Animated, Dimensions } from "react-native";
+import { PanGestureHandler } from "react-native-gesture-handler";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import ApiService from "../services/ApiService";
+import LiveActivityService from "../services/LiveActivityService";
+import AuthDebugger from "../utils/AuthDebugger";
 import {
-  View,
-  StyleSheet,
-  Alert,
-  Animated,
-  Dimensions,
-} from 'react-native';
-import { PanGestureHandler } from 'react-native-gesture-handler';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import ApiService from '../services/ApiService';
-import LiveActivityService from '../services/LiveActivityService';
-import AuthDebugger from '../utils/AuthDebugger';
-import { Course, DetailedCourse, Hole, Round, HoleScore, HoleScoreInput, ApiError } from '../types/api';
-import { LoadingScreen } from '../components/common/LoadingScreen';
-import { ScoreHeader } from '../components/scorecard/ScoreHeader';
-import { HoleCard } from '../components/scorecard/HoleCard';
-import { HoleSelector } from '../components/scorecard/HoleSelector';
-import { SubmitButton } from '../components/scorecard/SubmitButton';
-import { MenuButton } from '../components/scorecard/MenuButton';
-import { RoundMenu } from '../components/scorecard/RoundMenu';
+  Course,
+  DetailedCourse,
+  Hole,
+  Round,
+  HoleScore,
+  HoleScoreInput,
+  ApiError,
+} from "../types/api";
+import { LoadingScreen } from "../components/common/LoadingScreen";
+import { ScoreHeader } from "../components/scorecard/ScoreHeader";
+import { HoleCard } from "../components/scorecard/HoleCard";
+import { HoleSelector } from "../components/scorecard/HoleSelector";
+import { SubmitButton } from "../components/scorecard/SubmitButton";
+import { MenuButton } from "../components/scorecard/MenuButton";
+import { RoundMenu } from "../components/scorecard/RoundMenu";
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get("window");
 
 interface ScoringHole extends Hole {
   strokes?: number;
@@ -32,8 +34,8 @@ interface ScoringHole extends Hole {
 
 interface RoundConfig {
   course: Course;
-  roundType: '9' | '18';
-  nineHoleOption: 'front' | 'back' | null;
+  roundType: "9" | "18";
+  nineHoleOption: "front" | "back" | null;
   selectedTees: string;
   totalHoles: number;
   startingHole: number;
@@ -79,54 +81,60 @@ export const ScorecardScreen: React.FC = () => {
   const initializeRound = async () => {
     try {
       setIsLoading(true);
-      
+
       // Debug auth tokens
       await AuthDebugger.debugStoredTokens();
-      
+
       // Get detailed course data with holes
       const courseResponse = await ApiService.getCourse(config.course.id);
       if (!courseResponse.success || !courseResponse.data) {
-        throw new Error('Failed to load course details');
+        throw new Error("Failed to load course details");
       }
-      
+
       const detailedCourse = courseResponse.data.course;
-      
+
       // Store all holes for display but filter active holes based on round configuration
-      const allCourseHoles: ScoringHole[] = detailedCourse.holes.map(hole => ({
-        ...hole,
-        strokes: undefined,
-        putts: undefined,
-        fairway_hit: false,
-        green_in_regulation: false,
-        up_and_down: false,
-      }));
-      
+      const allCourseHoles: ScoringHole[] = detailedCourse.holes.map(
+        (hole) => ({
+          ...hole,
+          strokes: undefined,
+          putts: undefined,
+          fairway_hit: false,
+          green_in_regulation: false,
+          up_and_down: false,
+        }),
+      );
+
       // Determine which holes are active for this round
       let activeHoleNumbers: number[] = [];
-      if (config.roundType === '9') {
-        if (config.nineHoleOption === 'front') {
-          activeHoleNumbers = detailedCourse.holes.filter(hole => hole.number <= 9).map(hole => hole.number);
+      if (config.roundType === "9") {
+        if (config.nineHoleOption === "front") {
+          activeHoleNumbers = detailedCourse.holes
+            .filter((hole) => hole.number <= 9)
+            .map((hole) => hole.number);
         } else {
-          activeHoleNumbers = detailedCourse.holes.filter(hole => hole.number >= 10).map(hole => hole.number);
+          activeHoleNumbers = detailedCourse.holes
+            .filter((hole) => hole.number >= 10)
+            .map((hole) => hole.number);
         }
       } else {
-        activeHoleNumbers = detailedCourse.holes.map(hole => hole.number);
+        activeHoleNumbers = detailedCourse.holes.map((hole) => hole.number);
       }
-      
+
       const courseHoles = allCourseHoles;
-      
+
       setHoles(courseHoles);
       setActiveHoleNumbers(activeHoleNumbers);
 
       // Create a temporary round object (not saved to DB yet)
       const tempRound: Partial<Round> = {
-        id: 'temp-' + Date.now(), // Temporary ID
+        id: "temp-" + Date.now(), // Temporary ID
         course_id: config.course.id,
         course_name: config.course.name,
         started_at: new Date().toISOString(),
         tee_color: config.selectedTees,
         is_provisional: true,
-        status: 'in_progress',
+        status: "in_progress",
       };
 
       setCurrentRound(tempRound as Round);
@@ -143,30 +151,33 @@ export const ScorecardScreen: React.FC = () => {
           currentScore: 0,
         });
       }
-      
     } catch (error) {
-      console.error('Error initializing round:', error);
+      console.error("Error initializing round:", error);
       const apiError = error as ApiError;
-      
+
       // Handle authentication errors specifically
-      if (apiError.message?.includes('refresh token') || apiError.status === 401) {
+      if (
+        apiError.message?.includes("refresh token") ||
+        apiError.status === 401
+      ) {
         Alert.alert(
-          'Session Expired',
-          'Your session has expired. Please log in again.',
+          "Session Expired",
+          "Your session has expired. Please log in again.",
           [
-            { text: 'Clear Auth & Go Back', onPress: async () => {
-              await AuthDebugger.clearAllAuth();
-              navigation.goBack();
-            }},
-            { text: 'Go Back', onPress: () => navigation.goBack() }
-          ]
+            {
+              text: "Clear Auth & Go Back",
+              onPress: async () => {
+                await AuthDebugger.clearAllAuth();
+                navigation.goBack();
+              },
+            },
+            { text: "Go Back", onPress: () => navigation.goBack() },
+          ],
         );
       } else {
-        Alert.alert(
-          'Error', 
-          apiError.message || 'Failed to start round',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
-        );
+        Alert.alert("Error", apiError.message || "Failed to start round", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
       }
     } finally {
       setIsLoading(false);
@@ -175,11 +186,11 @@ export const ScorecardScreen: React.FC = () => {
 
   const saveRoundToDB = async (): Promise<Round> => {
     if (!currentRound) {
-      throw new Error('No current round to save');
+      throw new Error("No current round to save");
     }
 
     // If already persisted, just return the current round
-    if (roundPersistedToDb && !currentRound.id.startsWith('temp-')) {
+    if (roundPersistedToDb && !currentRound.id.startsWith("temp-")) {
       return currentRound;
     }
 
@@ -195,7 +206,7 @@ export const ScorecardScreen: React.FC = () => {
 
       const roundResponse = await ApiService.createRound(roundData);
       if (!roundResponse.success || !roundResponse.data) {
-        throw new Error('Failed to create round');
+        throw new Error("Failed to create round");
       }
 
       const savedRound = roundResponse.data.round;
@@ -204,16 +215,16 @@ export const ScorecardScreen: React.FC = () => {
 
       return savedRound;
     } catch (error) {
-      console.error('Error saving round to DB:', error);
+      console.error("Error saving round to DB:", error);
       throw error;
     }
   };
 
-  const updateHoleScore = async (field: 'strokes' | 'putts', value: string) => {
+  const updateHoleScore = async (field: "strokes" | "putts", value: string) => {
     const numValue = parseInt(value) || undefined;
 
     // Update staged hole only - don't save to main holes array yet
-    setStagedHole(prev => {
+    setStagedHole((prev) => {
       if (!prev) return prev;
       return { ...prev, [field]: numValue };
     });
@@ -221,23 +232,34 @@ export const ScorecardScreen: React.FC = () => {
     // Note: Score saved to main array only when navigating away from hole
   };
 
-  const updateHoleBool = (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => {
+  const updateHoleBool = (
+    field: "fairway_hit" | "green_in_regulation" | "up_and_down",
+    value: boolean,
+  ) => {
     // Update staged hole only - don't save to main holes array yet
-    setStagedHole(prev => {
+    setStagedHole((prev) => {
       if (!prev) return prev;
       return { ...prev, [field]: value };
     });
   };
 
   const getScoreToPar = (holesData = holes) => {
-    const completedHoles = holesData.filter(hole => hole.strokes && hole.strokes > 0);
-    const totalStrokes = completedHoles.reduce((total, hole) => total + (hole.strokes || 0), 0);
-    const totalPar = completedHoles.reduce((total, hole) => total + hole.par, 0);
+    const completedHoles = holesData.filter(
+      (hole) => hole.strokes && hole.strokes > 0,
+    );
+    const totalStrokes = completedHoles.reduce(
+      (total, hole) => total + (hole.strokes || 0),
+      0,
+    );
+    const totalPar = completedHoles.reduce(
+      (total, hole) => total + hole.par,
+      0,
+    );
     return totalStrokes - totalPar;
   };
 
   const getCompletedHoles = (holesData = holes) => {
-    return holesData.filter(hole => hole.strokes && hole.strokes > 0).length;
+    return holesData.filter((hole) => hole.strokes && hole.strokes > 0).length;
   };
 
   const getScoreDisplay = () => {
@@ -245,23 +267,29 @@ export const ScorecardScreen: React.FC = () => {
     const scoreToPar = getScoreToPar();
 
     if (completedHoles === 0) {
-      return 'E';
+      return "E";
     }
 
     if (scoreToPar === 0) {
-      return completedHoles === activeHoleNumbers.length ? 'E' : `E thru ${completedHoles}`;
+      return completedHoles === activeHoleNumbers.length
+        ? "E"
+        : `E thru ${completedHoles}`;
     }
 
     const scoreText = scoreToPar > 0 ? `+${scoreToPar}` : `${scoreToPar}`;
-    return completedHoles === activeHoleNumbers.length ? scoreText : `${scoreText} thru ${completedHoles}`;
+    return completedHoles === activeHoleNumbers.length
+      ? scoreText
+      : `${scoreText} thru ${completedHoles}`;
   };
 
   // Save staged hole data to the main holes array
   const saveStagedHole = () => {
     if (stagedHole) {
-      setHoles(prev => prev.map((hole, index) => 
-        index === currentHoleIndex ? { ...stagedHole } : hole
-      ));
+      setHoles((prev) =>
+        prev.map((hole, index) =>
+          index === currentHoleIndex ? { ...stagedHole } : hole,
+        ),
+      );
     }
   };
 
@@ -311,15 +339,17 @@ export const ScorecardScreen: React.FC = () => {
 
   const onPanGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX } }],
-    { useNativeDriver: true }
+    { useNativeDriver: true },
   );
 
   const onHandlerStateChange = (event: any) => {
     const { translationX, velocityX } = event.nativeEvent;
-    
-    if (event.nativeEvent.state === 5) { // GESTURE_STATE_END
-      const shouldSwipe = Math.abs(translationX) > screenWidth / 4 || Math.abs(velocityX) > 500;
-      
+
+    if (event.nativeEvent.state === 5) {
+      // GESTURE_STATE_END
+      const shouldSwipe =
+        Math.abs(translationX) > screenWidth / 4 || Math.abs(velocityX) > 500;
+
       if (shouldSwipe) {
         if (translationX > 0 && currentHoleIndex > 0) {
           // Swipe right - go to previous hole
@@ -329,7 +359,7 @@ export const ScorecardScreen: React.FC = () => {
           goToNextHole();
         }
       }
-      
+
       // Reset animation
       Animated.spring(translateX, {
         toValue: 0,
@@ -355,24 +385,24 @@ export const ScorecardScreen: React.FC = () => {
       // Save round to database if not already persisted
       if (!roundPersistedToDb) {
         await saveRoundToDB();
-        Alert.alert('Round Saved', 'Your progress has been saved', [
-          { text: 'OK', onPress: () => navigation.goBack() }
+        Alert.alert("Round Saved", "Your progress has been saved", [
+          { text: "OK", onPress: () => navigation.goBack() },
         ]);
       } else {
         navigation.goBack();
       }
     } catch (error) {
-      console.error('Error pausing round:', error);
-      Alert.alert('Error', 'Failed to save round. Try again?', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Retry', onPress: handlePauseRound }
+      console.error("Error pausing round:", error);
+      Alert.alert("Error", "Failed to save round. Try again?", [
+        { text: "Cancel", style: "cancel" },
+        { text: "Retry", onPress: handlePauseRound },
       ]);
     }
   };
 
   const handleSubmit = async () => {
     if (!currentRound) {
-      Alert.alert('Error', 'No active round found');
+      Alert.alert("Error", "No active round found");
       return;
     }
 
@@ -386,7 +416,9 @@ export const ScorecardScreen: React.FC = () => {
       }
 
       // Save all hole scores to the backend
-      const holesWithScores = holes.filter(hole => hole.strokes && hole.strokes > 0);
+      const holesWithScores = holes.filter(
+        (hole) => hole.strokes && hole.strokes > 0,
+      );
 
       for (const hole of holesWithScores) {
         const holeScoreData: HoleScoreInput = {
@@ -407,12 +439,22 @@ export const ScorecardScreen: React.FC = () => {
           console.error(`Failed to save hole ${hole.number} score:`, error);
         }
       }
-      
+
       // Calculate round statistics
-      const totalScore = holes.reduce((total, hole) => total + (hole.strokes || 0), 0);
-      const totalPutts = holes.reduce((total, hole) => total + (hole.putts || 0), 0);
-      const fairwaysHit = holes.filter(hole => hole.par >= 4 && hole.fairway_hit).length;
-      const greensInRegulation = holes.filter(hole => hole.green_in_regulation).length;
+      const totalScore = holes.reduce(
+        (total, hole) => total + (hole.strokes || 0),
+        0,
+      );
+      const totalPutts = holes.reduce(
+        (total, hole) => total + (hole.putts || 0),
+        0,
+      );
+      const fairwaysHit = holes.filter(
+        (hole) => hole.par >= 4 && hole.fairway_hit,
+      ).length;
+      const greensInRegulation = holes.filter(
+        (hole) => hole.green_in_regulation,
+      ).length;
 
       // Update round with completion data
       const roundUpdateData = {
@@ -425,8 +467,11 @@ export const ScorecardScreen: React.FC = () => {
         total_penalties: 0,
       };
 
-      const response = await ApiService.updateRound(roundToSubmit.id, roundUpdateData);
-      
+      const response = await ApiService.updateRound(
+        roundToSubmit.id,
+        roundUpdateData,
+      );
+
       if (response.success) {
         // End Live Activity
         if (LiveActivityService.isLiveActivitySupported()) {
@@ -434,18 +479,17 @@ export const ScorecardScreen: React.FC = () => {
         }
 
         Alert.alert(
-          'Round Submitted!',
-          `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? '+' : ''}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          "Round Submitted!",
+          `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? "+" : ""}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
+          [{ text: "OK", onPress: () => navigation.goBack() }],
         );
       } else {
-        throw new Error(response.error || 'Failed to submit round');
+        throw new Error(response.error || "Failed to submit round");
       }
-      
     } catch (error) {
-      console.error('Error submitting round:', error);
+      console.error("Error submitting round:", error);
       const apiError = error as ApiError;
-      Alert.alert('Error', apiError.message || 'Failed to submit round');
+      Alert.alert("Error", apiError.message || "Failed to submit round");
     } finally {
       setIsSubmitting(false);
     }
@@ -459,7 +503,7 @@ export const ScorecardScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScoreHeader 
+      <ScoreHeader
         courseName={config.course.name}
         scoreDisplay={getScoreDisplay()}
       />
@@ -475,7 +519,7 @@ export const ScorecardScreen: React.FC = () => {
             {
               transform: [{ translateX }],
               opacity: cardOpacity,
-            }
+            },
           ]}
         >
           <HoleCard
@@ -486,30 +530,11 @@ export const ScorecardScreen: React.FC = () => {
         </Animated.View>
       </PanGestureHandler>
 
-      <HoleSelector 
+      <HoleSelector
         holes={holes}
         activeHoleNumbers={activeHoleNumbers}
         currentHoleIndex={currentHoleIndex}
         onSelectHole={navigateToHole}
-      />
-
-      <SubmitButton 
-        visible={shouldShowSubmitButton()}
-        isSubmitting={isSubmitting}
-        onSubmit={submitRound}
-      />
-
-      <MenuButton onPress={() => setShowMenu(true)} />
-
-      <RoundMenu
-        visible={showMenu}
-        onClose={() => setShowMenu(false)}
-        completedHoles={getCompletedHoles()}
-        totalHoles={activeHoleNumbers.length}
-        scoreDisplay={getScoreDisplay()}
-        canSubmit={shouldShowSubmitButton()}
-        onSubmit={submitRound}
-        onPauseRound={handlePauseRound}
       />
     </View>
   );
@@ -518,13 +543,13 @@ export const ScorecardScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
   holeContainer: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 20,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
 });

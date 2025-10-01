@@ -35,7 +35,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
             <Text style={styles.headerText}>Hole</Text>
           </View>
           {holeScores.map((score: any) => (
-            <View key={`hole-${score.hole_number}`} style={styles.holeHeaderCell}>
+            <View key={`hole-${score.id}`} style={styles.holeHeaderCell}>
               <Text style={styles.headerText}>{score.hole_number}</Text>
             </View>
           ))}
@@ -50,7 +50,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
             <Text style={styles.labelText}>Par</Text>
           </View>
           {holeScores.map((score: any) => (
-            <View key={`par-${score.hole_number}`} style={styles.dataCell}>
+            <View key={`par-${score.id}`} style={styles.dataCell}>
               <Text style={styles.parText}>{score.par}</Text>
             </View>
           ))}
@@ -67,7 +67,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
             <Text style={styles.labelText}>Score</Text>
           </View>
           {holeScores.map((score: any) => (
-            <View key={`score-${score.hole_number}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
+            <View key={`score-${score.id}`} style={[styles.dataCell, { backgroundColor: getScoreColor(score.strokes, score.par) + '20' }]}>
               <Text style={[styles.scoreText, { color: getScoreColor(score.strokes, score.par) }]}>
                 {score.strokes}
               </Text>
@@ -87,7 +87,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
               <Text style={styles.labelText}>Putts</Text>
             </View>
             {holeScores.map((score: any) => (
-              <View key={`putts-${score.hole_number}`} style={styles.dataCell}>
+              <View key={`putts-${score.id}`} style={styles.dataCell}>
                 <Text style={styles.detailDataText}>{score.putts || '-'}</Text>
               </View>
             ))}
@@ -106,7 +106,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
               <Text style={styles.labelText}>FIR</Text>
             </View>
             {holeScores.map((score: any) => (
-              <View key={`fir-${score.hole_number}`} style={styles.dataCell}>
+              <View key={`fir-${score.id}`} style={styles.dataCell}>
                 <Text style={[styles.detailDataText, score.fairway_hit && styles.positiveText]}>
                   {score.par >= 4 ? (score.fairway_hit ? '✓' : 'X') : '-'}
                 </Text>
@@ -128,7 +128,7 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
               <Text style={styles.labelText}>GIR</Text>
             </View>
             {holeScores.map((score: any) => (
-              <View key={`gir-${score.hole_number}`} style={styles.dataCell}>
+              <View key={`gir-${score.id}`} style={styles.dataCell}>
                 <Text style={[styles.detailDataText, score.green_in_regulation && styles.positiveText]}>
                   {score.green_in_regulation ? '✓' : 'X'}
                 </Text>
