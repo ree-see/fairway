@@ -67,21 +67,67 @@ export const ScorecardNine: React.FC<ScorecardNineProps> = ({
             <Text style={styles.labelText}>Score</Text>
           </View>
           {holeScores.map((score: any) => {
-            const scoreColor = getScoreColor(score.strokes, score.par);
+            const diff = score.strokes - score.par;
+
+            // Determine score style based on difference
+            let containerStyle = {};
+            let textStyle = { ...styles.scoreText };
+
+            if (diff <= -2) {
+              // Eagle: Filled circle
+              containerStyle = {
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                backgroundColor: theme.colors.primary.main,
+                justifyContent: 'center',
+                alignItems: 'center',
+              };
+              textStyle = { ...styles.scoreText, color: '#FFFFFF' };
+            } else if (diff === -1) {
+              // Birdie: Unfilled circle
+              containerStyle = {
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                borderWidth: 2,
+                borderColor: theme.colors.primary.main,
+                justifyContent: 'center',
+                alignItems: 'center',
+              };
+              textStyle = { ...styles.scoreText, color: theme.colors.primary.main };
+            } else if (diff === 0) {
+              // Par: No decoration
+              containerStyle = {};
+              textStyle = styles.parScoreText;
+            } else if (diff === 1) {
+              // Bogey: Unfilled square
+              containerStyle = {
+                width: 28,
+                height: 28,
+                borderWidth: 2,
+                borderColor: theme.colors.text.primary,
+                justifyContent: 'center',
+                alignItems: 'center',
+              };
+              textStyle = { ...styles.scoreText, color: theme.colors.text.primary };
+            } else {
+              // Double bogey+: Filled square
+              containerStyle = {
+                width: 28,
+                height: 28,
+                backgroundColor: theme.colors.status.error,
+                justifyContent: 'center',
+                alignItems: 'center',
+              };
+              textStyle = { ...styles.scoreText, color: '#FFFFFF' };
+            }
+
             return (
-              <View
-                key={`score-${score.id}`}
-                style={[
-                  styles.dataCell,
-                  scoreColor && { backgroundColor: scoreColor + '20' }
-                ]}
-              >
-                <Text style={[
-                  styles.scoreText,
-                  scoreColor ? { color: scoreColor } : styles.parScoreText
-                ]}>
-                  {score.strokes}
-                </Text>
+              <View key={`score-${score.id}`} style={styles.dataCell}>
+                <View style={containerStyle}>
+                  <Text style={textStyle}>{score.strokes}</Text>
+                </View>
               </View>
             );
           })}
