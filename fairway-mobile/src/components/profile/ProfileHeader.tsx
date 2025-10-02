@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface ProfileHeaderProps {
   firstName?: string;
@@ -7,11 +8,14 @@ interface ProfileHeaderProps {
   email?: string;
 }
 
-export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ 
-  firstName, 
-  lastName, 
-  email 
+export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
+  firstName,
+  lastName,
+  email
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const getInitials = () => {
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`;
   };
@@ -33,9 +37,9 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   header: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: colors.background.secondary,
     paddingTop: 60,
     paddingBottom: 30,
     alignItems: 'center',
@@ -47,24 +51,24 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     fontSize: 24,
     fontWeight: 'bold',
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#EEEEEE',
+    color: colors.text.primary,
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: '#AAAAAA',
+    color: colors.text.secondary,
   },
 });
