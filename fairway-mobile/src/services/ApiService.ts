@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_CONFIG from '../config/api';
 import CacheService from './CacheService';
+import GraphQLService from './GraphQLService';
 import {
   ApiResponse,
   ApiError,
@@ -269,8 +270,17 @@ class ApiService {
 
   async getCourse(courseId: string): Promise<ApiResponse<{ course: DetailedCourse }>> {
     try {
+      // Use GraphQL for better performance and field selection
+      const result = await GraphQLService.getCourse(courseId);
+
+      if (result.success && result.data) {
+        return result as ApiResponse<{ course: DetailedCourse }>;
+      }
+
+      // Fallback to REST API if GraphQL fails
+      console.log('Falling back to REST API for getCourse');
       const cacheKey = `course:${courseId}`;
-      
+
       return await CacheService.getOrSet(
         cacheKey,
         async () => {
@@ -307,12 +317,24 @@ class ApiService {
 
   async getNearbyCourses(location: NearbyCoursesRequest): Promise<ApiResponse<{ courses: Course[] }>> {
     try {
-      // Create a cache key based on location (rounded to avoid too many cache entries for similar locations)
+      // Use GraphQL for better performance (includes distance calculation and sorting)
+      const result = await GraphQLService.getNearbyCourses(
+        location.latitude,
+        location.longitude,
+        location.radius
+      );
+
+      if (result.success && result.data) {
+        return result as ApiResponse<{ courses: Course[] }>;
+      }
+
+      // Fallback to REST API if GraphQL fails
+      console.log('Falling back to REST API for getNearbyCourses');
       const roundedLat = Math.round(location.latitude * 100) / 100;
       const roundedLng = Math.round(location.longitude * 100) / 100;
       const radius = location.radius || 25;
       const cacheKey = `nearby:${roundedLat},${roundedLng}:${radius}`;
-      
+
       return await CacheService.getOrSet(
         cacheKey,
         async () => {
@@ -320,11 +342,11 @@ class ApiService {
             latitude: location.latitude.toString(),
             longitude: location.longitude.toString(),
           });
-          
+
           if (location.radius) {
             params.append('radius', location.radius.toString());
           }
-          
+
           const response: AxiosResponse<ApiResponse<{ courses: Course[] }>> = await this.api.get(
             `${API_CONFIG.ENDPOINTS.COURSES_NEARBY}?${params.toString()}`
           );
@@ -442,17 +464,23 @@ class ApiService {
   // Cache Management Methods
   async clearCourseCache(): Promise<void> {
     try {
+      // Clear GraphQL Apollo cache
+      await GraphQLService.clearCache();
+
+      // Clear REST API cache
       const cacheInfo = await CacheService.getCacheInfo();
-      const courseCacheKeys = cacheInfo.cacheKeys.filter(key => 
-        key.startsWith('courses:') || 
-        key.startsWith('course:') || 
-        key.startsWith('search:') || 
+      const courseCacheKeys = cacheInfo.cacheKeys.filter(key =>
+        key.startsWith('courses:') ||
+        key.startsWith('course:') ||
+        key.startsWith('search:') ||
         key.startsWith('nearby:')
       );
 
       for (const key of courseCacheKeys) {
         await CacheService.remove(key);
       }
+
+      console.log('Course cache cleared (GraphQL + REST)');
     } catch (error) {
       console.warn('Failed to clear course cache:', error);
     }
