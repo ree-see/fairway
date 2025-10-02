@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 28,
+    marginBottom: 20,
   },
   holeInfo: {
     flex: 1,
@@ -333,6 +333,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginTop: 8,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: '#FFE0B2',
   },
