@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  post "/graphql", to: "graphql#execute"
   # Health check
   get "up" => "rails/health#show", as: :rails_health_check
   get "health" => "application#health_check"

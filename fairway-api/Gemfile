@@ -44,6 +44,10 @@ gem "rack-attack"
 # Twilio for SMS
 gem "twilio-ruby", "~> 7.3"
 
+# GraphQL
+gem "graphql", "~> 2.4"
+gem "graphql-batch", "~> 0.6"
+
 group :development, :test do
   # Load environment variables from .env file
   gem "dotenv-rails"
@@ -55,9 +59,14 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
-  
+
   # Testing gems
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "shoulda-matchers"
+end
+
+group :development do
+  # GraphQL IDE
+  gem "graphiql-rails"
 end
