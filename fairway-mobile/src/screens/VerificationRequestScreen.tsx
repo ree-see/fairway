@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import VerificationService from '../services/VerificationService';
+import { useTheme } from '../contexts/ThemeContext';
 
 type RouteParams = {
   VerificationRequest: {
@@ -24,6 +25,8 @@ type RouteParams = {
 };
 
 export const VerificationRequestScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RouteParams, 'VerificationRequest'>>();
   const { roundId, playerName, courseName, score } = route.params;
@@ -131,7 +134,7 @@ export const VerificationRequestScreen: React.FC = () => {
             <TextInput
               style={styles.input}
               placeholder="(555) 123-4567"
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.text.tertiary}
               value={phoneNumber}
               onChangeText={handlePhoneNumberChange}
               keyboardType="phone-pad"
@@ -148,7 +151,7 @@ export const VerificationRequestScreen: React.FC = () => {
             <TextInput
               style={styles.input}
               placeholder="John Doe"
-              placeholderTextColor="#888"
+              placeholderTextColor={colors.text.tertiary}
               value={verifierName}
               onChangeText={setVerifierName}
               autoCapitalize="words"
@@ -180,7 +183,7 @@ export const VerificationRequestScreen: React.FC = () => {
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#FFF" />
+            <ActivityIndicator color={colors.text.inverse} />
           ) : (
             <>
               <Text style={styles.sendButtonText}>Send Verification Request</Text>
@@ -201,10 +204,10 @@ export const VerificationRequestScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: colors.background.primary,
   },
   scrollView: {
     flex: 1,
@@ -225,25 +228,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#EEEEEE',
+    color: colors.text.primary,
     marginBottom: 8,
     textAlign: 'center',
   },
   subtitle: {
     fontSize: 16,
-    color: '#AAAAAA',
+    color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
   },
   roundCard: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: colors.background.secondary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 30,
   },
   roundLabel: {
     fontSize: 12,
-    color: '#888',
+    color: colors.text.tertiary,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
   courseName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: colors.success,
     marginBottom: 16,
   },
   roundDetails: {
@@ -266,17 +269,17 @@ const styles = StyleSheet.create({
   roundDetailDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#333',
+    backgroundColor: colors.border,
   },
   roundDetailLabel: {
     fontSize: 12,
-    color: '#888',
+    color: colors.text.tertiary,
     marginBottom: 4,
   },
   roundDetailValue: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#EEE',
+    color: colors.text.primary,
   },
   form: {
     marginBottom: 24,
@@ -287,35 +290,35 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EEE',
+    color: colors.text.primary,
     marginBottom: 8,
   },
   required: {
-    color: '#F44336',
+    color: colors.error,
   },
   input: {
-    backgroundColor: '#2A2A2A',
+    backgroundColor: colors.background.tertiary,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: '#EEE',
+    color: colors.text.primary,
     borderWidth: 2,
-    borderColor: '#333',
+    borderColor: colors.border,
   },
   hint: {
     fontSize: 12,
-    color: '#888',
+    color: colors.text.tertiary,
     marginTop: 6,
     lineHeight: 16,
   },
   infoBox: {
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: colors.success + '1A',
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: 'rgba(76, 175, 80, 0.3)',
+    borderColor: colors.success + '4D',
   },
   infoEmoji: {
     fontSize: 24,
@@ -327,16 +330,16 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: colors.success,
     marginBottom: 6,
   },
   infoText: {
     fontSize: 13,
-    color: '#AAA',
+    color: colors.text.secondary,
     lineHeight: 20,
   },
   sendButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
     borderRadius: 12,
     padding: 18,
     flexDirection: 'row',
@@ -350,7 +353,7 @@ const styles = StyleSheet.create({
   sendButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFF',
+    color: colors.text.inverse,
     marginRight: 8,
   },
   sendButtonEmoji: {
@@ -363,7 +366,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#888',
+    color: colors.text.secondary,
   },
 });
 

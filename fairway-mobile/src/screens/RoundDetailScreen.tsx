@@ -20,6 +20,7 @@ import { ScorecardOptions } from '../components/rounds/ScorecardOptions';
 import { ScorecardNine } from '../components/rounds/ScorecardNine';
 import { useAuth } from '../hooks/useAuth';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 type RoundDetailRouteProp = RouteProp<{ RoundDetail: { roundId: string } }, 'RoundDetail'>;
 
@@ -44,6 +45,8 @@ interface ScorecardNineProps {
 
 
 export const RoundDetailScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const route = useRoute<RoundDetailRouteProp>();
   const navigation = useNavigation<StackNavigationProp<any>>();
   const { user } = useAuth();
@@ -190,7 +193,7 @@ export const RoundDetailScreen: React.FC = () => {
           <View style={styles.scoreBoxDivider} />
           <View style={styles.scoreBoxItem}>
             <Text style={[styles.scoreBoxValue, {
-              color: scoreToPar > 0 ? theme.colors.status.error : scoreToPar < 0 ? theme.colors.status.success : theme.colors.status.info
+              color: scoreToPar > 0 ? colors.error : scoreToPar < 0 ? colors.success : colors.primary
             }]}>
               {scoreToPar === 0 ? 'E' : scoreToPar > 0 ? `+${scoreToPar}` : scoreToPar}
             </Text>
@@ -271,39 +274,43 @@ export const RoundDetailScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     paddingBottom: 120, // Extra space to scroll past the bottom navbar
   },
   headerCard: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     margin: theme.spacing.xl,
     marginTop: theme.spacing.massive,
     borderRadius: theme.radius.card,
     padding: theme.padding.card,
-    ...theme.shadows.md,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   headerTop: {
     alignItems: 'center',
     marginBottom: theme.spacing.xl,
     paddingBottom: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.ui.border,
+    borderBottomColor: colors.border,
   },
   courseName: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.primary.main,
+    color: colors.primary,
     marginBottom: theme.spacing.xs,
     textAlign: 'center',
   },
   dateText: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   scoreBoxRow: {
     flexDirection: 'row',
@@ -317,11 +324,11 @@ const styles = StyleSheet.create({
   scoreBoxDivider: {
     width: 1,
     height: 50,
-    backgroundColor: theme.colors.ui.border,
+    backgroundColor: colors.border,
   },
   scoreBoxLabel: {
     fontSize: theme.fontSize.xs,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginBottom: theme.spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -330,15 +337,19 @@ const styles = StyleSheet.create({
   scoreBoxValue: {
     fontSize: 32,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   scorecardSection: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     margin: theme.spacing.xl,
     marginTop: 0,
     padding: theme.padding.card,
     borderRadius: theme.radius.card,
-    ...theme.shadows.md,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   scorecardContainer: {
     gap: theme.spacing.lg,
@@ -349,22 +360,26 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: theme.fontSize.base,
-    color: theme.colors.text.tertiary,
+    color: colors.text.tertiary,
   },
   verificationButtonContainer: {
     margin: theme.spacing.xl,
     marginTop: theme.spacing.lg,
   },
   verificationButton: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary,
     borderRadius: theme.radius.button,
     paddingVertical: theme.spacing.lg,
     paddingHorizontal: theme.spacing.xl,
     alignItems: 'center',
-    ...theme.shadows.md,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   verificationButtonText: {
-    color: theme.colors.text.inverse,
+    color: colors.text.inverse,
     fontSize: theme.fontSize.base,
     fontWeight: theme.fontWeight.bold,
   },
