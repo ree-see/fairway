@@ -1,5 +1,9 @@
 module Admin
   class BaseController < ActionController::Base
+    include ActionController::Flash
+    include ActionController::RequestForgeryProtection
+
+    protect_from_forgery with: :exception
     before_action :verify_localhost_access
     layout 'admin'
 
