@@ -62,6 +62,17 @@ Rails.application.routes.draw do
   get 'verify/:token', to: 'verifications#show', as: :verify
   post 'verify/:token/confirm', to: 'verifications#confirm', as: :confirm_verification
 
+  # Admin routes (localhost only)
+  namespace :admin do
+    resources :courses do
+      member do
+        get 'holes/edit', to: 'holes#edit', as: :edit_holes
+        patch 'holes', to: 'holes#update', as: :update_holes
+      end
+    end
+    root to: 'courses#index'
+  end
+
   # Root route
   root "application#health_check"
 end

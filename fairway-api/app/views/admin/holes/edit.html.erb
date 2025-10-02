@@ -1,0 +1,137 @@
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Edit Holes: <%= @course.name %></h2>
+    <%= link_to '← Back to Courses', admin_courses_path, class: 'btn btn-secondary' %>
+  </div>
+
+  <p style="color: #666; margin-bottom: 20px;">
+    Customize the details for all 18 holes. Par and yardage fields are required.
+  </p>
+
+  <%= form_with url: update_holes_admin_course_path(@course), method: :patch, local: true do |f| %>
+    <div style="overflow-x: auto;">
+      <table style="font-size: 13px;">
+        <thead>
+          <tr>
+            <th style="width: 60px;">Hole</th>
+            <th style="width: 60px;">Par *</th>
+            <th style="width: 70px;">Handicap</th>
+            <th style="width: 80px;">Black</th>
+            <th style="width: 80px;">Blue</th>
+            <th style="width: 80px;">White *</th>
+            <th style="width: 80px;">Red</th>
+            <th style="width: 80px;">Gold</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @holes.each do |hole| %>
+            <tr>
+              <td style="text-align: center; font-weight: bold;">
+                <%= hole.number %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][par]",
+                    hole.par,
+                    min: 3, max: 6,
+                    required: true,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][handicap]",
+                    hole.handicap,
+                    min: 1, max: 18,
+                    required: true,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][yardage_black]",
+                    hole.yardage_black,
+                    min: 0,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][yardage_blue]",
+                    hole.yardage_blue,
+                    min: 0,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][yardage_white]",
+                    hole.yardage_white,
+                    min: 0,
+                    required: true,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][yardage_red]",
+                    hole.yardage_red,
+                    min: 0,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= number_field_tag "holes[#{hole.id}][yardage_gold]",
+                    hole.yardage_gold,
+                    min: 0,
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+              <td>
+                <%= text_field_tag "holes[#{hole.id}][description]",
+                    hole.description,
+                    placeholder: "Optional notes",
+                    style: "width: 100%; padding: 6px;" %>
+              </td>
+            </tr>
+          <% end %>
+          <tr style="background: #f8f9fa; font-weight: bold;">
+            <td>TOTAL</td>
+            <td id="total-par" style="text-align: center;">-</td>
+            <td></td>
+            <td id="total-black" style="text-align: center;">-</td>
+            <td id="total-blue" style="text-align: center;">-</td>
+            <td id="total-white" style="text-align: center;">-</td>
+            <td id="total-red" style="text-align: center;">-</td>
+            <td id="total-gold" style="text-align: center;">-</td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="actions" style="margin-top: 30px;">
+      <%= f.submit "Save All Holes", class: "btn btn-primary" %>
+      <%= link_to "Cancel", admin_courses_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // Auto-calculate totals
+  function calculateTotals() {
+    const pars = document.querySelectorAll('input[name*="[par]"]');
+    const blacks = document.querySelectorAll('input[name*="[yardage_black]"]');
+    const blues = document.querySelectorAll('input[name*="[yardage_blue]"]');
+    const whites = document.querySelectorAll('input[name*="[yardage_white]"]');
+    const reds = document.querySelectorAll('input[name*="[yardage_red]"]');
+    const golds = document.querySelectorAll('input[name*="[yardage_gold]"]');
+
+    const sumInputs = (inputs) => {
+      return Array.from(inputs).reduce((sum, input) => {
+        return sum + (parseInt(input.value) || 0);
+      }, 0);
+    };
+
+    document.getElementById('total-par').textContent = sumInputs(pars);
+    document.getElementById('total-black').textContent = sumInputs(blacks) || '-';
+    document.getElementById('total-blue').textContent = sumInputs(blues) || '-';
+    document.getElementById('total-white').textContent = sumInputs(whites) || '-';
+    document.getElementById('total-red').textContent = sumInputs(reds) || '-';
+    document.getElementById('total-gold').textContent = sumInputs(golds) || '-';
+  }
+
+  // Calculate on page load
+  calculateTotals();
+
+  // Recalculate on any input change
+  document.addEventListener('input', calculateTotals);
+</script>

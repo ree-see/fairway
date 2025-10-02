@@ -1,0 +1,55 @@
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Golf Courses</h2>
+    <%= link_to '+ Add New Course', new_admin_course_path, class: 'btn btn-primary' %>
+  </div>
+
+  <% if @courses.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>City, State</th>
+          <th>Par</th>
+          <th>Holes</th>
+          <th>Rating/Slope</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @courses.each do |course| %>
+          <tr>
+            <td><strong><%= course.name %></strong></td>
+            <td><%= [course.city, course.state].compact.join(', ') %></td>
+            <td><%= course.par || '-' %></td>
+            <td><%= course.holes.count %></td>
+            <td>
+              <%= course.course_rating&.round(1) || '-' %> /
+              <%= course.slope_rating || '-' %>
+            </td>
+            <td>
+              <% if course.active %>
+                <span style="color: #4CAF50; font-weight: 600;">Active</span>
+              <% else %>
+                <span style="color: #999;">Inactive</span>
+              <% end %>
+            </td>
+            <td>
+              <%= link_to 'Edit', edit_admin_course_path(course), class: 'btn btn-secondary btn-small' %>
+              <%= link_to 'Holes', edit_holes_admin_course_path(course), class: 'btn btn-secondary btn-small' %>
+              <%= link_to 'Delete', admin_course_path(course),
+                  class: 'btn btn-danger btn-small',
+                  data: { turbo_method: :delete, turbo_confirm: 'Are you sure? This will delete all holes and rounds for this course.' } %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div style="text-align: center; padding: 40px; color: #999;">
+      <p style="font-size: 48px; margin-bottom: 10px;">⛳️</p>
+      <p>No courses yet. Add your first course to get started!</p>
+    </div>
+  <% end %>
+</div>

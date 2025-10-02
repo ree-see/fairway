@@ -1,0 +1,7 @@
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2>Edit Course: <%= @course.name %></h2>
+    <%= link_to 'Edit Holes →', edit_holes_admin_course_path(@course), class: 'btn btn-secondary' %>
+  </div>
+  <%= render 'form', course: @course %>
+</div>
