@@ -570,6 +570,7 @@ export const ScorecardScreen: React.FC = () => {
 const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background.primary,
   },
   holeContainer: {
     flex: 1,
@@ -577,6 +578,5 @@ const createStyles = (colors: any) => StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 20,
     justifyContent: "center",
-    backgroundColor: colors.background.primary,
   },
 });
