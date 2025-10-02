@@ -79,6 +79,9 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   };
 
   const handleHolePress = (holeIndex: number, activeIndex: number) => {
+    // Prevent triggering scroll logic when we're about to manually scroll
+    isScrolling.current = true;
+
     // Calculate the offset to center the selected hole
     const offset = activeIndex * (ITEM_SIZE + SPACING);
 
@@ -89,8 +92,12 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
         animated: true,
       });
     }
-    // Update the selected hole
-    onSelectHole(holeIndex);
+
+    // Delay state update slightly to let scroll animation start smoothly
+    setTimeout(() => {
+      onSelectHole(holeIndex);
+      isScrolling.current = false;
+    }, 50);
   };
 
   const renderHole = ({
