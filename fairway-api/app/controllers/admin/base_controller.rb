@@ -1,6 +1,5 @@
 module Admin
-  class BaseController < ApplicationController
-    skip_before_action :verify_authenticity_token, raise: false
+  class BaseController < ActionController::Base
     before_action :verify_localhost_access
     layout 'admin'
 
