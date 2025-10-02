@@ -78,6 +78,19 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
     isScrolling.current = true;
   };
 
+  const handleHolePress = (holeIndex: number, activeIndex: number) => {
+    // Scroll to center the selected hole
+    if (flatListRef.current) {
+      flatListRef.current.scrollToIndex({
+        index: activeIndex,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    }
+    // Update the selected hole
+    onSelectHole(holeIndex);
+  };
+
   const renderHole = ({
     item,
     index,
@@ -111,7 +124,7 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
 
     return (
       <TouchableOpacity
-        onPress={() => onSelectHole(holeIndex)}
+        onPress={() => handleHolePress(holeIndex, index)}
         activeOpacity={0.8}
         style={styles.itemContainer}
       >
