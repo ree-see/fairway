@@ -103,6 +103,9 @@ export const RoundConfigScreen: React.FC = () => {
       }
     });
 
+    // Sort tees by distance in descending order (longest to shortest)
+    availableTees.sort((a, b) => b.distance - a.distance);
+
     return availableTees.length > 0
       ? availableTees
       : [
