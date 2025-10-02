@@ -15,9 +15,12 @@ import ApiService from '../services/ApiService';
 import { Course, ApiError } from '../types/api';
 import { useDebouncedSearch } from '../hooks/useDebounce';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 export const CourseSelectScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -125,23 +128,23 @@ export const CourseSelectScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.searchSection}>
         <View style={styles.searchContainer}>
-          <Ionicons name="search" size={20} color={theme.colors.text.secondary} style={styles.searchIcon} />
+          <Ionicons name="search" size={20} color={colors.text.secondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search courses by name or location"
-            placeholderTextColor={theme.colors.text.tertiary}
+            placeholderTextColor={colors.text.tertiary}
             value={searchText}
             onChangeText={setSearchText}
           />
           {isSearching && (
-            <ActivityIndicator size="small" color={theme.colors.primary.main} style={styles.searchLoading} />
+            <ActivityIndicator size="small" color={colors.primary} style={styles.searchLoading} />
           )}
         </View>
       </View>
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary.main} />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading courses...</Text>
         </View>
       ) : (
@@ -153,7 +156,7 @@ export const CourseSelectScreen: React.FC = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Ionicons name="golf" size={48} color={theme.colors.text.tertiary} />
+              <Ionicons name="golf" size={48} color={colors.text.tertiary} />
               <Text style={styles.emptyText}>
                 {searchText ? 'No courses found matching your search' : 'No courses available'}
               </Text>
@@ -165,19 +168,19 @@ export const CourseSelectScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: colors.background.primary,
   },
   searchSection: {
     padding: theme.spacing.lg,
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.background.tertiary,
+    backgroundColor: colors.background.tertiary,
     borderRadius: theme.radius.input,
     paddingHorizontal: theme.spacing.md,
     paddingVertical: theme.spacing.sm,
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: theme.fontSize.md,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   searchLoading: {
     marginLeft: theme.spacing.sm,
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: theme.spacing.md,
     fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   emptyContainer: {
     flex: 1,
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: theme.spacing.md,
     fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     textAlign: 'center',
     paddingHorizontal: 40,
   },
@@ -221,11 +224,15 @@ const styles = StyleSheet.create({
     padding: theme.spacing.lg,
   },
   courseCard: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     borderRadius: theme.radius.card,
     padding: theme.padding.card,
     marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   courseHeader: {
     flexDirection: 'row',
@@ -236,18 +243,18 @@ const styles = StyleSheet.create({
   courseName: {
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     flex: 1,
     marginRight: theme.spacing.sm,
   },
   courseDistance: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.primary.main,
+    color: colors.primary,
     fontWeight: theme.fontWeight.semibold,
   },
   courseLocation: {
     fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginBottom: theme.spacing.md,
   },
   courseStats: {
@@ -261,12 +268,12 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: theme.fontSize.xs,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginBottom: theme.spacing.xs,
   },
   statValue: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.primary.main,
+    color: colors.primary,
   },
 });

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Round } from '../../types/api';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface RecentRoundsProps {
   rounds: Round[];
@@ -8,11 +9,13 @@ interface RecentRoundsProps {
   recentTrend?: string;
 }
 
-export const RecentRounds: React.FC<RecentRoundsProps> = ({ 
-  rounds, 
-  onRoundPress, 
-  recentTrend 
+export const RecentRounds: React.FC<RecentRoundsProps> = ({
+  rounds,
+  onRoundPress,
+  recentTrend
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [isNavigating, setIsNavigating] = useState(false);
 
   const formatDate = (dateString: string) => {
@@ -78,22 +81,22 @@ export const RecentRounds: React.FC<RecentRoundsProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     padding: 20,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#EEEEEE',
+    color: colors.text.primary,
     marginBottom: 16,
   },
   roundCard: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: colors.card.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -108,7 +111,7 @@ const styles = StyleSheet.create({
   courseName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EEEEEE',
+    color: colors.text.primary,
     flex: 1,
   },
   roundBadges: {
@@ -117,7 +120,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   verifiedRoundBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success,
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -125,22 +128,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   verifiedRoundText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     fontSize: 12,
     fontWeight: 'bold',
   },
   roundScore: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: colors.success,
   },
   roundDate: {
     fontSize: 14,
-    color: '#AAAAAA',
+    color: colors.text.secondary,
   },
   trendText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: colors.success,
     fontStyle: 'italic',
     marginTop: 4,
   },
@@ -150,12 +153,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 18,
-    color: '#AAAAAA',
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#888888',
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
 });

@@ -10,8 +10,12 @@ import ApiService from "../services/ApiService";
 import { RoundStatistics, ApiError } from "../types/api";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ErrorState } from "../components/common/ErrorState";
+import { useTheme } from "../contexts/ThemeContext";
 
 const StatsScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const [statistics, setStatistics] = useState<RoundStatistics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -103,11 +107,11 @@ const StatsScreen: React.FC = () => {
   const getTrendColor = (trend?: string | null) => {
     switch (trend) {
       case "improving":
-        return "#4CAF50";
+        return colors.success;
       case "declining":
-        return "#F44336";
+        return colors.error;
       default:
-        return "#AAAAAA";
+        return colors.text.secondary;
     }
   };
 
@@ -259,14 +263,14 @@ const StatsScreen: React.FC = () => {
                 ? `${Math.round(stats.averageScore)} avg`
                 : "--"}
             </Text>
-            <Text style={[styles.trendChange, { color: "#AAAAAA" }]}>
+            <Text style={[styles.trendChange, { color: colors.text.secondary }]}>
               {stats.totalRounds > 1 ? "Over all rounds" : "Need more data"}
             </Text>
           </View>
           <View style={styles.trendItem}>
             <Text style={styles.trendLabel}>Best Round</Text>
             <Text style={styles.trendValue}>{stats.lowestScore || "--"}</Text>
-            <Text style={[styles.trendChange, { color: "#4CAF50" }]}>
+            <Text style={[styles.trendChange, { color: colors.success }]}>
               Personal best
             </Text>
           </View>
@@ -276,21 +280,21 @@ const StatsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: colors.background.primary,
   },
   content: {
     padding: 20,
     paddingBottom: 100, // Extra space for tab bar
   },
   sectionCard: {
-    backgroundColor: "#1E1E1E",
+    backgroundColor: colors.background.secondary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
-    shadowColor: "#000",
+    shadowColor: colors.card.shadow,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -302,7 +306,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: colors.success,
     marginBottom: 16,
     textAlign: "center",
   },
@@ -313,7 +317,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#2A2A2A",
+    backgroundColor: colors.background.tertiary,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 4,
@@ -321,19 +325,19 @@ const styles = StyleSheet.create({
   },
   statTitle: {
     fontSize: 12,
-    color: "#AAAAAA",
+    color: colors.text.secondary,
     marginBottom: 4,
     textAlign: "center",
   },
   statValue: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#4CAF50",
+    color: colors.success,
     marginBottom: 2,
   },
   statSubtitle: {
     fontSize: 10,
-    color: "#888888",
+    color: colors.text.tertiary,
     textAlign: "center",
   },
   trendContainer: {
@@ -348,13 +352,13 @@ const styles = StyleSheet.create({
   },
   trendLabel: {
     fontSize: 12,
-    color: "#AAAAAA",
+    color: colors.text.secondary,
     marginBottom: 4,
   },
   trendValue: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#EEEEEE",
+    color: colors.text.primary,
     marginBottom: 2,
   },
   trendChange: {

@@ -11,8 +11,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const LoginScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
@@ -54,6 +57,7 @@ export const LoginScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor={colors.text.tertiary}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -64,6 +68,7 @@ export const LoginScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Password"
+            placeholderTextColor={colors.text.tertiary}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -92,10 +97,10 @@ export const LoginScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
@@ -113,30 +118,31 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: colors.success,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#666666',
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   formSection: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
+    color: colors.text.primary,
   },
   loginButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.success,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -146,7 +152,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -156,11 +162,11 @@ const styles = StyleSheet.create({
   },
   registerText: {
     fontSize: 16,
-    color: '#666666',
+    color: colors.text.secondary,
   },
   registerLink: {
     fontSize: 16,
-    color: '#2E7D32',
+    color: colors.success,
     fontWeight: 'bold',
   },
 });

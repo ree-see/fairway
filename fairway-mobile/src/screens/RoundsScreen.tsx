@@ -16,11 +16,14 @@ import { Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
 import { theme } from '../theme';
+import { useTheme } from '../contexts/ThemeContext';
 
 type FilterStatus = 'all' | 'completed' | 'in_progress' | 'verified';
 
 export const RoundsScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const [rounds, setRounds] = useState<Round[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -104,21 +107,21 @@ export const RoundsScreen: React.FC = () => {
     if (round.is_verified) {
       return (
         <View style={[styles.badge, styles.verifiedBadge]}>
-          <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+          <Ionicons name="checkmark-circle" size={14} color={colors.text.inverse} />
           <Text style={styles.badgeText}>Verified</Text>
         </View>
       );
     } else if (round.status === 'in_progress') {
       return (
         <View style={[styles.badge, styles.inProgressBadge]}>
-          <Ionicons name="time" size={14} color="#FFFFFF" />
+          <Ionicons name="time" size={14} color={colors.text.inverse} />
           <Text style={styles.badgeText}>In Progress</Text>
         </View>
       );
     } else {
       return (
         <View style={[styles.badge, styles.provisionalBadge]}>
-          <Ionicons name="time" size={14} color="#FFFFFF" />
+          <Ionicons name="time" size={14} color={colors.text.inverse} />
           <Text style={styles.badgeText}>Provisional</Text>
         </View>
       );
@@ -143,7 +146,7 @@ export const RoundsScreen: React.FC = () => {
 
         <View style={styles.roundDetails}>
           <View style={styles.detailItem}>
-            <Ionicons name="calendar-outline" size={16} color={theme.colors.text.secondary} />
+            <Ionicons name="calendar-outline" size={16} color={colors.text.secondary} />
             <Text style={styles.detailText}>{formatDate(item.started_at)}</Text>
           </View>
 
@@ -165,10 +168,10 @@ export const RoundsScreen: React.FC = () => {
                   {
                     color:
                       scoreToPar > 0
-                        ? theme.colors.status.error
+                        ? colors.error
                         : scoreToPar < 0
-                        ? theme.colors.status.success
-                        : theme.colors.status.info,
+                        ? colors.success
+                        : colors.primary,
                   },
                 ]}
               >
@@ -185,7 +188,7 @@ export const RoundsScreen: React.FC = () => {
     if (!isLoadingMore) return null;
     return (
       <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={theme.colors.primary.main} />
+        <ActivityIndicator size="small" color={colors.primary} />
       </View>
     );
   };
@@ -194,7 +197,7 @@ export const RoundsScreen: React.FC = () => {
     if (isLoading) return null;
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="golf-outline" size={64} color={theme.colors.text.tertiary} />
+        <Ionicons name="golf-outline" size={64} color={colors.text.tertiary} />
         <Text style={styles.emptyText}>No rounds found</Text>
         <Text style={styles.emptySubtext}>
           {filterStatus === 'all'
@@ -272,7 +275,7 @@ export const RoundsScreen: React.FC = () => {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor={theme.colors.primary.main}
+            tintColor={colors.primary}
           />
         }
       />
@@ -280,20 +283,24 @@ export const RoundsScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: colors.background.primary,
   },
   filterContainer: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     margin: theme.spacing.lg,
     marginTop: theme.spacing.massive,
     marginBottom: theme.spacing.md,
     borderRadius: theme.radius.card,
     padding: theme.spacing.xs,
-    ...theme.shadows.sm,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   filterButton: {
     flex: 1,
@@ -304,26 +311,30 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   filterButtonActive: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary,
   },
   filterText: {
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   filterTextActive: {
-    color: theme.colors.text.inverse,
+    color: colors.text.inverse,
   },
   listContent: {
     paddingHorizontal: theme.spacing.lg,
     paddingBottom: 100,
   },
   roundCard: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     borderRadius: theme.radius.card,
     padding: theme.padding.card,
     marginBottom: theme.spacing.md,
-    ...theme.shadows.md,
+    shadowColor: colors.card.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   roundHeader: {
     flexDirection: 'row',
@@ -335,7 +346,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     marginRight: theme.spacing.sm,
   },
   badge: {
@@ -347,16 +358,16 @@ const styles = StyleSheet.create({
     gap: theme.spacing.xs,
   },
   verifiedBadge: {
-    backgroundColor: theme.colors.status.success,
+    backgroundColor: colors.success,
   },
   provisionalBadge: {
-    backgroundColor: theme.colors.status.warning,
+    backgroundColor: colors.warning,
   },
   inProgressBadge: {
-    backgroundColor: theme.colors.status.info,
+    backgroundColor: colors.primary,
   },
   badgeText: {
-    color: theme.colors.text.inverse,
+    color: colors.text.inverse,
     fontSize: theme.fontSize.xxs,
     fontWeight: theme.fontWeight.semibold,
   },
@@ -370,12 +381,12 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   scoreRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.background.tertiary,
+    backgroundColor: colors.background.tertiary,
     borderRadius: theme.radius.input,
     padding: theme.spacing.md,
     justifyContent: 'space-around',
@@ -387,11 +398,11 @@ const styles = StyleSheet.create({
   scoreDivider: {
     width: 1,
     height: 30,
-    backgroundColor: theme.colors.ui.border,
+    backgroundColor: colors.border,
   },
   scoreLabel: {
     fontSize: theme.fontSize.xxs,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginBottom: theme.spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -399,7 +410,7 @@ const styles = StyleSheet.create({
   scoreValue: {
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   footerLoader: {
     paddingVertical: theme.spacing.lg,
@@ -414,12 +425,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.semibold,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginTop: theme.spacing.lg,
   },
   emptySubtext: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.text.tertiary,
+    color: colors.text.tertiary,
     marginTop: theme.spacing.sm,
   },
 });

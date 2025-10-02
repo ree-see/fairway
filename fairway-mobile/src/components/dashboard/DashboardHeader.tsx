@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useTheme } from '../../contexts/ThemeContext';
 import { theme } from '../../theme';
-import { layout, text as textStyles } from '../../theme/commonStyles';
 
 interface DashboardHeaderProps {
   firstName?: string;
   onLogout: () => void;
 }
 
-export const DashboardHeader: React.FC<DashboardHeaderProps> = ({ 
-  firstName, 
-  onLogout 
+export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
+  firstName,
+  onLogout
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const handleLogout = () => {
     Alert.alert(
       'Logout',
@@ -40,26 +43,29 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   header: {
-    ...layout.rowSpaceBetween,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     padding: theme.padding.screen,
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     paddingTop: theme.spacing.massive,
   },
   welcomeText: {
-    ...theme.textStyles.body,
-    color: theme.colors.text.secondary,
+    fontSize: theme.fontSize.base,
+    color: colors.text.secondary,
   },
   nameText: {
-    ...theme.textStyles.h2,
-    color: theme.colors.primary.main,
+    fontSize: theme.fontSize.xxl,
+    fontWeight: theme.fontWeight.bold,
+    color: colors.primary,
   },
   logoutButton: {
     padding: theme.spacing.sm,
   },
   logoutText: {
-    ...textStyles.errorText,
+    color: colors.error,
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.medium,
   },

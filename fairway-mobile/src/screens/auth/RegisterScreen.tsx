@@ -12,8 +12,11 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export const RegisterScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const navigation = useNavigation();
   const { register } = useAuth();
   const [formData, setFormData] = useState({
@@ -76,6 +79,7 @@ export const RegisterScreen: React.FC = () => {
             <TextInput
               style={[styles.input, styles.nameInput]}
               placeholder="First Name"
+              placeholderTextColor={colors.text.tertiary}
               value={formData.first_name}
               onChangeText={(value) => updateField('first_name', value)}
               autoCapitalize="words"
@@ -83,6 +87,7 @@ export const RegisterScreen: React.FC = () => {
             <TextInput
               style={[styles.input, styles.nameInput]}
               placeholder="Last Name"
+              placeholderTextColor={colors.text.tertiary}
               value={formData.last_name}
               onChangeText={(value) => updateField('last_name', value)}
               autoCapitalize="words"
@@ -92,6 +97,7 @@ export const RegisterScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Email"
+            placeholderTextColor={colors.text.tertiary}
             value={formData.email}
             onChangeText={(value) => updateField('email', value)}
             keyboardType="email-address"
@@ -102,6 +108,7 @@ export const RegisterScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Phone Number (Optional)"
+            placeholderTextColor={colors.text.tertiary}
             value={formData.phone}
             onChangeText={(value) => updateField('phone', value)}
             keyboardType="phone-pad"
@@ -110,6 +117,7 @@ export const RegisterScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Password"
+            placeholderTextColor={colors.text.tertiary}
             value={formData.password}
             onChangeText={(value) => updateField('password', value)}
             secureTextEntry
@@ -122,6 +130,7 @@ export const RegisterScreen: React.FC = () => {
           <TextInput
             style={styles.input}
             placeholder="Confirm Password"
+            placeholderTextColor={colors.text.tertiary}
             value={formData.confirmPassword}
             onChangeText={(value) => updateField('confirmPassword', value)}
             secureTextEntry
@@ -152,10 +161,10 @@ export const RegisterScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     flexGrow: 1,
@@ -169,13 +178,13 @@ const styles = StyleSheet.create({
   titleText: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#2E7D32',
+    color: colors.success,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitleText: {
     fontSize: 16,
-    color: '#666666',
+    color: colors.text.secondary,
     textAlign: 'center',
   },
   formSection: {
@@ -189,17 +198,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: colors.border,
+    color: colors.text.primary,
   },
   registerButton: {
-    backgroundColor: '#2E7D32',
+    backgroundColor: colors.success,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
@@ -210,7 +220,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   registerButtonText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -220,11 +230,11 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 16,
-    color: '#666666',
+    color: colors.text.secondary,
   },
   loginLink: {
     fontSize: 16,
-    color: '#2E7D32',
+    color: colors.success,
     fontWeight: 'bold',
   },
 });
