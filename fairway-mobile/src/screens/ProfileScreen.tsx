@@ -17,11 +17,13 @@ import { MenuSection } from '../components/profile/MenuSection';
 import { SubscriptionCard } from '../components/profile/SubscriptionCard';
 import { LogoutButton } from '../components/profile/LogoutButton';
 import { ProfileEditModal } from '../components/profile/ProfileEditModal';
+import { SettingsModal } from '../components/profile/SettingsModal';
 import { AppFooter } from '../components/profile/AppFooter';
 
 export const ProfileScreen: React.FC = () => {
   const { user, logout, updateUserData } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editForm, setEditForm] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
@@ -84,7 +86,7 @@ export const ProfileScreen: React.FC = () => {
 
   const menuItems = [
     { icon: 'person-outline', title: 'Edit Profile', action: handleEditProfile },
-    { icon: 'settings-outline', title: 'Settings', action: () => {} },
+    { icon: 'settings-outline', title: 'Settings', action: () => setShowSettingsModal(true) },
     { icon: 'help-circle-outline', title: 'Help & Support', action: () => {} },
     { icon: 'information-circle-outline', title: 'About', action: () => {} },
   ];
@@ -121,13 +123,18 @@ export const ProfileScreen: React.FC = () => {
         <AppFooter />
       </View>
 
-      <ProfileEditModal 
+      <ProfileEditModal
         visible={showEditModal}
         editForm={editForm}
         isUpdating={isUpdating}
         onClose={() => setShowEditModal(false)}
         onSave={handleSaveProfile}
         onUpdateForm={setEditForm}
+      />
+
+      <SettingsModal
+        visible={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
       />
     </ScrollView>
   );
