@@ -7,6 +7,7 @@ import {
   Animated,
   FlatList,
   Dimensions,
+  InteractionManager,
 } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
@@ -49,9 +50,13 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
 
       if (activeIndex !== -1) {
         const offset = activeIndex * (ITEM_SIZE + SPACING);
-        flatListRef.current.scrollToOffset({
-          offset: offset,
-          animated: true,
+
+        // Use InteractionManager for smooth animation
+        InteractionManager.runAfterInteractions(() => {
+          flatListRef.current?.scrollToOffset({
+            offset: offset,
+            animated: true,
+          });
         });
       }
     }
@@ -79,25 +84,30 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   };
 
   const handleHolePress = (holeIndex: number, activeIndex: number) => {
-    // Prevent triggering scroll logic when we're about to manually scroll
+    // Set scrolling flag to prevent conflicts
     isScrolling.current = true;
 
     // Calculate the offset to center the selected hole
     const offset = activeIndex * (ITEM_SIZE + SPACING);
 
-    // Scroll to center the selected hole
+    // Scroll to center the selected hole with smooth animation
     if (flatListRef.current) {
-      flatListRef.current.scrollToOffset({
-        offset: offset,
-        animated: true,
+      // Use InteractionManager to ensure smooth animation
+      InteractionManager.runAfterInteractions(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: offset,
+          animated: true,
+        });
+
+        // Reset scrolling flag after animation completes
+        setTimeout(() => {
+          isScrolling.current = false;
+        }, 400); // Slightly longer than animation duration
       });
     }
 
-    // Delay state update slightly to let scroll animation start smoothly
-    setTimeout(() => {
-      onSelectHole(holeIndex);
-      isScrolling.current = false;
-    }, 50);
+    // Update the selected hole immediately for UI responsiveness
+    onSelectHole(holeIndex);
   };
 
   const renderHole = ({
