@@ -8,7 +8,9 @@
     Customize the details for all 18 holes. Par and yardage fields are required.
   </p>
 
-  <%= form_with url: update_holes_admin_course_path(@course), method: :patch, data: { turbo: false } do |f| %>
+  <form action="<%= update_holes_admin_course_path(@course) %>" method="post" data-turbo="false">
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+    <%= hidden_field_tag :_method, 'patch' %>
     <div style="overflow-x: auto;">
       <table style="font-size: 13px;">
         <thead>
@@ -99,10 +101,10 @@
     </div>
 
     <div class="actions" style="margin-top: 30px;">
-      <%= f.submit "Save All Holes", class: "btn btn-primary" %>
+      <%= submit_tag "Save All Holes", class: "btn btn-primary" %>
       <%= link_to "Cancel", admin_courses_path, class: "btn btn-secondary" %>
     </div>
-  <% end %>
+  </form>
 </div>
 
 <script>
