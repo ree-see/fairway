@@ -14,7 +14,7 @@ module Admin
       ActiveRecord::Base.transaction do
         # First pass: set all handicaps to temporary values (100+) to avoid uniqueness conflicts
         # This bypasses validations but satisfies the NOT NULL constraint
-        holes_params.each_with_index do |(hole_id, _), index|
+        holes_params.keys.each_with_index do |hole_id, index|
           hole = @course.holes.find(hole_id)
           hole.update_column(:handicap, 100 + index)
         end
