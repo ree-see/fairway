@@ -48,10 +48,10 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
       );
 
       if (activeIndex !== -1) {
-        flatListRef.current.scrollToIndex({
-          index: activeIndex,
+        const offset = activeIndex * (ITEM_SIZE + SPACING);
+        flatListRef.current.scrollToOffset({
+          offset: offset,
           animated: true,
-          viewPosition: 0.5,
         });
       }
     }
@@ -79,12 +79,14 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   };
 
   const handleHolePress = (holeIndex: number, activeIndex: number) => {
+    // Calculate the offset to center the selected hole
+    const offset = activeIndex * (ITEM_SIZE + SPACING);
+
     // Scroll to center the selected hole
     if (flatListRef.current) {
-      flatListRef.current.scrollToIndex({
-        index: activeIndex,
+      flatListRef.current.scrollToOffset({
+        offset: offset,
         animated: true,
-        viewPosition: 0.5,
       });
     }
     // Update the selected hole
