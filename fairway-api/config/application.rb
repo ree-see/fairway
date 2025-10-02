@@ -33,7 +33,7 @@ module FairwayApi
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore
     config.middleware.use ActionDispatch::Flash
-    config.middleware.use ActionDispatch::MethodOverride
+    config.middleware.use Rack::MethodOverride
 
     # Disable strict callback action validation for Rails 8 compatibility
     config.action_controller.raise_on_missing_callback_actions = false
