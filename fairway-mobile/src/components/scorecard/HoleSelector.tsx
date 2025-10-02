@@ -9,6 +9,7 @@ import {
   Dimensions,
   InteractionManager,
 } from "react-native";
+import { useTheme } from "../../contexts/ThemeContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const ITEM_SIZE = 70;
@@ -33,6 +34,8 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   currentHoleIndex,
   onSelectHole,
 }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const flatListRef = useRef<FlatList>(null);
   const scrollX = useRef(new Animated.Value(0)).current;
   const activeHoles = holes.filter((hole) =>
@@ -202,12 +205,13 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     paddingVertical: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    shadowColor: "#000",
+    backgroundColor: colors.background.secondary,
+    shadowColor: colors.card.shadow,
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -227,7 +231,7 @@ const styles = StyleSheet.create({
     width: ITEM_SIZE,
     height: ITEM_SIZE,
     borderRadius: ITEM_SIZE / 2,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background.tertiary,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 3,
@@ -235,23 +239,23 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   holeItemActive: {
-    backgroundColor: "#C41E3A",
-    borderColor: "#C41E3A",
+    backgroundColor: colors.error,
+    borderColor: colors.error,
   },
   holeItemCompleted: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
+    backgroundColor: colors.success,
+    borderColor: colors.success,
   },
   holeNumber: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#666666",
+    color: colors.text.secondary,
   },
   holeNumberActive: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
     fontSize: 24,
   },
   holeNumberCompleted: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
   },
 });

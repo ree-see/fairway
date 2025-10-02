@@ -5,6 +5,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import ApiService from "../services/ApiService";
 import LiveActivityService from "../services/LiveActivityService";
 import AuthDebugger from "../utils/AuthDebugger";
+import { useTheme } from "../contexts/ThemeContext";
 import {
   Course,
   DetailedCourse,
@@ -44,6 +45,8 @@ interface RoundConfig {
 }
 
 export const ScorecardScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const route = useRoute();
   const navigation = useNavigation();
   const config = route.params as RoundConfig;
@@ -564,10 +567,10 @@ export const ScorecardScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background.primary,
   },
   holeContainer: {
     flex: 1,

@@ -11,6 +11,7 @@ import {
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Course, DetailedCourse } from "../types/api";
 import { theme } from "../theme";
+import { useTheme } from "../contexts/ThemeContext";
 import ApiService from "../services/ApiService";
 
 interface TeeBox {
@@ -20,6 +21,8 @@ interface TeeBox {
 }
 
 export const RoundConfigScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const route = useRoute();
   const navigation = useNavigation();
   const { course } = route.params as { course: Course };
@@ -154,7 +157,7 @@ export const RoundConfigScreen: React.FC = () => {
   if (isLoading) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>
-        <ActivityIndicator size="large" color={theme.colors.primary.main} />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>Loading course details...</Text>
       </View>
     );
@@ -308,10 +311,10 @@ export const RoundConfigScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
@@ -324,23 +327,23 @@ const styles = StyleSheet.create({
   courseLabel: {
     fontSize: theme.fontSize.xs,
     fontWeight: theme.fontWeight.semiBold,
-    color: theme.colors.text.tertiary,
+    color: colors.text.tertiary,
     letterSpacing: 1.5,
     marginBottom: theme.spacing.xs,
   },
   courseName: {
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.bold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     marginBottom: theme.spacing.md,
   },
   title: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   section: {
-    backgroundColor: theme.colors.background.secondary,
+    backgroundColor: colors.background.secondary,
     margin: theme.spacing.lg,
     padding: theme.spacing.lg,
     borderRadius: theme.radius.card,
@@ -349,7 +352,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.semiBold,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     marginBottom: theme.spacing.lg,
   },
   buttonRow: {
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     flex: 1,
-    backgroundColor: theme.colors.background.tertiary,
+    backgroundColor: colors.background.tertiary,
     borderRadius: theme.radius.input,
     padding: theme.spacing.md,
     alignItems: "center",
@@ -366,21 +369,21 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   optionButtonSelected: {
-    borderColor: "#F44336",
+    borderColor: colors.error,
     borderWidth: 2,
   },
   optionButtonText: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.semiBold,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   optionButtonTextSelected: {
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     fontWeight: theme.fontWeight.bold,
   },
   optionButtonSubtext: {
     fontSize: theme.fontSize.xs,
-    color: theme.colors.text.tertiary,
+    color: colors.text.tertiary,
     marginTop: theme.spacing.xs,
   },
   teeOption: {
@@ -388,14 +391,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     padding: theme.spacing.md,
-    backgroundColor: theme.colors.background.tertiary,
+    backgroundColor: colors.background.tertiary,
     borderRadius: theme.radius.input,
     marginBottom: theme.spacing.sm,
     borderWidth: 2,
     borderColor: "transparent",
   },
   teeOptionSelected: {
-    borderColor: "#F44336",
+    borderColor: colors.error,
     borderWidth: 2,
   },
   teeRow: {
@@ -409,7 +412,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: theme.spacing.sm,
     borderWidth: 1,
-    borderColor: theme.colors.ui.border,
+    borderColor: colors.ui.border,
   },
   teeInfo: {
     flex: 1,
@@ -417,20 +420,20 @@ const styles = StyleSheet.create({
   teeOptionText: {
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.medium,
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
   },
   teeOptionTextSelected: {
-    color: theme.colors.text.primary,
+    color: colors.text.primary,
     fontWeight: theme.fontWeight.bold,
   },
   teeDistance: {
     fontSize: theme.fontSize.sm,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
     marginTop: 2,
   },
   selectedIndicator: {
     fontSize: theme.fontSize.lg,
-    color: "#F44336",
+    color: colors.error,
     fontWeight: theme.fontWeight.bold,
   },
   loadingContainer: {
@@ -440,10 +443,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: theme.spacing.md,
     fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
+    color: colors.text.secondary,
   },
   startButton: {
-    backgroundColor: theme.colors.primary.main,
+    backgroundColor: colors.primary,
     borderRadius: theme.radius.button,
     paddingVertical: theme.spacing.md,
     alignItems: "center",
@@ -452,7 +455,7 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.xl,
   },
   startButtonText: {
-    color: theme.colors.text.inverse,
+    color: colors.text.inverse,
     fontSize: theme.fontSize.lg,
     fontWeight: theme.fontWeight.bold,
   },

@@ -6,6 +6,7 @@ import {
   TextInput,
   StyleSheet,
 } from "react-native";
+import { useTheme } from "../../contexts/ThemeContext";
 
 interface ScoringHole {
   id: string;
@@ -39,6 +40,8 @@ export const HoleCard: React.FC<HoleCardProps> = ({
   onUpdateMissType,
   onUpdateMissDirection,
 }) => {
+  const { colors } = useTheme();
+
   const getScoreToPar = () => {
     if (!hole.strokes) return null;
     const diff = hole.strokes - hole.par;
@@ -47,6 +50,8 @@ export const HoleCard: React.FC<HoleCardProps> = ({
   };
 
   const scoreToPar = getScoreToPar();
+
+  const styles = createStyles(colors);
 
   return (
     <View style={styles.card}>
@@ -320,14 +325,14 @@ export const HoleCard: React.FC<HoleCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   card: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.card.background,
     borderRadius: 20,
     paddingTop: 20,
     paddingBottom: 24,
     paddingHorizontal: 24,
-    shadowColor: "#000",
+    shadowColor: colors.card.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -346,17 +351,17 @@ const styles = StyleSheet.create({
   holeNumber: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1B5E20",
+    color: colors.success,
     letterSpacing: 1.2,
     marginBottom: 6,
   },
   holeDetails: {
     fontSize: 16,
-    color: "#666666",
+    color: colors.text.secondary,
     fontWeight: "500",
   },
   scoreChip: {
-    backgroundColor: "#1B5E20",
+    backgroundColor: colors.success,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -364,13 +369,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   scoreChipText: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: "bold",
   },
   scoreSection: {
     flexDirection: "row",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: colors.background.tertiary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 28,
@@ -383,26 +388,26 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#999999",
+    color: colors.text.tertiary,
     letterSpacing: 1.2,
     marginBottom: 12,
   },
   scoreInput: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background.secondary,
     borderRadius: 12,
     width: "100%",
     height: 64,
     textAlign: "center",
     fontSize: 32,
     fontWeight: "bold",
-    color: "#1B5E20",
+    color: colors.success,
     borderWidth: 2,
-    borderColor: "#E0E0E0",
+    borderColor: colors.ui.border,
   },
   divider: {
     width: 1,
     height: "100%",
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.ui.divider,
     marginHorizontal: 20,
   },
   statsSection: {
@@ -411,14 +416,14 @@ const styles = StyleSheet.create({
   statsTitle: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#999999",
+    color: colors.text.tertiary,
     letterSpacing: 1.2,
     marginBottom: 16,
   },
   statButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8F9FA",
+    backgroundColor: colors.button.secondary,
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -427,50 +432,50 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   statButtonActive: {
-    backgroundColor: "#E8F5E9",
-    borderColor: "#1B5E20",
+    backgroundColor: colors.button.active,
+    borderColor: colors.button.primary,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: "#CCCCCC",
+    borderColor: colors.ui.border,
     marginRight: 12,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background.secondary,
   },
   checkboxActive: {
-    backgroundColor: "#1B5E20",
-    borderColor: "#1B5E20",
+    backgroundColor: colors.button.primary,
+    borderColor: colors.button.primary,
   },
   checkmark: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
     fontSize: 16,
     fontWeight: "bold",
   },
   statButtonText: {
     fontSize: 16,
-    color: "#666666",
+    color: colors.text.secondary,
     fontWeight: "600",
     flex: 1,
   },
   statButtonTextActive: {
-    color: "#1B5E20",
+    color: colors.button.primary,
   },
   fairwayMissSection: {
-    backgroundColor: "#FFF3E0",
+    backgroundColor: colors.warning + '20',
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#FFE0B2",
+    borderColor: colors.warning + '40',
   },
   fairwayMissLabel: {
     fontSize: 11,
     fontWeight: "700",
-    color: "#E65100",
+    color: colors.warning,
     letterSpacing: 1.2,
     marginBottom: 10,
   },
@@ -481,24 +486,24 @@ const styles = StyleSheet.create({
   },
   missButton: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: colors.background.secondary,
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 12,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#E0E0E0",
+    borderColor: colors.ui.border,
   },
   missButtonActive: {
-    backgroundColor: "#C41E3A",
-    borderColor: "#C41E3A",
+    backgroundColor: colors.error,
+    borderColor: colors.error,
   },
   missButtonText: {
     fontSize: 13,
     fontWeight: "600",
-    color: "#666666",
+    color: colors.text.secondary,
   },
   missButtonTextActive: {
-    color: "#FFFFFF",
+    color: colors.text.inverse,
   },
 });
