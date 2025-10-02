@@ -5,4 +5,5 @@ fairway-api/log
 # Environment variables (contains secrets)
 .env
 fairway-api/.env
+fairway-api/.env.example
 fairway-mobile/.env
