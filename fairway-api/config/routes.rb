@@ -64,7 +64,9 @@ Rails.application.routes.draw do
 
   # Admin routes (localhost only)
   namespace :admin do
-    resources :courses do
+    get 'courses/new', to: 'courses#new', as: 'new_course'
+    get 'courses/:id/edit', to: 'courses#edit', as: 'edit_course'
+    resources :courses, only: [:index, :show, :create, :update, :destroy] do
       member do
         get 'holes/edit', to: 'holes#edit', as: :edit_holes
         patch 'holes', to: 'holes#update', as: :update_holes

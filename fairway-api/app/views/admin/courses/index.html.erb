@@ -1,7 +1,7 @@
 <div class="card">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <h2>Golf Courses</h2>
-    <%= link_to '+ Add New Course', new_admin_course_path, class: 'btn btn-primary' %>
+    <%= link_to '+ Add New Course', admin_new_course_path, class: 'btn btn-primary' %>
   </div>
 
   <% if @courses.any? %>
@@ -36,7 +36,7 @@
               <% end %>
             </td>
             <td>
-              <%= link_to 'Edit', edit_admin_course_path(course), class: 'btn btn-secondary btn-small' %>
+              <%= link_to 'Edit', admin_edit_course_path(course), class: 'btn btn-secondary btn-small' %>
               <%= link_to 'Holes', edit_holes_admin_course_path(course), class: 'btn btn-secondary btn-small' %>
               <%= link_to 'Delete', admin_course_path(course),
                   class: 'btn btn-danger btn-small',
