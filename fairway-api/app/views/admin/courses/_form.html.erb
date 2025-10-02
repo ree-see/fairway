@@ -1,4 +1,4 @@
-<%= form_with(model: [:admin, course], local: true) do |f| %>
+<%= form_with(model: [:admin, course], data: { turbo: false }) do |f| %>
   <% if course.errors.any? %>
     <div class="error-messages">
       <strong><%= pluralize(course.errors.count, "error") %> prohibited this course from being saved:</strong>
