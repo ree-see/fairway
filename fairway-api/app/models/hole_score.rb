@@ -10,7 +10,9 @@ class HoleScore < ApplicationRecord
   validates :penalties, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 5 }
   validates :drive_distance, numericality: { greater_than: 0, less_than: 500 }, allow_nil: true
   validates :approach_distance, numericality: { greater_than: 0, less_than: 300 }, allow_nil: true
-  
+  validates :fairway_miss_type, inclusion: { in: ['out_of_bounds', 'hazard', 'rough', nil] }, allow_nil: true
+  validates :fairway_miss_direction, inclusion: { in: ['left', 'right', nil] }, allow_nil: true
+
   # Uniqueness validation
   validates :hole_number, uniqueness: { scope: :round_id }
 
@@ -96,10 +98,24 @@ class HoleScore < ApplicationRecord
   def total_strokes_gained
     [
       strokes_gained_driving,
-      strokes_gained_approach, 
+      strokes_gained_approach,
       strokes_gained_short,
       strokes_gained_putting
     ].compact.sum
+  end
+
+  def fairway_missed?
+    fairway_hit == false
+  end
+
+  def fairway_miss_label
+    return nil unless fairway_missed?
+
+    parts = []
+    parts << fairway_miss_direction.titleize if fairway_miss_direction.present?
+    parts << fairway_miss_type.titleize.gsub('_', ' ') if fairway_miss_type.present?
+
+    parts.any? ? parts.join(' - ') : 'Missed Fairway'
   end
 
   private

@@ -28,6 +28,8 @@ interface ScoringHole extends Hole {
   strokes?: number;
   putts?: number;
   fairway_hit?: boolean;
+  fairway_miss_type?: 'out_of_bounds' | 'hazard' | 'rough' | null;
+  fairway_miss_direction?: 'left' | 'right' | null;
   green_in_regulation?: boolean;
   up_and_down?: boolean;
 }
@@ -239,7 +241,25 @@ export const ScorecardScreen: React.FC = () => {
     // Update staged hole only - don't save to main holes array yet
     setStagedHole((prev) => {
       if (!prev) return prev;
+      // Clear miss details when fairway is hit
+      if (field === "fairway_hit" && value === true) {
+        return { ...prev, [field]: value, fairway_miss_type: null, fairway_miss_direction: null };
+      }
       return { ...prev, [field]: value };
+    });
+  };
+
+  const updateMissType = (type: 'out_of_bounds' | 'hazard' | 'rough' | null) => {
+    setStagedHole((prev) => {
+      if (!prev) return prev;
+      return { ...prev, fairway_miss_type: type };
+    });
+  };
+
+  const updateMissDirection = (direction: 'left' | 'right' | null) => {
+    setStagedHole((prev) => {
+      if (!prev) return prev;
+      return { ...prev, fairway_miss_direction: direction };
     });
   };
 
@@ -426,6 +446,8 @@ export const ScorecardScreen: React.FC = () => {
           strokes: hole.strokes!,
           putts: hole.putts || null,
           fairway_hit: hole.fairway_hit || false,
+          fairway_miss_type: hole.fairway_miss_type || null,
+          fairway_miss_direction: hole.fairway_miss_direction || null,
           green_in_regulation: hole.green_in_regulation || false,
           up_and_down: hole.up_and_down || false,
           penalties: 0,
@@ -526,6 +548,8 @@ export const ScorecardScreen: React.FC = () => {
             hole={currentHole}
             onUpdateScore={updateHoleScore}
             onUpdateBool={updateHoleBool}
+            onUpdateMissType={updateMissType}
+            onUpdateMissDirection={updateMissDirection}
           />
         </Animated.View>
       </PanGestureHandler>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_09_30_172403) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_02_213804) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -91,6 +91,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_09_30_172403) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "up_and_down"
+    t.string "fairway_miss_type"
+    t.string "fairway_miss_direction"
     t.index ["fairway_hit"], name: "index_hole_scores_on_fairway_hit"
     t.index ["green_in_regulation"], name: "index_hole_scores_on_green_in_regulation"
     t.index ["hole_id"], name: "index_hole_scores_on_hole_id"

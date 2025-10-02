@@ -9,6 +9,8 @@ interface ScoringHole {
   strokes?: number;
   putts?: number;
   fairway_hit?: boolean;
+  fairway_miss_type?: 'out_of_bounds' | 'hazard' | 'rough' | null;
+  fairway_miss_direction?: 'left' | 'right' | null;
   green_in_regulation?: boolean;
   up_and_down?: boolean;
 }
@@ -17,12 +19,16 @@ interface HoleCardProps {
   hole: ScoringHole;
   onUpdateScore: (field: 'strokes' | 'putts', value: string) => void;
   onUpdateBool: (field: 'fairway_hit' | 'green_in_regulation' | 'up_and_down', value: boolean) => void;
+  onUpdateMissType: (type: 'out_of_bounds' | 'hazard' | 'rough' | null) => void;
+  onUpdateMissDirection: (direction: 'left' | 'right' | null) => void;
 }
 
 export const HoleCard: React.FC<HoleCardProps> = ({
   hole,
   onUpdateScore,
-  onUpdateBool
+  onUpdateBool,
+  onUpdateMissType,
+  onUpdateMissDirection
 }) => {
   const getScoreToPar = () => {
     if (!hole.strokes) return null;
@@ -84,18 +90,74 @@ export const HoleCard: React.FC<HoleCardProps> = ({
         <Text style={styles.statsTitle}>HOLE STATS</Text>
 
         {hole.par >= 4 && (
-          <TouchableOpacity
-            style={[styles.statButton, hole.fairway_hit && styles.statButtonActive]}
-            onPress={() => onUpdateBool('fairway_hit', !hole.fairway_hit)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.checkbox, hole.fairway_hit && styles.checkboxActive]}>
-              {hole.fairway_hit && <Text style={styles.checkmark}>✓</Text>}
-            </View>
-            <Text style={[styles.statButtonText, hole.fairway_hit && styles.statButtonTextActive]}>
-              Fairway Hit
-            </Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.statButton, hole.fairway_hit && styles.statButtonActive]}
+              onPress={() => onUpdateBool('fairway_hit', !hole.fairway_hit)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.checkbox, hole.fairway_hit && styles.checkboxActive]}>
+                {hole.fairway_hit && <Text style={styles.checkmark}>✓</Text>}
+              </View>
+              <Text style={[styles.statButtonText, hole.fairway_hit && styles.statButtonTextActive]}>
+                Fairway Hit
+              </Text>
+            </TouchableOpacity>
+
+            {hole.fairway_hit === false && (
+              <View style={styles.fairwayMissSection}>
+                <Text style={styles.fairwayMissLabel}>Miss Details</Text>
+
+                {/* Miss Direction */}
+                <View style={styles.missButtonRow}>
+                  <TouchableOpacity
+                    style={[styles.missButton, hole.fairway_miss_direction === 'left' && styles.missButtonActive]}
+                    onPress={() => onUpdateMissDirection(hole.fairway_miss_direction === 'left' ? null : 'left')}
+                  >
+                    <Text style={[styles.missButtonText, hole.fairway_miss_direction === 'left' && styles.missButtonTextActive]}>
+                      ← Left
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.missButton, hole.fairway_miss_direction === 'right' && styles.missButtonActive]}
+                    onPress={() => onUpdateMissDirection(hole.fairway_miss_direction === 'right' ? null : 'right')}
+                  >
+                    <Text style={[styles.missButtonText, hole.fairway_miss_direction === 'right' && styles.missButtonTextActive]}>
+                      Right →
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Miss Type */}
+                <View style={styles.missButtonRow}>
+                  <TouchableOpacity
+                    style={[styles.missButton, hole.fairway_miss_type === 'rough' && styles.missButtonActive]}
+                    onPress={() => onUpdateMissType(hole.fairway_miss_type === 'rough' ? null : 'rough')}
+                  >
+                    <Text style={[styles.missButtonText, hole.fairway_miss_type === 'rough' && styles.missButtonTextActive]}>
+                      Rough
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.missButton, hole.fairway_miss_type === 'hazard' && styles.missButtonActive]}
+                    onPress={() => onUpdateMissType(hole.fairway_miss_type === 'hazard' ? null : 'hazard')}
+                  >
+                    <Text style={[styles.missButtonText, hole.fairway_miss_type === 'hazard' && styles.missButtonTextActive]}>
+                      Hazard
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.missButton, hole.fairway_miss_type === 'out_of_bounds' && styles.missButtonActive]}
+                    onPress={() => onUpdateMissType(hole.fairway_miss_type === 'out_of_bounds' ? null : 'out_of_bounds')}
+                  >
+                    <Text style={[styles.missButtonText, hole.fairway_miss_type === 'out_of_bounds' && styles.missButtonTextActive]}>
+                      OB
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </>
         )}
 
         <TouchableOpacity
@@ -287,5 +349,47 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#BBBBBB',
     fontWeight: '500',
+  },
+  fairwayMissSection: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#FFE0B2',
+  },
+  fairwayMissLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#E65100',
+    letterSpacing: 1.2,
+    marginBottom: 10,
+  },
+  missButtonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 8,
+  },
+  missButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  missButtonActive: {
+    backgroundColor: '#C41E3A',
+    borderColor: '#C41E3A',
+  },
+  missButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#666666',
+  },
+  missButtonTextActive: {
+    color: '#FFFFFF',
   },
 });

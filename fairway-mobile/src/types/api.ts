@@ -143,6 +143,8 @@ export interface HoleScore {
   strokes: number;
   putts?: number;
   fairway_hit?: boolean;
+  fairway_miss_type?: 'out_of_bounds' | 'hazard' | 'rough' | null;
+  fairway_miss_direction?: 'left' | 'right' | null;
   green_in_regulation?: boolean;
   up_and_down?: boolean;
   penalties: number;
@@ -155,6 +157,8 @@ export interface HoleScoreInput {
   strokes: number;
   putts?: number | null;
   fairway_hit?: boolean;
+  fairway_miss_type?: 'out_of_bounds' | 'hazard' | 'rough' | null;
+  fairway_miss_direction?: 'left' | 'right' | null;
   green_in_regulation?: boolean;
   up_and_down?: boolean;
   penalties?: number;
