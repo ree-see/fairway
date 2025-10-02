@@ -10,12 +10,13 @@ module Admin
       success = true
       errors = []
 
-      # Wrap in transaction and temporarily set handicaps to nil to avoid uniqueness conflicts
+      # Wrap in transaction and temporarily set handicaps to temporary values to avoid uniqueness conflicts
       ActiveRecord::Base.transaction do
-        # First pass: set all handicaps to nil
-        holes_params.each_key do |hole_id|
+        # First pass: set all handicaps to temporary values (100+) to avoid uniqueness conflicts
+        # This bypasses validations but satisfies the NOT NULL constraint
+        holes_params.each_with_index do |(hole_id, _), index|
           hole = @course.holes.find(hole_id)
-          hole.update_column(:handicap, nil)
+          hole.update_column(:handicap, 100 + index)
         end
 
         # Second pass: update with new values
