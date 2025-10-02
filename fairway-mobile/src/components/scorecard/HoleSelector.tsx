@@ -205,57 +205,50 @@ export const HoleSelector: React.FC<HoleSelectorProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
-  container: {
-    paddingVertical: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    backgroundColor: colors.background.secondary,
-    shadowColor: colors.card.shadow,
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-    height: 120,
-  },
-  scrollContent: {
-    paddingHorizontal: SCREEN_WIDTH / 2 - ITEM_SIZE / 2,
-    alignItems: "center",
-  },
-  itemContainer: {
-    width: ITEM_SIZE + SPACING,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  holeItem: {
-    width: ITEM_SIZE,
-    height: ITEM_SIZE,
-    borderRadius: ITEM_SIZE / 2,
-    backgroundColor: colors.background.tertiary,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 3,
-    borderColor: "transparent",
-    position: "relative",
-  },
-  holeItemActive: {
-    backgroundColor: colors.error,
-    borderColor: colors.error,
-  },
-  holeItemCompleted: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  holeNumber: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: colors.text.secondary,
-  },
-  holeNumberActive: {
-    color: colors.text.inverse,
-    fontSize: 24,
-  },
-  holeNumberCompleted: {
-    color: colors.text.inverse,
-  },
-});
+const createStyles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      paddingVertical: 20,
+      height: 120,
+    },
+    scrollContent: {
+      paddingHorizontal: SCREEN_WIDTH / 2 - ITEM_SIZE / 2,
+      alignItems: "center",
+    },
+    itemContainer: {
+      width: ITEM_SIZE + SPACING,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    holeItem: {
+      width: ITEM_SIZE,
+      height: ITEM_SIZE,
+      borderRadius: ITEM_SIZE / 2,
+      backgroundColor: colors.background.tertiary,
+      justifyContent: "center",
+      alignItems: "center",
+      borderWidth: 3,
+      borderColor: "transparent",
+      position: "relative",
+    },
+    holeItemActive: {
+      backgroundColor: colors.error,
+      borderColor: colors.error,
+    },
+    holeItemCompleted: {
+      backgroundColor: colors.success,
+      borderColor: colors.success,
+    },
+    holeNumber: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: colors.text.secondary,
+    },
+    holeNumberActive: {
+      color: colors.text.inverse,
+      fontSize: 24,
+    },
+    holeNumberCompleted: {
+      color: colors.text.inverse,
+    },
+  });
