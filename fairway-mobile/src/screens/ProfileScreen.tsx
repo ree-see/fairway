@@ -10,6 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import ApiService from '../services/ApiService';
 import { Ionicons } from '@expo/vector-icons';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
@@ -22,6 +23,8 @@ import { AppFooter } from '../components/profile/AppFooter';
 
 export const ProfileScreen: React.FC = () => {
   const { user, logout, updateUserData } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -140,10 +143,10 @@ export const ProfileScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: colors.background.primary,
   },
   content: {
     padding: 20,

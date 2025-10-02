@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
 import ApiService from '../services/ApiService';
 import { RoundStatistics, Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
@@ -16,7 +17,6 @@ import { QuickActions } from '../components/dashboard/QuickActions';
 import { HandicapCards } from '../components/dashboard/HandicapCards';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentRounds } from '../components/dashboard/RecentRounds';
-import { containers } from '../theme/commonStyles';
 
 interface DashboardData {
   statistics: RoundStatistics;
@@ -26,6 +26,8 @@ interface DashboardData {
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation();
   const { user, logout } = useAuth();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -137,8 +139,9 @@ export const DashboardScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
-    ...containers.screenContainer,
+    flex: 1,
+    backgroundColor: colors.background.primary,
   },
 });
