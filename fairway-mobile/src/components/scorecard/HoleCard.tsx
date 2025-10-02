@@ -188,12 +188,6 @@ export const HoleCard: React.FC<HoleCardProps> = ({
           </TouchableOpacity>
         )}
       </View>
-
-      {/* Swipe Hint */}
-      <View style={styles.swipeHint}>
-        <View style={styles.swipeIndicator} />
-        <Text style={styles.swipeText}>Swipe to navigate holes</Text>
-      </View>
     </View>
   );
 };
@@ -281,7 +275,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   statsSection: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   statsTitle: {
     fontSize: 11,
@@ -297,7 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 8,
     borderWidth: 2,
     borderColor: 'transparent',
   },
@@ -333,22 +327,6 @@ const styles = StyleSheet.create({
   },
   statButtonTextActive: {
     color: '#1B5E20',
-  },
-  swipeHint: {
-    alignItems: 'center',
-    paddingTop: 12,
-  },
-  swipeIndicator: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E0E0E0',
-    borderRadius: 2,
-    marginBottom: 8,
-  },
-  swipeText: {
-    fontSize: 12,
-    color: '#BBBBBB',
-    fontWeight: '500',
   },
   fairwayMissSection: {
     backgroundColor: '#FFF3E0',
