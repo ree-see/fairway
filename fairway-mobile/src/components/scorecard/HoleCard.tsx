@@ -49,6 +49,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
     // Clear error if input is cleared
     if (value === "") {
       setStrokesError("");
+      setPuttsError(""); // Clear putts error too
       onUpdateScore("strokes", value);
       return;
     }
@@ -59,6 +60,13 @@ export const HoleCard: React.FC<HoleCardProps> = ({
     if (numValue >= 1 && numValue <= 15) {
       setStrokesError("");
       onUpdateScore("strokes", value);
+
+      // Check if current putts value is now invalid with new strokes
+      if (hole.putts && hole.putts >= numValue) {
+        setPuttsError(`Max ${numValue - 1} putts for ${numValue} strokes`);
+      } else {
+        setPuttsError("");
+      }
 
       // Auto-shift focus if it's a single digit 2-9 (since adding another digit would be out of range)
       if (value.length === 1 && numValue >= 2 && numValue <= 9) {
@@ -81,20 +89,28 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 
     const numValue = parseInt(value);
 
-    // Check if valid range
-    if (numValue >= 0 && numValue <= 10) {
-      setPuttsError("");
-      onUpdateScore("putts", value);
-
-      // Auto-dismiss keyboard if it's a single digit 0 or 2-9 (since adding another digit would be out of range)
-      // or if it's already 10
-      if ((value.length === 1 && (numValue === 0 || (numValue >= 2 && numValue <= 9))) || numValue === 10) {
-        setTimeout(() => {
-          puttsInputRef.current?.blur();
-        }, 100);
-      }
-    } else {
+    // Check if valid range (0-10)
+    if (numValue < 0 || numValue > 10) {
       setPuttsError("Please enter 0-10");
+      return;
+    }
+
+    // Check if putts is less than strokes (can't putt from the tee box)
+    if (hole.strokes && numValue >= hole.strokes) {
+      setPuttsError(`Max ${hole.strokes - 1} putts for ${hole.strokes} strokes`);
+      return;
+    }
+
+    // Valid input
+    setPuttsError("");
+    onUpdateScore("putts", value);
+
+    // Auto-dismiss keyboard if it's a single digit 0 or 2-9 (since adding another digit would be out of range)
+    // or if it's already 10
+    if ((value.length === 1 && (numValue === 0 || (numValue >= 2 && numValue <= 9))) || numValue === 10) {
+      setTimeout(() => {
+        puttsInputRef.current?.blur();
+      }, 100);
     }
   };
 
