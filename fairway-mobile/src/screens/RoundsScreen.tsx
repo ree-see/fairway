@@ -440,7 +440,7 @@ const createStyles = (colors: any) =>
     scoreDivider: {
       width: 1,
       height: 30,
-      backgroundColor: colors.ui.border,
+      backgroundColor: colors.ui.divider,
     },
     scoreLabel: {
       fontSize: theme.fontSize.xs,
