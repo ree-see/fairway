@@ -60,15 +60,14 @@ export const RoundCompletionModal: React.FC<RoundCompletionModalProps> = ({
           <View style={styles.summaryContainer}>
             <View style={styles.scoreRow}>
               <View style={styles.scoreItem}>
-                <Text style={styles.scoreLabel}>Total Score</Text>
-                <Text style={styles.scoreValue}>{scoreData.score}</Text>
-              </View>
-              <View style={styles.divider} />
-              <View style={styles.scoreItem}>
-                <Text style={styles.scoreLabel}>Score to Par</Text>
-                <Text style={[styles.scoreValue, styles.scoreToParValue]}>
-                  {scoreToParText}
-                </Text>
+                <Text style={styles.scoreLabel}>Score</Text>
+                <View style={styles.scoreValueRow}>
+                  <Text style={styles.scoreValue}>{scoreData.score}</Text>
+                  <View style={styles.scoreValueDivider} />
+                  <Text style={[styles.scoreValue, styles.scoreToParValue]}>
+                    {scoreToParText}
+                  </Text>
+                </View>
               </View>
             </View>
 
@@ -172,31 +171,31 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
     marginBottom: 24,
   },
   scoreRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
     marginBottom: 20,
   },
   scoreItem: {
     alignItems: 'center',
-    flex: 1,
-  },
-  divider: {
-    width: 1,
-    height: 40,
-    backgroundColor: colors.ui.border,
-    marginHorizontal: 16,
   },
   scoreLabel: {
     fontSize: 14,
     color: colors.text.secondary,
-    marginBottom: 8,
+    marginBottom: 12,
     fontWeight: '500',
+  },
+  scoreValueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   scoreValue: {
     fontSize: 32,
     fontWeight: 'bold',
     color: colors.text.primary,
+  },
+  scoreValueDivider: {
+    width: 2,
+    height: 40,
+    backgroundColor: colors.ui.border,
   },
   scoreToParValue: {
     color: colors.success,
