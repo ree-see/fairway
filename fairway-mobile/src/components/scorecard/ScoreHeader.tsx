@@ -21,7 +21,7 @@ export const ScoreHeader: React.FC<ScoreHeaderProps> = ({
       <View style={styles.header}>
         <View style={styles.courseInfo}>
           <Text style={styles.courseLabel}>ROUND</Text>
-          <Text style={styles.courseName} numberOfLines={2}>
+          <Text style={styles.courseName} numberOfLines={1}>
             {courseName}
           </Text>
         </View>
@@ -79,7 +79,7 @@ const createStyles = (colors: any, topInset: number) => StyleSheet.create({
     fontWeight: "bold",
     color: "#FFFFFF",
     lineHeight: 40,
-    width: 120,
+    width: 100,
   },
   scoreLabel: {
     fontSize: 11,
