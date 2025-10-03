@@ -55,7 +55,8 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 
   // Determine if any miss details are selected
   const hasMissDetails =
-    hole.fairway_miss_type !== null || hole.fairway_miss_direction !== null;
+    (hole.fairway_miss_type !== null && hole.fairway_miss_type !== undefined) ||
+    (hole.fairway_miss_direction !== null && hole.fairway_miss_direction !== undefined);
 
   return (
     <View style={styles.card}>

@@ -258,8 +258,11 @@ export const ScorecardScreen: React.FC = () => {
       if (!prev) return prev;
       const updated = { ...prev, fairway_miss_type: type };
 
-      // If both miss type and direction are null, reset fairway_hit to undefined
-      if (updated.fairway_miss_type === null && updated.fairway_miss_direction === null) {
+      // If both miss type and direction are null/undefined, reset fairway_hit to undefined
+      const hasNoMissType = updated.fairway_miss_type === null || updated.fairway_miss_type === undefined;
+      const hasNoMissDirection = updated.fairway_miss_direction === null || updated.fairway_miss_direction === undefined;
+
+      if (hasNoMissType && hasNoMissDirection) {
         updated.fairway_hit = undefined;
       } else if (type !== null) {
         // If setting a miss type, ensure fairway_hit is false
@@ -275,8 +278,11 @@ export const ScorecardScreen: React.FC = () => {
       if (!prev) return prev;
       const updated = { ...prev, fairway_miss_direction: direction };
 
-      // If both miss type and direction are null, reset fairway_hit to undefined
-      if (updated.fairway_miss_type === null && updated.fairway_miss_direction === null) {
+      // If both miss type and direction are null/undefined, reset fairway_hit to undefined
+      const hasNoMissType = updated.fairway_miss_type === null || updated.fairway_miss_type === undefined;
+      const hasNoMissDirection = updated.fairway_miss_direction === null || updated.fairway_miss_direction === undefined;
+
+      if (hasNoMissType && hasNoMissDirection) {
         updated.fairway_hit = undefined;
       } else if (direction !== null) {
         // If setting a miss direction, ensure fairway_hit is false
