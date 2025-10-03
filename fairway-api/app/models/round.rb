@@ -66,6 +66,12 @@ class Round < ApplicationRecord
     scoring_service.completion_percentage
   end
 
+  # Calculate actual par from holes played
+  def played_par
+    return 0 if hole_scores.empty?
+    hole_scores.joins(:hole).sum('holes.par')
+  end
+
   # Maximum score per hole for handicap calculation (Net Double Bogey)
   def maximum_hole_scores
     scoring_service.maximum_hole_scores

@@ -250,7 +250,7 @@ class Api::V1::RoundsController < ApplicationController
       id: round.id,
       course_id: round.course_id,
       course_name: round.course.name,
-      course_par: round.course.par,
+      course_par: round.played_par.positive? ? round.played_par : round.course.par,
       started_at: round.started_at,
       completed_at: round.completed_at,
       tee_color: round.tee_color,
