@@ -52,28 +52,39 @@ class ApiService {
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as any;
-        
+
         if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
           originalRequest._retry = true;
-          
+
           try {
             const newToken = await this.refreshAccessToken();
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return this.api(originalRequest);
-          } catch (refreshError) {
-            // Refresh failed, clear auth and notify auth context
-            await this.clearStoredAuth();
-            console.error('Token refresh failed:', refreshError);
-            
-            // Trigger auth failure callback to log out user
-            if (this.authFailureCallback) {
-              this.authFailureCallback();
+          } catch (refreshError: any) {
+            // Only log out if refresh token is actually invalid (401/403)
+            // For network errors or temporary issues, keep user logged in
+            const isAuthError = refreshError?.response?.status === 401 ||
+                               refreshError?.response?.status === 403;
+
+            if (isAuthError) {
+              console.error('Refresh token is invalid, logging out user');
+              await this.clearStoredAuth();
+
+              // Trigger auth failure callback to log out user
+              if (this.authFailureCallback) {
+                this.authFailureCallback();
+              }
+
+              throw new Error('Authentication failed - refresh token invalid');
+            } else {
+              // Network error or temporary issue - keep user logged in
+              console.warn('Token refresh failed (network/temporary), keeping user logged in:', refreshError.message);
+              // Let the original error propagate so user can retry
+              throw refreshError;
             }
-            
-            throw new Error('Authentication failed - refresh token invalid');
           }
         }
-        
+
         return Promise.reject(this.handleError(error));
       }
     );
@@ -116,7 +127,14 @@ class ApiService {
       const fiveMinutes = 5 * 60 * 1000;
       if (now + fiveMinutes >= expiryTime) {
         console.log('Token expiring soon, proactively refreshing...');
-        await this.refreshAccessToken();
+        try {
+          await this.refreshAccessToken();
+        } catch (refreshError: any) {
+          // If proactive refresh fails due to network error, that's okay
+          // The request will still proceed with current token
+          // If token is actually expired, the 401 response handler will deal with it
+          console.warn('Proactive token refresh failed, proceeding with current token:', refreshError?.message);
+        }
       }
     } catch (error) {
       console.warn('Error checking token expiry:', error);
