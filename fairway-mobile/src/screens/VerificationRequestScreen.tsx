@@ -14,6 +14,7 @@ import {
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import VerificationService from '../services/VerificationService';
 import { useTheme } from '../contexts/ThemeContext';
+import { BackButton } from '../components/common/BackButton';
 
 type RouteParams = {
   VerificationRequest: {
@@ -200,6 +201,7 @@ export const VerificationRequestScreen: React.FC = () => {
           <Text style={styles.cancelButtonText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>
+      <BackButton />
     </KeyboardAvoidingView>
   );
 };

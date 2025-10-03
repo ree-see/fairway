@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  View,
   ScrollView,
   StyleSheet,
   RefreshControl,
@@ -12,6 +13,7 @@ import ApiService from '../services/ApiService';
 import { RoundStatistics, Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
+import { BackButton } from '../components/common/BackButton';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { HandicapCards } from '../components/dashboard/HandicapCards';
@@ -110,32 +112,35 @@ export const DashboardScreen: React.FC = () => {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-      }
-    >
-      <DashboardHeader 
-        firstName={user?.first_name}
-        onLogout={handleLogout}
-      />
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+      >
+        <DashboardHeader
+          firstName={user?.first_name}
+          onLogout={handleLogout}
+        />
 
-      <QuickActions onStartNewRound={navigateToNewRound} />
+        <QuickActions onStartNewRound={navigateToNewRound} />
 
-      <HandicapCards 
-        handicapIndex={dashboardData?.statistics?.handicap_index}
-        verifiedHandicap={dashboardData?.statistics?.verified_handicap}
-      />
+        <HandicapCards
+          handicapIndex={dashboardData?.statistics?.handicap_index}
+          verifiedHandicap={dashboardData?.statistics?.verified_handicap}
+        />
 
-      <StatsGrid statistics={dashboardData?.statistics} />
+        <StatsGrid statistics={dashboardData?.statistics} />
 
-      <RecentRounds 
-        rounds={dashboardData?.recent_rounds || []}
-        onRoundPress={navigateToRoundDetail}
-        recentTrend={dashboardData?.statistics?.recent_trend}
-      />
-    </ScrollView>
+        <RecentRounds
+          rounds={dashboardData?.recent_rounds || []}
+          onRoundPress={navigateToRoundDetail}
+          recentTrend={dashboardData?.statistics?.recent_trend}
+        />
+      </ScrollView>
+      <BackButton />
+    </View>
   );
 };
 
@@ -143,5 +148,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  scrollView: {
+    flex: 1,
   },
 });

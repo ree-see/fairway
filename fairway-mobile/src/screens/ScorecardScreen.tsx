@@ -16,6 +16,7 @@ import {
   ApiError,
 } from "../types/api";
 import { LoadingScreen } from "../components/common/LoadingScreen";
+import { BackButton } from "../components/common/BackButton";
 import { ScoreHeader } from "../components/scorecard/ScoreHeader";
 import { HoleCard } from "../components/scorecard/HoleCard";
 import { HoleSelector } from "../components/scorecard/HoleSelector";
@@ -563,6 +564,7 @@ export const ScorecardScreen: React.FC = () => {
         currentHoleIndex={currentHoleIndex}
         onSelectHole={navigateToHole}
       />
+      <BackButton />
     </View>
   );
 };

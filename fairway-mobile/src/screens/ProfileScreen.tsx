@@ -13,6 +13,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import ApiService from '../services/ApiService';
 import { Ionicons } from '@expo/vector-icons';
+import { BackButton } from '../components/common/BackButton';
 import { ProfileHeader } from '../components/profile/ProfileHeader';
 import { MenuSection } from '../components/profile/MenuSection';
 import { SubscriptionCard } from '../components/profile/SubscriptionCard';
@@ -99,7 +100,8 @@ export const ProfileScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView}>
       <ProfileHeader 
         firstName={user?.first_name}
         lastName={user?.last_name}
@@ -139,7 +141,9 @@ export const ProfileScreen: React.FC = () => {
         visible={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
       />
-    </ScrollView>
+      </ScrollView>
+      <BackButton />
+    </View>
   );
 };
 
@@ -147,6 +151,9 @@ const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     padding: 20,

@@ -13,6 +13,7 @@ import { Course, DetailedCourse } from "../types/api";
 import { theme } from "../theme";
 import { useTheme } from "../contexts/ThemeContext";
 import ApiService from "../services/ApiService";
+import { BackButton } from "../components/common/BackButton";
 
 interface TeeBox {
   color: string;
@@ -307,6 +308,7 @@ export const RoundConfigScreen: React.FC = () => {
       <TouchableOpacity style={styles.startButton} onPress={startRound}>
         <Text style={styles.startButtonText}>Start Round</Text>
       </TouchableOpacity>
+      <BackButton />
     </View>
   );
 };

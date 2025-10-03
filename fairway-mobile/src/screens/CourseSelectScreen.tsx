@@ -16,6 +16,7 @@ import { Course, ApiError } from '../types/api';
 import { useDebouncedSearch } from '../hooks/useDebounce';
 import { theme } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
+import { BackButton } from '../components/common/BackButton';
 
 export const CourseSelectScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -164,6 +165,7 @@ export const CourseSelectScreen: React.FC = () => {
           }
         />
       )}
+      <BackButton />
     </View>
   );
 };

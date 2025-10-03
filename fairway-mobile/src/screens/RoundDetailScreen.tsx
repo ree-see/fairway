@@ -13,6 +13,7 @@ import { Round, HoleScore, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
 import { TabNavigation } from '../components/common/TabNavigation';
+import { BackButton } from '../components/common/BackButton';
 import { RoundDetailHeader } from '../components/rounds/RoundDetailHeader';
 import { CourseInfo } from '../components/rounds/CourseInfo';
 import { RoundStatistics } from '../components/rounds/RoundStatistics';
@@ -167,10 +168,11 @@ export const RoundDetailScreen: React.FC = () => {
   const scoreToPar = (round.total_strokes || 0) - coursePar;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
       {/* Combined Header Card: Course + Date + Score */}
       <View style={styles.headerCard}>
         {/* Course name + Date */}
@@ -270,7 +272,9 @@ export const RoundDetailScreen: React.FC = () => {
           )}
         </>
       )}
-    </ScrollView>
+      </ScrollView>
+      <BackButton />
+    </View>
   );
 };
 
@@ -278,6 +282,9 @@ const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  scrollView: {
+    flex: 1,
   },
   scrollContent: {
     paddingBottom: 120, // Extra space to scroll past the bottom navbar

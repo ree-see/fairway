@@ -11,6 +11,7 @@ import { RoundStatistics, ApiError } from "../types/api";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ErrorState } from "../components/common/ErrorState";
 import { useTheme } from "../contexts/ThemeContext";
+import { BackButton } from "../components/common/BackButton";
 
 const StatsScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -127,13 +128,14 @@ const StatsScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
-      }
-    >
+    <View style={styles.container}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
+        }
+      >
       {/* Overview Stats */}
       <SectionCard title="Overview">
         <View style={styles.statRow}>
@@ -276,7 +278,9 @@ const StatsScreen: React.FC = () => {
           </View>
         </View>
       </SectionCard>
-    </ScrollView>
+      </ScrollView>
+      <BackButton />
+    </View>
   );
 };
 
@@ -284,6 +288,9 @@ const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
     padding: 20,

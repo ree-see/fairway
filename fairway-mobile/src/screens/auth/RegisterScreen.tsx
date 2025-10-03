@@ -13,6 +13,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { BackButton } from '../../components/common/BackButton';
 
 export const RegisterScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -157,6 +158,7 @@ export const RegisterScreen: React.FC = () => {
           </View>
         </View>
       </ScrollView>
+      <BackButton />
     </KeyboardAvoidingView>
   );
 };
