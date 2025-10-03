@@ -41,9 +41,19 @@ export const HoleCard: React.FC<HoleCardProps> = ({
   onUpdateMissDirection,
 }) => {
   const { colors } = useTheme();
+  const strokesInputRef = useRef<TextInput>(null);
   const puttsInputRef = useRef<TextInput>(null);
   const [strokesError, setStrokesError] = useState<string>("");
   const [puttsError, setPuttsError] = useState<string>("");
+
+  // Auto-focus strokes input if empty when card loads
+  React.useEffect(() => {
+    if (!hole.strokes) {
+      setTimeout(() => {
+        strokesInputRef.current?.focus();
+      }, 300);
+    }
+  }, [hole.number]); // Re-focus when hole number changes
 
   const handleStrokesChange = (value: string) => {
     // Clear error if input is cleared
@@ -149,6 +159,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>STROKES</Text>
           <TextInput
+            ref={strokesInputRef}
             style={[styles.scoreInput, strokesError && styles.scoreInputError]}
             value={hole.strokes?.toString() || ""}
             onChangeText={handleStrokesChange}
