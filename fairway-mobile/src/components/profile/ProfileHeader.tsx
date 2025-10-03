@@ -39,7 +39,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
 const createStyles = (colors: any) => StyleSheet.create({
   header: {
-    backgroundColor: colors.background.secondary,
+    backgroundColor: '#2E7D32', // Theme green for both light and dark mode
     paddingTop: 60,
     paddingBottom: 30,
     alignItems: 'center',
@@ -51,24 +51,24 @@ const createStyles = (colors: any) => StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.success,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   avatarText: {
-    color: colors.text.inverse,
+    color: '#2E7D32',
     fontSize: 24,
     fontWeight: 'bold',
   },
   userName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.text.primary,
+    color: '#FFFFFF',
     marginBottom: 4,
   },
   userEmail: {
     fontSize: 16,
-    color: colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
 });

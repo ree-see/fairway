@@ -27,7 +27,7 @@ const DashboardStack = () => (
       component={CourseSelectScreen}
       options={{
         title: 'Select Course',
-        headerStyle: { backgroundColor: '#2E7D32' },
+        headerStyle: { backgroundColor: '#2E7D32' }, // Theme green for both light and dark mode
         headerTintColor: '#FFFFFF'
       }}
     />

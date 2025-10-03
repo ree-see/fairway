@@ -49,23 +49,23 @@ const createStyles = (colors: any) => StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: theme.padding.screen,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: '#2E7D32', // Theme green for both light and dark mode
     paddingTop: theme.spacing.massive,
   },
   welcomeText: {
     fontSize: theme.fontSize.base,
-    color: colors.text.secondary,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   nameText: {
     fontSize: theme.fontSize.xxl,
     fontWeight: theme.fontWeight.bold,
-    color: colors.primary,
+    color: '#FFFFFF',
   },
   logoutButton: {
     padding: theme.spacing.sm,
   },
   logoutText: {
-    color: colors.error,
+    color: '#FFFFFF',
     fontSize: theme.fontSize.md,
     fontWeight: theme.fontWeight.medium,
   },

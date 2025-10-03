@@ -107,12 +107,13 @@ export interface DetailedCourse extends Course {
   average_score?: number;
 }
 
-// Round Types  
+// Round Types
 export interface Round {
   id: string;
   user_id: string;
   course_id: string;
   course_name?: string; // Added course_name from Rails API
+  course_par?: number; // Par for the course played
   started_at: string;
   completed_at?: string;
   submitted_at?: string;
@@ -131,6 +132,12 @@ export interface Round {
   fairways_hit: number;
   greens_in_regulation: number;
   total_penalties: number;
+  status?: 'in_progress' | 'completed' | 'submitted';
+  holes_completed?: number;
+  completion_percentage?: number;
+  fraud_risk_score?: number;
+  weather_conditions?: string;
+  temperature?: number;
   created_at: string;
   updated_at: string;
 }
