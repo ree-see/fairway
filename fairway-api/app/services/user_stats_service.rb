@@ -120,13 +120,13 @@ class UserStatsService
 
     def performance_comparison(user, comparison_period_days: 30)
       cutoff_date = comparison_period_days.days.ago
-      
+
       recent_rounds = user.rounds.completed
-                          .where('started_at >= ?', cutoff_date)
+                          .where('rounds.started_at >= ?', cutoff_date)
                           .includes(:hole_scores)
 
       previous_rounds = user.rounds.completed
-                            .where('started_at < ?', cutoff_date)
+                            .where('rounds.started_at < ?', cutoff_date)
                             .includes(:hole_scores)
                             .limit(20)
 
@@ -440,11 +440,80 @@ class UserStatsService
 
     def calculate_consistency_within_range(scores, range)
       return 0.0 if scores.empty?
-      
+
       mean = scores.sum.to_f / scores.length
       within_range = scores.count { |score| (score - mean).abs <= range }
-      
+
       (within_range.to_f / scores.length * 100).round(1)
+    end
+
+    def calculate_handicap_change_in_period(user, date_range)
+      # Get handicap at start and end of period
+      # For now, return 0.0 as a stub (actual implementation would track historical handicap)
+      0.0
+    end
+
+    def calculate_average_to_par(rounds)
+      return 0.0 if rounds.empty?
+
+      total_to_par = rounds.sum do |round|
+        round.total_strokes.to_i - round.course.par.to_i
+      end
+
+      (total_to_par.to_f / rounds.length).round(1)
+    end
+
+    def calculate_handicap_trend(user)
+      # Stub: Return stable trend
+      'stable'
+    end
+
+    def identify_key_improvements(rounds)
+      # Stub: Return empty array for now
+      []
+    end
+
+    def find_favorite_course(performance_by_course)
+      return nil if performance_by_course.empty?
+
+      # Find course played most frequently
+      most_played = performance_by_course.max_by { |_course, stats| stats[:rounds_played] }
+      most_played&.first
+    end
+
+    def identify_focus_areas(rounds)
+      # Stub: Return empty array for now
+      []
+    end
+
+    def calculate_category_improvements(recent_rounds, previous_rounds)
+      # Stub: Return empty hash for now
+      {}
+    end
+
+    def calculate_consistency_change(recent_rounds, previous_rounds)
+      # Stub: Return 0.0 for now
+      0.0
+    end
+
+    def find_best_course_performance(performance_by_course)
+      return nil if performance_by_course.empty?
+
+      # Find course with best average score
+      best = performance_by_course.min_by { |_course, stats| stats[:average_score] }
+      best&.first
+    end
+
+    def identify_milestones(rounds)
+      # Stub: Return empty array for now
+      []
+    end
+
+    def analyze_course_variety(rounds)
+      return 0.0 if rounds.empty?
+
+      # Return the number of unique courses played
+      rounds.map(&:course_id).uniq.count.to_f
     end
   end
 end
