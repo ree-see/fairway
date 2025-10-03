@@ -59,6 +59,13 @@ export const HoleCard: React.FC<HoleCardProps> = ({
     if (numValue >= 1 && numValue <= 15) {
       setStrokesError("");
       onUpdateScore("strokes", value);
+
+      // Auto-shift focus if it's a single digit 2-9 (since adding another digit would be out of range)
+      if (value.length === 1 && numValue >= 2 && numValue <= 9) {
+        setTimeout(() => {
+          puttsInputRef.current?.focus();
+        }, 100);
+      }
     } else {
       setStrokesError("Please enter 1-15");
     }
