@@ -65,20 +65,22 @@ export const ScorecardScreen: React.FC = () => {
   const [roundPersistedToDb, setRoundPersistedToDb] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const panRef = useRef<PanGestureHandler>(null);
-  const isGestureEnabled = !showCompletionModal && !showDiscardModal && !isSubmitting;
+  const isGestureEnabled = !showCompletionModal && !showDiscardModal && !isSubmitting && !isNavigating;
 
   // Debug: Log gesture enabled state
   useEffect(() => {
     console.log('[GESTURE] isGestureEnabled:', isGestureEnabled, {
       showCompletionModal,
       showDiscardModal,
-      isSubmitting
+      isSubmitting,
+      isNavigating
     });
-  }, [isGestureEnabled, showCompletionModal, showDiscardModal, isSubmitting]);
+  }, [isGestureEnabled, showCompletionModal, showDiscardModal, isSubmitting, isNavigating]);
 
   useEffect(() => {
     initializeRound();
@@ -386,10 +388,17 @@ export const ScorecardScreen: React.FC = () => {
 
   // Custom setCurrentHoleIndex that saves before switching with animation
   const navigateToHole = (newHoleIndex: number) => {
-    console.log('[NAV] navigateToHole called:', { from: currentHoleIndex, to: newHoleIndex });
+    console.log('[NAV] navigateToHole called:', { from: currentHoleIndex, to: newHoleIndex, isNavigating });
+
+    // Prevent navigation if already navigating
+    if (isNavigating) {
+      console.log('[NAV] Already navigating, ignoring call');
+      return;
+    }
 
     if (newHoleIndex !== currentHoleIndex) {
       console.log('[NAV] Starting navigation animation');
+      setIsNavigating(true); // DISABLE GESTURE
       saveStagedHole(); // Save current hole before switching
 
       // Fade out animation
@@ -417,6 +426,7 @@ export const ScorecardScreen: React.FC = () => {
               useNativeDriver: true,
             }).start(() => {
               console.log('[NAV] Fade in complete');
+              setIsNavigating(false); // RE-ENABLE GESTURE
             });
           });
         });
