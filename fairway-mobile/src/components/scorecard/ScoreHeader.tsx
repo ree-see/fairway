@@ -79,6 +79,7 @@ const createStyles = (colors: any, topInset: number) => StyleSheet.create({
     fontWeight: "bold",
     color: "#FFFFFF",
     lineHeight: 40,
+    width: 120,
   },
   scoreLabel: {
     fontSize: 11,
