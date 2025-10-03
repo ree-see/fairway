@@ -71,6 +71,15 @@ export const ScorecardScreen: React.FC = () => {
   const panRef = useRef<PanGestureHandler>(null);
   const isGestureEnabled = !showCompletionModal && !showDiscardModal && !isSubmitting;
 
+  // Debug: Log gesture enabled state
+  useEffect(() => {
+    console.log('[GESTURE] isGestureEnabled:', isGestureEnabled, {
+      showCompletionModal,
+      showDiscardModal,
+      isSubmitting
+    });
+  }, [isGestureEnabled, showCompletionModal, showDiscardModal, isSubmitting]);
+
   useEffect(() => {
     initializeRound();
   }, []);
@@ -406,11 +415,17 @@ export const ScorecardScreen: React.FC = () => {
 
   const onPanGestureEvent = Animated.event(
     [{ nativeEvent: { translationX: translateX } }],
-    { useNativeDriver: true },
+    {
+      useNativeDriver: true,
+      listener: (event: any) => {
+        console.log('[GESTURE] Pan event - translationX:', event.nativeEvent.translationX);
+      }
+    },
   );
 
   const onHandlerStateChange = (event: any) => {
     const { translationX, velocityX, state } = event.nativeEvent;
+    console.log('[GESTURE] State change - state:', state, 'translationX:', translationX, 'velocityX:', velocityX);
 
     // State 5 = GESTURE_STATE_END
     if (state === 5) {

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
 import { ScorecardScreen } from '../screens/ScorecardScreen';
@@ -24,48 +25,50 @@ export const AppNavigator: React.FC = () => {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {user ? (
-          <>
-            <Stack.Screen name="Main" component={MainNavigator} />
-            <Stack.Screen 
-              name="RoundConfig" 
-              component={RoundConfigScreen}
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="FocusedRound"
-              component={ScorecardScreen}
-              options={{
-                presentation: 'modal',
-                gestureEnabled: false, // Disable swipe to dismiss
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="VerificationRequest"
-              component={VerificationRequestScreen}
-              options={{
-                headerShown: true,
-                headerTitle: 'Request Verification',
-                headerStyle: {
-                  backgroundColor: '#1E1E1E',
-                },
-                headerTintColor: '#4CAF50',
-                headerTitleStyle: {
-                  fontWeight: 'bold',
-                },
-              }}
-            />
-          </>
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {user ? (
+            <>
+              <Stack.Screen name="Main" component={MainNavigator} />
+              <Stack.Screen
+                name="RoundConfig"
+                component={RoundConfigScreen}
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="FocusedRound"
+                component={ScorecardScreen}
+                options={{
+                  presentation: 'modal',
+                  gestureEnabled: false, // Disable swipe to dismiss
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="VerificationRequest"
+                component={VerificationRequestScreen}
+                options={{
+                  headerShown: true,
+                  headerTitle: 'Request Verification',
+                  headerStyle: {
+                    backgroundColor: '#1E1E1E',
+                  },
+                  headerTintColor: '#4CAF50',
+                  headerTitleStyle: {
+                    fontWeight: 'bold',
+                  },
+                }}
+              />
+            </>
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 
