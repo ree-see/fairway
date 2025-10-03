@@ -67,10 +67,10 @@ const createStyles = (colors: any, topInset: number) => StyleSheet.create({
     alignItems: "flex-end",
   },
   scoreDisplay: {
-    fontSize: 36,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#FFFFFF",
-    lineHeight: 40,
+    lineHeight: 32,
   },
   scoreLabel: {
     fontSize: 11,
