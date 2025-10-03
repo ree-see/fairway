@@ -250,6 +250,7 @@ class Api::V1::RoundsController < ApplicationController
       id: round.id,
       course_id: round.course_id,
       course_name: round.course.name,
+      course_par: round.course.par,
       started_at: round.started_at,
       completed_at: round.completed_at,
       tee_color: round.tee_color,
@@ -263,7 +264,8 @@ class Api::V1::RoundsController < ApplicationController
       fraud_risk_score: round.fraud_risk_score,
       location_verified: round.location_verified,
       weather_conditions: round.weather_conditions,
-      temperature: round.temperature
+      temperature: round.temperature,
+      status: round.completed? ? 'completed' : 'in_progress'
     }
   end
 
