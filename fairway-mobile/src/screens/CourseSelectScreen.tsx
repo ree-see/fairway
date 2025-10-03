@@ -165,7 +165,7 @@ export const CourseSelectScreen: React.FC = () => {
           }
         />
       )}
-      <BackButton />
+      <BackButton verticalPosition={0.65} />
     </View>
   );
 };

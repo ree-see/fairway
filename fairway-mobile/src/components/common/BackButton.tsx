@@ -7,10 +7,14 @@ import { colors } from "../../theme/colors";
 
 const { height: screenHeight } = Dimensions.get("window");
 
-export const BackButton: React.FC = () => {
+interface BackButtonProps {
+  verticalPosition?: number; // Percentage of screen height (0-1)
+}
+
+export const BackButton: React.FC<BackButtonProps> = ({ verticalPosition = 0.78 }) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles(colors, verticalPosition);
 
   return (
     <TouchableOpacity
@@ -23,12 +27,12 @@ export const BackButton: React.FC = () => {
   );
 };
 
-const createStyles = (colors: any) =>
+const createStyles = (colors: any, verticalPosition: number) =>
   StyleSheet.create({
     backButton: {
       position: "absolute",
       right: 0,
-      top: screenHeight * 0.65, // Positioned higher to avoid tab bar
+      top: screenHeight * verticalPosition,
       width: 24,
       height: 60,
       borderTopLeftRadius: 10,
