@@ -256,14 +256,34 @@ export const ScorecardScreen: React.FC = () => {
   const updateMissType = (type: 'out_of_bounds' | 'hazard' | 'rough' | null) => {
     setStagedHole((prev) => {
       if (!prev) return prev;
-      return { ...prev, fairway_miss_type: type };
+      const updated = { ...prev, fairway_miss_type: type };
+
+      // If both miss type and direction are null, reset fairway_hit to undefined
+      if (updated.fairway_miss_type === null && updated.fairway_miss_direction === null) {
+        updated.fairway_hit = undefined;
+      } else if (type !== null) {
+        // If setting a miss type, ensure fairway_hit is false
+        updated.fairway_hit = false;
+      }
+
+      return updated;
     });
   };
 
   const updateMissDirection = (direction: 'left' | 'right' | null) => {
     setStagedHole((prev) => {
       if (!prev) return prev;
-      return { ...prev, fairway_miss_direction: direction };
+      const updated = { ...prev, fairway_miss_direction: direction };
+
+      // If both miss type and direction are null, reset fairway_hit to undefined
+      if (updated.fairway_miss_type === null && updated.fairway_miss_direction === null) {
+        updated.fairway_hit = undefined;
+      } else if (direction !== null) {
+        // If setting a miss direction, ensure fairway_hit is false
+        updated.fairway_hit = false;
+      }
+
+      return updated;
     });
   };
 

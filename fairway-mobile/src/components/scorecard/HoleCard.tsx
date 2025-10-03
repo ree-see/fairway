@@ -53,6 +53,10 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 
   const styles = createStyles(colors);
 
+  // Determine if any miss details are selected
+  const hasMissDetails =
+    hole.fairway_miss_type !== null || hole.fairway_miss_direction !== null;
+
   return (
     <View style={styles.card}>
       {/* Hole Header */}
@@ -107,33 +111,35 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 
         {hole.par >= 4 && (
           <>
-            <TouchableOpacity
-              style={[
-                styles.statButton,
-                hole.fairway_hit && styles.statButtonActive,
-              ]}
-              onPress={() => onUpdateBool("fairway_hit", !hole.fairway_hit)}
-              activeOpacity={0.7}
-            >
-              <View
+            {!hasMissDetails && (
+              <TouchableOpacity
                 style={[
-                  styles.checkbox,
-                  hole.fairway_hit && styles.checkboxActive,
+                  styles.statButton,
+                  hole.fairway_hit && styles.statButtonActive,
                 ]}
+                onPress={() => onUpdateBool("fairway_hit", !hole.fairway_hit)}
+                activeOpacity={0.7}
               >
-                {hole.fairway_hit && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <Text
-                style={[
-                  styles.statButtonText,
-                  hole.fairway_hit && styles.statButtonTextActive,
-                ]}
-              >
-                Fairway Hit
-              </Text>
-            </TouchableOpacity>
+                <View
+                  style={[
+                    styles.checkbox,
+                    hole.fairway_hit && styles.checkboxActive,
+                  ]}
+                >
+                  {hole.fairway_hit && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <Text
+                  style={[
+                    styles.statButtonText,
+                    hole.fairway_hit && styles.statButtonTextActive,
+                  ]}
+                >
+                  Fairway Hit
+                </Text>
+              </TouchableOpacity>
+            )}
 
-            {hole.fairway_hit === false && (
+            {(hole.fairway_hit === false || hasMissDetails) && (
               <View style={styles.fairwayMissSection}>
                 <Text style={styles.fairwayMissLabel}>Miss Details</Text>
 
