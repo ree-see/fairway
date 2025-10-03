@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../contexts/ThemeContext";
 
 interface ScoreHeaderProps {
@@ -12,7 +13,8 @@ export const ScoreHeader: React.FC<ScoreHeaderProps> = ({
   scoreDisplay,
 }) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(colors, insets.top);
 
   return (
     <View style={styles.container}>
@@ -32,12 +34,13 @@ export const ScoreHeader: React.FC<ScoreHeaderProps> = ({
   );
 };
 
-const createStyles = (colors: any) => StyleSheet.create({
+const createStyles = (colors: any, topInset: number) => StyleSheet.create({
   container: {
     backgroundColor: colors.success,
+    paddingTop: topInset,
   },
   header: {
-    paddingTop: 36,
+    paddingTop: 12,
     paddingBottom: 36,
     paddingHorizontal: 20,
     flexDirection: "row",
