@@ -89,9 +89,9 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 
     const numValue = parseInt(value);
 
-    // Check if valid range (0-10)
-    if (numValue < 0 || numValue > 10) {
-      setPuttsError("Please enter 0-10");
+    // Check if valid range (0-9)
+    if (numValue < 0 || numValue > 9) {
+      setPuttsError("Please enter 0-9");
       return;
     }
 
@@ -105,13 +105,10 @@ export const HoleCard: React.FC<HoleCardProps> = ({
     setPuttsError("");
     onUpdateScore("putts", value);
 
-    // Auto-dismiss keyboard if it's a single digit 0 or 2-9 (since adding another digit would be out of range)
-    // or if it's already 10
-    if ((value.length === 1 && (numValue === 0 || (numValue >= 2 && numValue <= 9))) || numValue === 10) {
-      setTimeout(() => {
-        puttsInputRef.current?.blur();
-      }, 100);
-    }
+    // Auto-dismiss keyboard after entering any digit
+    setTimeout(() => {
+      puttsInputRef.current?.blur();
+    }, 100);
   };
 
   const getScoreToPar = () => {
@@ -177,7 +174,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
             value={hole.putts?.toString() || ""}
             onChangeText={handlePuttsChange}
             keyboardType="numeric"
-            maxLength={2}
+            maxLength={1}
             placeholder="-"
             placeholderTextColor="#CCCCCC"
             returnKeyType="done"
