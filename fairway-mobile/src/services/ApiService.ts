@@ -32,9 +32,12 @@ class ApiService {
       },
     });
 
-    // Request interceptor to add auth token
+    // Request interceptor to add auth token and proactively refresh if needed
     this.api.interceptors.request.use(
       async (config) => {
+        // Check if token needs refresh before making request
+        await this.checkAndRefreshToken();
+
         const token = await AsyncStorage.getItem('access_token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
@@ -99,6 +102,28 @@ class ApiService {
     }
   }
 
+  private async checkAndRefreshToken(): Promise<void> {
+    try {
+      const expiryStr = await AsyncStorage.getItem('token_expiry');
+      if (!expiryStr) {
+        return; // No expiry stored, skip proactive refresh
+      }
+
+      const expiryTime = parseInt(expiryStr);
+      const now = Date.now();
+
+      // Refresh if token expires in less than 5 minutes
+      const fiveMinutes = 5 * 60 * 1000;
+      if (now + fiveMinutes >= expiryTime) {
+        console.log('Token expiring soon, proactively refreshing...');
+        await this.refreshAccessToken();
+      }
+    } catch (error) {
+      console.warn('Error checking token expiry:', error);
+      // Don't throw - let the request proceed and handle 401 if it happens
+    }
+  }
+
   private async refreshAccessToken(): Promise<string> {
     if (this.refreshTokenPromise) {
       return this.refreshTokenPromise;
@@ -111,14 +136,24 @@ class ApiService {
           throw new Error('No refresh token available');
         }
 
+        console.log('Refreshing access token...');
         const response = await axios.post(
           `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.REFRESH}`,
           { refresh_token: refreshToken }
         );
 
         const { access_token, expires_in } = response.data.data;
-        await AsyncStorage.setItem('access_token', access_token);
-        
+
+        // Calculate expiry timestamp
+        const expiryTime = Date.now() + (expires_in * 1000);
+
+        // Store token and expiry time
+        await AsyncStorage.multiSet([
+          ['access_token', access_token],
+          ['token_expiry', expiryTime.toString()],
+        ]);
+
+        console.log('Token refreshed successfully');
         return access_token;
       } finally {
         this.refreshTokenPromise = null;
@@ -131,7 +166,8 @@ class ApiService {
   private async clearStoredAuth(): Promise<void> {
     await AsyncStorage.multiRemove([
       'access_token',
-      'refresh_token', 
+      'refresh_token',
+      'token_expiry',
       'user',
     ]);
   }
@@ -161,18 +197,22 @@ class ApiService {
         API_CONFIG.ENDPOINTS.LOGIN,
         credentials
       );
-      
+
       if (response.data.success && response.data.data) {
-        const { user, access_token, refresh_token } = response.data.data;
-        
-        // Store tokens and user data
+        const { user, access_token, refresh_token, expires_in } = response.data.data;
+
+        // Calculate token expiry timestamp
+        const expiryTime = Date.now() + (expires_in * 1000);
+
+        // Store tokens, expiry, and user data
         await AsyncStorage.multiSet([
           ['access_token', access_token],
           ['refresh_token', refresh_token],
+          ['token_expiry', expiryTime.toString()],
           ['user', JSON.stringify(user)],
         ]);
       }
-      
+
       return response.data;
     } catch (error) {
       throw error;
@@ -185,18 +225,22 @@ class ApiService {
         API_CONFIG.ENDPOINTS.REGISTER,
         userData
       );
-      
+
       if (response.data.success && response.data.data) {
-        const { user, access_token, refresh_token } = response.data.data;
-        
-        // Store tokens and user data
+        const { user, access_token, refresh_token, expires_in } = response.data.data;
+
+        // Calculate token expiry timestamp
+        const expiryTime = Date.now() + (expires_in * 1000);
+
+        // Store tokens, expiry, and user data
         await AsyncStorage.multiSet([
           ['access_token', access_token],
           ['refresh_token', refresh_token],
+          ['token_expiry', expiryTime.toString()],
           ['user', JSON.stringify(user)],
         ]);
       }
-      
+
       return response.data;
     } catch (error) {
       throw error;

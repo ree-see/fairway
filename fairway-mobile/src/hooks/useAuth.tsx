@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const clearStoredAuth = async () => {
-    await AsyncStorage.multiRemove(['user', 'access_token', 'refresh_token']);
+    await AsyncStorage.multiRemove(['user', 'access_token', 'refresh_token', 'token_expiry']);
     setUser(null);
   };
 
@@ -47,16 +47,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const storedUser = await AsyncStorage.getItem('user');
       const storedToken = await AsyncStorage.getItem('access_token');
-      
+      const tokenExpiry = await AsyncStorage.getItem('token_expiry');
+
       if (storedUser && storedToken) {
         setUser(JSON.parse(storedUser));
-        
-        // Verify token is still valid by fetching fresh user data
+
+        // Only validate if token is expired (don't make unnecessary API calls)
+        if (tokenExpiry) {
+          const expiryTime = parseInt(tokenExpiry);
+          const isExpired = Date.now() >= expiryTime;
+
+          if (!isExpired) {
+            console.log('Token still valid, skipping validation');
+            return; // Token is still valid, no need to validate
+          }
+        }
+
+        // Token is expired or no expiry info, try to refresh user data
+        // The ApiService will handle token refresh automatically
         try {
+          console.log('Token expired or no expiry info, refreshing user data');
           await refreshUser();
         } catch (error) {
-          // Token might be expired but refresh token could still be valid
-          console.log('Token validation failed, but user will remain logged in for retry attempts');
+          // Token refresh failed
+          console.log('Failed to refresh user data on load, user will be logged out on next API call');
           // If refresh token also fails, ApiService will trigger handleAuthFailure callback
         }
       }
