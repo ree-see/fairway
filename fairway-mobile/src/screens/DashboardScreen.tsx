@@ -13,7 +13,6 @@ import ApiService from '../services/ApiService';
 import { RoundStatistics, Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
-import { BackButton } from '../components/common/BackButton';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { QuickActions } from '../components/dashboard/QuickActions';
 import { HandicapCards } from '../components/dashboard/HandicapCards';
@@ -139,7 +138,6 @@ export const DashboardScreen: React.FC = () => {
           recentTrend={dashboardData?.statistics?.recent_trend}
         />
       </ScrollView>
-      <BackButton />
     </View>
   );
 };

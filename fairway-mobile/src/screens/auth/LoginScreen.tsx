@@ -12,7 +12,6 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
-import { BackButton } from '../../components/common/BackButton';
 
 export const LoginScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -94,7 +93,6 @@ export const LoginScreen: React.FC = () => {
           </View>
         </View>
       </View>
-      <BackButton />
     </KeyboardAvoidingView>
   );
 };

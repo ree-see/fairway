@@ -11,7 +11,6 @@ import { RoundStatistics, ApiError } from "../types/api";
 import { LoadingScreen } from "../components/common/LoadingScreen";
 import { ErrorState } from "../components/common/ErrorState";
 import { useTheme } from "../contexts/ThemeContext";
-import { BackButton } from "../components/common/BackButton";
 
 const StatsScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -279,7 +278,6 @@ const StatsScreen: React.FC = () => {
         </View>
       </SectionCard>
       </ScrollView>
-      <BackButton />
     </View>
   );
 };

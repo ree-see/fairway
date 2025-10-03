@@ -17,7 +17,6 @@ import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
 import { theme } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
-import { BackButton } from '../components/common/BackButton';
 
 type FilterStatus = 'all' | 'completed' | 'in_progress' | 'verified';
 
@@ -280,7 +279,6 @@ export const RoundsScreen: React.FC = () => {
           />
         }
       />
-      <BackButton />
     </View>
   );
 };
