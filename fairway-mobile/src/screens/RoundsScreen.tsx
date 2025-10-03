@@ -413,11 +413,6 @@ const createStyles = (colors: any) =>
     inProgressBadge: {
       backgroundColor: colors.primary,
     },
-    badgeText: {
-      color: colors.text.inverse,
-      fontSize: theme.fontSize.xs,
-      fontWeight: theme.fontWeight.semiBold,
-    },
     roundDetails: {
       gap: theme.spacing.md,
     },
