@@ -66,6 +66,7 @@ export const ScorecardScreen: React.FC = () => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [userDismissedModal, setUserDismissedModal] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
@@ -108,12 +109,12 @@ export const ScorecardScreen: React.FC = () => {
     const completedHoles = getCompletedHoles();
     const allHolesComplete = completedHoles === activeHoleNumbers.length && completedHoles > 0;
 
-    if (allHolesComplete && !showCompletionModal && !isSubmitting && !isLoading) {
+    if (allHolesComplete && !showCompletionModal && !isSubmitting && !isLoading && !userDismissedModal) {
       // Save current staged hole before showing modal
       saveStagedHole();
       setShowCompletionModal(true);
     }
-  }, [holes, activeHoleNumbers, showCompletionModal, isSubmitting, isLoading]);
+  }, [holes, activeHoleNumbers, showCompletionModal, isSubmitting, isLoading, userDismissedModal]);
 
   const initializeRound = async () => {
     try {
@@ -761,10 +762,12 @@ export const ScorecardScreen: React.FC = () => {
 
   const handleEditRound = () => {
     setShowCompletionModal(false);
+    setUserDismissedModal(true);
     // User stays on scorecard, can navigate to any hole
   };
 
   const handleDiscardRound = () => {
+    setShowCompletionModal(false); // Hide completion modal first
     setShowDiscardModal(true);
   };
 
@@ -783,7 +786,7 @@ export const ScorecardScreen: React.FC = () => {
 
   const handleCancelDiscard = () => {
     setShowDiscardModal(false);
-    // Returns to completion modal
+    setShowCompletionModal(true); // Return to completion modal
   };
 
   if (isLoading) {
