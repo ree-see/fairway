@@ -14,10 +14,10 @@ import { RoundStatistics, Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { QuickActions } from '../components/dashboard/QuickActions';
 import { HandicapCards } from '../components/dashboard/HandicapCards';
 import { StatsGrid } from '../components/dashboard/StatsGrid';
 import { RecentRounds } from '../components/dashboard/RecentRounds';
+import { FloatingActionButton } from '../components/common/FloatingActionButton';
 
 interface DashboardData {
   statistics: RoundStatistics;
@@ -124,8 +124,6 @@ export const DashboardScreen: React.FC = () => {
           onLogout={handleLogout}
         />
 
-        <QuickActions onStartNewRound={navigateToNewRound} />
-
         <HandicapCards
           handicapIndex={dashboardData?.statistics?.handicap_index}
           verifiedHandicap={dashboardData?.statistics?.verified_handicap}
@@ -139,6 +137,8 @@ export const DashboardScreen: React.FC = () => {
           recentTrend={dashboardData?.statistics?.recent_trend}
         />
       </ScrollView>
+
+      <FloatingActionButton onPress={navigateToNewRound} />
     </View>
   );
 };

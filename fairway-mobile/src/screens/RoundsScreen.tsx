@@ -15,6 +15,7 @@ import ApiService from '../services/ApiService';
 import { Round, ApiError } from '../types/api';
 import { LoadingScreen } from '../components/common/LoadingScreen';
 import { ErrorState } from '../components/common/ErrorState';
+import { FloatingActionButton } from '../components/common/FloatingActionButton';
 import { theme } from '../theme';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -92,6 +93,10 @@ export const RoundsScreen: React.FC = () => {
 
   const handleFilterChange = (status: FilterStatus) => {
     setFilterStatus(status);
+  };
+
+  const navigateToNewRound = () => {
+    navigation.navigate('Home', { screen: 'CourseSelect' });
   };
 
   const formatDate = (dateString: string) => {
@@ -279,6 +284,8 @@ export const RoundsScreen: React.FC = () => {
           />
         }
       />
+
+      <FloatingActionButton onPress={navigateToNewRound} />
     </View>
   );
 };
