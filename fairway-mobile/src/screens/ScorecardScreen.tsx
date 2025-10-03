@@ -387,16 +387,20 @@ export const ScorecardScreen: React.FC = () => {
         duration: 150,
         useNativeDriver: true,
       }).start(() => {
-        // Switch hole
+        // Switch hole (this triggers the useEffect to load data)
         setCurrentHoleIndex(newHoleIndex);
-        loadHoleData(newHoleIndex);
 
-        // Fade in animation
-        Animated.timing(cardOpacity, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }).start();
+        // Wait for React to render with new data before fading in
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            // Fade in animation with new hole data
+            Animated.timing(cardOpacity, {
+              toValue: 1,
+              duration: 200,
+              useNativeDriver: true,
+            }).start();
+          });
+        });
       });
     }
   };
