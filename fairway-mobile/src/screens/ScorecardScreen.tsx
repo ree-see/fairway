@@ -23,6 +23,8 @@ import { HoleSelector } from "../components/scorecard/HoleSelector";
 import { SubmitButton } from "../components/scorecard/SubmitButton";
 import { MenuButton } from "../components/scorecard/MenuButton";
 import { RoundMenu } from "../components/scorecard/RoundMenu";
+import { RoundCompletionModal } from "../components/scorecard/RoundCompletionModal";
+import { DiscardConfirmationModal } from "../components/scorecard/DiscardConfirmationModal";
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -61,6 +63,8 @@ export const ScorecardScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [roundPersistedToDb, setRoundPersistedToDb] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   const translateX = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
@@ -83,6 +87,18 @@ export const ScorecardScreen: React.FC = () => {
       loadHoleData(currentHoleIndex);
     }
   }, [currentHoleIndex]);
+
+  // Detect when all holes are complete and show completion modal
+  useEffect(() => {
+    const completedHoles = getCompletedHoles();
+    const allHolesComplete = completedHoles === activeHoleNumbers.length && completedHoles > 0;
+
+    if (allHolesComplete && !showCompletionModal && !isSubmitting && !isLoading) {
+      // Save current staged hole before showing modal
+      saveStagedHole();
+      setShowCompletionModal(true);
+    }
+  }, [holes, activeHoleNumbers, showCompletionModal, isSubmitting, isLoading]);
 
   const initializeRound = async () => {
     try {
@@ -547,6 +563,136 @@ export const ScorecardScreen: React.FC = () => {
     }
   };
 
+  const handleSaveRound = async () => {
+    try {
+      setIsSubmitting(true);
+
+      // Save round to DB first if not already persisted
+      let roundToSubmit = currentRound;
+      if (!roundPersistedToDb && currentRound) {
+        roundToSubmit = await saveRoundToDB();
+      }
+
+      if (!roundToSubmit) {
+        throw new Error("Failed to create round");
+      }
+
+      // Save all hole scores to the backend
+      const holesWithScores = holes.filter(
+        (hole) => hole.strokes && hole.strokes > 0,
+      );
+
+      for (const hole of holesWithScores) {
+        const holeScoreData: HoleScoreInput = {
+          hole_number: hole.number,
+          strokes: hole.strokes!,
+          putts: hole.putts || null,
+          fairway_hit: hole.fairway_hit || false,
+          fairway_miss_type: hole.fairway_miss_type || null,
+          fairway_miss_direction: hole.fairway_miss_direction || null,
+          green_in_regulation: hole.green_in_regulation || false,
+          up_and_down: hole.up_and_down || false,
+          penalties: 0,
+          drive_distance: null,
+          approach_distance: null,
+        };
+
+        try {
+          await ApiService.addHoleScore(roundToSubmit.id, holeScoreData);
+        } catch (error) {
+          console.error(`Failed to save hole ${hole.number} score:`, error);
+        }
+      }
+
+      // Calculate round statistics
+      const totalScore = holes.reduce(
+        (total, hole) => total + (hole.strokes || 0),
+        0,
+      );
+      const totalPutts = holes.reduce(
+        (total, hole) => total + (hole.putts || 0),
+        0,
+      );
+      const fairwaysHit = holes.filter(
+        (hole) => hole.par >= 4 && hole.fairway_hit,
+      ).length;
+      const greensInRegulation = holes.filter(
+        (hole) => hole.green_in_regulation,
+      ).length;
+
+      // Update round with completion data
+      const roundUpdateData = {
+        completed_at: new Date().toISOString(),
+        submitted_at: new Date().toISOString(),
+        total_strokes: totalScore,
+        total_putts: totalPutts,
+        fairways_hit: fairwaysHit,
+        greens_in_regulation: greensInRegulation,
+        total_penalties: 0,
+      };
+
+      const response = await ApiService.updateRound(
+        roundToSubmit.id,
+        roundUpdateData,
+      );
+
+      if (response.success) {
+        // End Live Activity
+        if (LiveActivityService.isLiveActivitySupported()) {
+          await LiveActivityService.endActivity();
+        }
+
+        // Close modals
+        setShowCompletionModal(false);
+        setShowDiscardModal(false);
+
+        // Navigate to RoundDetail
+        navigation.navigate('Main' as never, {
+          screen: 'Home',
+          params: {
+            screen: 'RoundDetail',
+            params: { roundId: roundToSubmit.id }
+          }
+        } as never);
+      } else {
+        throw new Error(response.error || "Failed to submit round");
+      }
+    } catch (error) {
+      console.error("Error submitting round:", error);
+      const apiError = error as ApiError;
+      Alert.alert("Error", apiError.message || "Failed to save round");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditRound = () => {
+    setShowCompletionModal(false);
+    // User stays on scorecard, can navigate to any hole
+  };
+
+  const handleDiscardRound = () => {
+    setShowDiscardModal(true);
+  };
+
+  const handleConfirmDiscard = async () => {
+    // End Live Activity if active
+    if (LiveActivityService.isLiveActivitySupported()) {
+      await LiveActivityService.endActivity();
+    }
+
+    setShowDiscardModal(false);
+    setShowCompletionModal(false);
+
+    // Navigate to dashboard
+    navigation.navigate('Main' as never, { screen: 'Home' } as never);
+  };
+
+  const handleCancelDiscard = () => {
+    setShowDiscardModal(false);
+    // Returns to completion modal
+  };
+
   if (isLoading) {
     return <LoadingScreen message="Starting your round..." />;
   }
@@ -591,6 +737,26 @@ export const ScorecardScreen: React.FC = () => {
         onSelectHole={navigateToHole}
       />
       <BackButton />
+
+      <RoundCompletionModal
+        visible={showCompletionModal}
+        onSave={handleSaveRound}
+        onEdit={handleEditRound}
+        onDiscard={handleDiscardRound}
+        scoreData={{
+          score: holes.reduce((sum, h) => sum + (h.strokes || 0), 0),
+          par: holes.filter(h => activeHoleNumbers.includes(h.number)).reduce((sum, h) => sum + h.par, 0),
+          fairways: holes.filter(h => h.par >= 4 && h.fairway_hit).length,
+          greens: holes.filter(h => h.green_in_regulation).length,
+        }}
+        isSubmitting={isSubmitting}
+      />
+
+      <DiscardConfirmationModal
+        visible={showDiscardModal}
+        onConfirm={handleConfirmDiscard}
+        onCancel={handleCancelDiscard}
+      />
     </View>
   );
 };
