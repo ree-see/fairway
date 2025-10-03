@@ -66,11 +66,6 @@ class Round < ApplicationRecord
     scoring_service.completion_percentage
   end
 
-  # Calculate score differential using scoring service
-  def calculate_score_differential
-    scoring_service.calculate_score_differential
-  end
-
   # Maximum score per hole for handicap calculation (Net Double Bogey)
   def maximum_hole_scores
     scoring_service.maximum_hole_scores
@@ -92,11 +87,6 @@ class Round < ApplicationRecord
     fraud_detection_service.fraud_risk_factors_list
   end
 
-  def calculate_score_differential
-    return nil unless total_strokes && course_rating && slope_rating
-    self.score_differential = scoring_service.calculate_score_differential
-  end
-
   private
 
   def calculate_totals
@@ -104,6 +94,11 @@ class Round < ApplicationRecord
     
     totals = scoring_service.calculate_totals
     assign_attributes(totals)
+  end
+
+  def calculate_score_differential
+    return unless total_strokes && course_rating && slope_rating
+    self.score_differential = scoring_service.calculate_score_differential
   end
 
   def verify_location
@@ -121,12 +116,10 @@ class Round < ApplicationRecord
 
   def calculate_fraud_risk_score
     return if fraud_risk_score.present?
-    
+
     score = fraud_detection_service.calculate_fraud_risk_score
     self.update_column(:fraud_risk_score, score)
   end
-
-  private
 
   def scoring_service
     @scoring_service ||= RoundScoringService.new(self)
