@@ -150,27 +150,21 @@ users_data = [
     password: "password123",
     first_name: "Test",
     last_name: "User",
-    phone: "555-0001",
-    handicap_index: 15.4,
-    verified_handicap: 14.8
+    phone: "555-0001"
   },
   {
-    email: "john@golfer.com", 
+    email: "john@golfer.com",
     password: "password123",
     first_name: "John",
     last_name: "Golfer",
-    phone: "555-0002",
-    handicap_index: 8.2,
-    verified_handicap: 7.9
+    phone: "555-0002"
   },
   {
     email: "sarah@player.com",
-    password: "password123", 
+    password: "password123",
     first_name: "Sarah",
     last_name: "Player",
-    phone: "555-0003",
-    handicap_index: 22.1,
-    verified_handicap: 21.5
+    phone: "555-0003"
   }
 ]
 
@@ -181,8 +175,6 @@ test_users = users_data.map do |user_data|
     user.first_name = user_data[:first_name]
     user.last_name = user_data[:last_name]
     user.phone = user_data[:phone]
-    user.handicap_index = user_data[:handicap_index]
-    user.verified_handicap = user_data[:verified_handicap]
     user.email_verified = true
     user.email_verified_at = Time.current
   end
@@ -397,9 +389,13 @@ test_users.each_with_index do |user, user_index|
     
     # Update round totals (this will trigger the callbacks)
     round.save!
-    
+
     puts "  📊 Round #{round_index + 1} for #{user.first_name}: #{round.total_strokes} at #{course.name}"
   end
+
+  # Recalculate handicaps for the user after all rounds are created
+  user.save!
+  puts "  ⛳ Updated handicaps for #{user.first_name}: Provisional=#{user.handicap_index&.round(1)}, Verified=#{user.verified_handicap&.round(1)}"
 end
 
 puts "✅ Created rounds and hole scores for all users"
