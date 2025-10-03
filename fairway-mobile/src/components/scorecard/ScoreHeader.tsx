@@ -26,14 +26,7 @@ export const ScoreHeader: React.FC<ScoreHeaderProps> = ({
           </Text>
         </View>
         <View style={styles.scoreContainer}>
-          <Text
-            style={styles.scoreDisplay}
-            adjustsFontSizeToFit
-            numberOfLines={1}
-            minimumFontScale={0.5}
-          >
-            {scoreDisplay}
-          </Text>
+          <Text style={styles.scoreDisplay}>{scoreDisplay}</Text>
           <Text style={styles.scoreLabel}>Score</Text>
         </View>
       </View>
@@ -72,14 +65,12 @@ const createStyles = (colors: any, topInset: number) => StyleSheet.create({
   },
   scoreContainer: {
     alignItems: "flex-end",
-    flexShrink: 0,
   },
   scoreDisplay: {
     fontSize: 36,
     fontWeight: "bold",
     color: "#FFFFFF",
     lineHeight: 40,
-    width: 100,
   },
   scoreLabel: {
     fontSize: 11,

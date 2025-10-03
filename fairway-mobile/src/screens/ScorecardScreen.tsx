@@ -93,8 +93,11 @@ export const ScorecardScreen: React.FC = () => {
 
   // Load hole data when currentHoleIndex changes
   useEffect(() => {
+    console.log('[EFFECT] currentHoleIndex changed to:', currentHoleIndex);
     if (holes.length > 0) {
       loadHoleData(currentHoleIndex);
+    } else {
+      console.log('[EFFECT] No holes loaded yet');
     }
   }, [currentHoleIndex]);
 
@@ -371,14 +374,22 @@ export const ScorecardScreen: React.FC = () => {
 
   // Load hole data into staging when switching holes
   const loadHoleData = (holeIndex: number) => {
+    console.log('[DATA] loadHoleData called for index:', holeIndex);
     if (holeIndex >= 0 && holeIndex < holes.length) {
+      const holeData = holes[holeIndex];
+      console.log('[DATA] Loading hole:', holeData.number, 'par:', holeData.par);
       setStagedHole({ ...holes[holeIndex] });
+    } else {
+      console.log('[DATA] Invalid hole index:', holeIndex);
     }
   };
 
   // Custom setCurrentHoleIndex that saves before switching with animation
   const navigateToHole = (newHoleIndex: number) => {
+    console.log('[NAV] navigateToHole called:', { from: currentHoleIndex, to: newHoleIndex });
+
     if (newHoleIndex !== currentHoleIndex) {
+      console.log('[NAV] Starting navigation animation');
       saveStagedHole(); // Save current hole before switching
 
       // Fade out animation
@@ -387,33 +398,45 @@ export const ScorecardScreen: React.FC = () => {
         duration: 150,
         useNativeDriver: true,
       }).start(() => {
+        console.log('[NAV] Fade out complete, setting currentHoleIndex to:', newHoleIndex);
         // Switch hole (this triggers the useEffect to load data)
         setCurrentHoleIndex(newHoleIndex);
 
         // Wait for React to render with new data before fading in
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
+            console.log('[NAV] Starting fade in animation');
             // Fade in animation with new hole data
             Animated.timing(cardOpacity, {
               toValue: 1,
               duration: 200,
               useNativeDriver: true,
-            }).start();
+            }).start(() => {
+              console.log('[NAV] Fade in complete');
+            });
           });
         });
       });
+    } else {
+      console.log('[NAV] Already on hole', newHoleIndex);
     }
   };
 
   const goToNextHole = () => {
+    console.log('[NAV] goToNextHole called - currentIndex:', currentHoleIndex, 'max:', holes.length - 1);
     if (currentHoleIndex < holes.length - 1) {
       navigateToHole(currentHoleIndex + 1);
+    } else {
+      console.log('[NAV] Cannot go to next - already at last hole');
     }
   };
 
   const goToPreviousHole = () => {
+    console.log('[NAV] goToPreviousHole called - currentIndex:', currentHoleIndex);
     if (currentHoleIndex > 0) {
       navigateToHole(currentHoleIndex - 1);
+    } else {
+      console.log('[NAV] Cannot go to previous - already at first hole');
     }
   };
 
@@ -438,24 +461,45 @@ export const ScorecardScreen: React.FC = () => {
       const shouldSwipe =
         Math.abs(translationX) > threshold || Math.abs(velocityX) > velocityThreshold;
 
+      console.log('[GESTURE] Threshold check:', {
+        threshold,
+        velocityThreshold,
+        shouldSwipe,
+        currentHoleIndex,
+        totalHoles: holes.length,
+        absTranslationX: Math.abs(translationX),
+        absVelocityX: Math.abs(velocityX)
+      });
+
       let shouldNavigate = false;
 
       if (shouldSwipe) {
         // Swipe right (positive translationX) = go to PREVIOUS hole
         if (translationX > 0 && currentHoleIndex > 0) {
+          console.log('[GESTURE] Navigating to PREVIOUS hole');
           shouldNavigate = true;
           goToPreviousHole();
         }
         // Swipe left (negative translationX) = go to NEXT hole
         else if (translationX < 0 && currentHoleIndex < holes.length - 1) {
+          console.log('[GESTURE] Navigating to NEXT hole');
           shouldNavigate = true;
           goToNextHole();
+        } else {
+          console.log('[GESTURE] At boundary - cannot navigate', {
+            translationX,
+            currentHoleIndex,
+            totalHoles: holes.length
+          });
         }
+      } else {
+        console.log('[GESTURE] Swipe threshold not met');
       }
 
       // Reset card position animation
       // If navigating, delay reset until fade animation completes
       if (shouldNavigate) {
+        console.log('[GESTURE] Delaying card reset for navigation animation');
         setTimeout(() => {
           Animated.spring(translateX, {
             toValue: 0,
@@ -465,6 +509,7 @@ export const ScorecardScreen: React.FC = () => {
           }).start();
         }, 150); // Match fade out duration
       } else {
+        console.log('[GESTURE] Springing card back immediately (no navigation)');
         // If not navigating, spring back immediately
         Animated.spring(translateX, {
           toValue: 0,
