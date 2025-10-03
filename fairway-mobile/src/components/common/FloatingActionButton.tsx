@@ -6,11 +6,15 @@ import { useTheme } from "../../contexts/ThemeContext";
 interface FloatingActionButtonProps {
   onPress: () => void;
   icon?: keyof typeof Ionicons.glyphMap;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   onPress,
-  icon = "add"
+  icon = "add",
+  accessibilityLabel = "Add new item",
+  accessibilityHint = "Creates a new item"
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -20,6 +24,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       style={styles.fab}
       onPress={onPress}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
     >
       <Ionicons name={icon} size={32} color="#FFFFFF" />
     </TouchableOpacity>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,139 @@ import { theme } from "../theme";
 import { useTheme } from "../contexts/ThemeContext";
 
 type FilterStatus = "all" | "completed" | "in_progress" | "verified";
+
+// Memoized Round Item Component for performance optimization
+interface RoundItemProps {
+  item: Round;
+  onPress: (roundId: string) => void;
+  colors: any;
+  styles: any;
+}
+
+const RoundItem = memo<RoundItemProps>(({ item, onPress, colors, styles }) => {
+  const coursePar = item.course_par || 72;
+  const scoreToPar = (item.total_strokes || 0) - coursePar;
+
+  const getStatusBadge = () => {
+    if (item.is_verified) {
+      return (
+        <View style={[styles.badge, styles.verifiedBadge]}>
+          <Ionicons
+            name="checkmark-circle"
+            size={14}
+            color={colors.text.inverse}
+          />
+        </View>
+      );
+    } else if (item.status === "in_progress") {
+      return (
+        <View style={[styles.badge, styles.inProgressBadge]}>
+          <Ionicons name="hourglass" size={14} color={colors.text.inverse} />
+        </View>
+      );
+    } else {
+      return (
+        <View style={[styles.badge, styles.provisionalBadge]}>
+          <Ionicons name="time" size={14} color={colors.text.inverse} />
+        </View>
+      );
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getAccessibilityLabel = () => {
+    const statusText = item.is_verified
+      ? "verified"
+      : item.status === "in_progress"
+        ? "in progress"
+        : "provisional";
+    const scoreText =
+      item.total_strokes
+        ? `Score ${item.total_strokes}, ${scoreToPar === 0 ? "even par" : scoreToPar > 0 ? `${scoreToPar} over par` : `${Math.abs(scoreToPar)} under par`}`
+        : "no score";
+    return `${item.course_name}, ${statusText} round, ${scoreText}. Tap to view details.`;
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.roundCard}
+      onPress={() => onPress(item.id)}
+      accessibilityRole="button"
+      accessibilityLabel={getAccessibilityLabel()}
+      accessibilityHint="Opens round details"
+    >
+      <View style={styles.roundHeader}>
+        <Text style={styles.courseName} numberOfLines={1}>
+          {item.course_name}
+        </Text>
+        {getStatusBadge()}
+      </View>
+
+      <View style={styles.roundDetails}>
+        <View style={styles.detailItem}>
+          <Ionicons
+            name="calendar-outline"
+            size={16}
+            color={colors.text.secondary}
+          />
+          <Text style={styles.detailText}>{formatDate(item.started_at)}</Text>
+        </View>
+
+        <View style={styles.scoreRow}>
+          <View style={styles.scoreItem}>
+            <Text style={styles.scoreLabel}>Score</Text>
+            <Text style={styles.scoreValue}>
+              {item.total_strokes || "--"}
+            </Text>
+          </View>
+          <View style={styles.scoreDivider} />
+          <View style={styles.scoreItem}>
+            <Text style={styles.scoreLabel}>Par</Text>
+            <Text style={styles.scoreValue}>{coursePar}</Text>
+          </View>
+          <View style={styles.scoreDivider} />
+          <View style={styles.scoreItem}>
+            <Text
+              style={[
+                styles.scoreValue,
+                {
+                  color:
+                    scoreToPar > 0
+                      ? colors.error
+                      : scoreToPar < 0
+                        ? colors.success
+                        : colors.primary,
+                },
+              ]}
+            >
+              {scoreToPar === 0
+                ? "E"
+                : scoreToPar > 0
+                  ? `+${scoreToPar}`
+                  : scoreToPar}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison function - only re-render if item data actually changed
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.total_strokes === nextProps.item.total_strokes &&
+    prevProps.item.is_verified === nextProps.item.is_verified &&
+    prevProps.item.status === nextProps.item.status
+  );
+});
 
 export const RoundsScreen: React.FC = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
@@ -99,106 +232,9 @@ export const RoundsScreen: React.FC = () => {
     navigation.navigate("Home", { screen: "CourseSelect" });
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
-
-  const getStatusBadge = (round: Round) => {
-    if (round.is_verified) {
-      return (
-        <View style={[styles.badge, styles.verifiedBadge]}>
-          <Ionicons
-            name="checkmark-circle"
-            size={14}
-            color={colors.text.inverse}
-          />
-        </View>
-      );
-    } else if (round.status === "in_progress") {
-      return (
-        <View style={[styles.badge, styles.inProgressBadge]}>
-          <Ionicons name="hourglass" size={14} color={colors.text.inverse} />
-        </View>
-      );
-    } else {
-      return (
-        <View style={[styles.badge, styles.provisionalBadge]}>
-          <Ionicons name="time" size={14} color={colors.text.inverse} />
-        </View>
-      );
-    }
-  };
-
-  const renderRoundItem = ({ item }: { item: Round }) => {
-    const coursePar = item.course_par || 72;
-    const scoreToPar = (item.total_strokes || 0) - coursePar;
-
-    return (
-      <TouchableOpacity
-        style={styles.roundCard}
-        onPress={() => navigation.navigate("RoundDetail", { roundId: item.id })}
-      >
-        <View style={styles.roundHeader}>
-          <Text style={styles.courseName} numberOfLines={1}>
-            {item.course_name}
-          </Text>
-          {getStatusBadge(item)}
-        </View>
-
-        <View style={styles.roundDetails}>
-          <View style={styles.detailItem}>
-            <Ionicons
-              name="calendar-outline"
-              size={16}
-              color={colors.text.secondary}
-            />
-            <Text style={styles.detailText}>{formatDate(item.started_at)}</Text>
-          </View>
-
-          <View style={styles.scoreRow}>
-            <View style={styles.scoreItem}>
-              <Text style={styles.scoreLabel}>Score</Text>
-              <Text style={styles.scoreValue}>
-                {item.total_strokes || "--"}
-              </Text>
-            </View>
-            <View style={styles.scoreDivider} />
-            <View style={styles.scoreItem}>
-              <Text style={styles.scoreLabel}>Par</Text>
-              <Text style={styles.scoreValue}>{coursePar}</Text>
-            </View>
-            <View style={styles.scoreDivider} />
-            <View style={styles.scoreItem}>
-              <Text
-                style={[
-                  styles.scoreValue,
-                  {
-                    color:
-                      scoreToPar > 0
-                        ? colors.error
-                        : scoreToPar < 0
-                          ? colors.success
-                          : colors.primary,
-                  },
-                ]}
-              >
-                {scoreToPar === 0
-                  ? "E"
-                  : scoreToPar > 0
-                    ? `+${scoreToPar}`
-                    : scoreToPar}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  };
+  const handleRoundPress = useCallback((roundId: string) => {
+    navigation.navigate("RoundDetail", { roundId });
+  }, [navigation]);
 
   const renderFooter = () => {
     if (!isLoadingMore) return null;
@@ -242,6 +278,9 @@ export const RoundsScreen: React.FC = () => {
             filterStatus === "all" && styles.filterButtonActive,
           ]}
           onPress={() => handleFilterChange("all")}
+          accessibilityRole="button"
+          accessibilityLabel="Show all rounds"
+          accessibilityState={{ selected: filterStatus === "all" }}
         >
           <Text
             style={[
@@ -259,6 +298,9 @@ export const RoundsScreen: React.FC = () => {
             filterStatus === "completed" && styles.filterButtonActive,
           ]}
           onPress={() => handleFilterChange("completed")}
+          accessibilityRole="button"
+          accessibilityLabel="Show completed rounds"
+          accessibilityState={{ selected: filterStatus === "completed" }}
         >
           <Text
             style={[
@@ -276,6 +318,9 @@ export const RoundsScreen: React.FC = () => {
             filterStatus === "in_progress" && styles.filterButtonActive,
           ]}
           onPress={() => handleFilterChange("in_progress")}
+          accessibilityRole="button"
+          accessibilityLabel="Show in progress rounds"
+          accessibilityState={{ selected: filterStatus === "in_progress" }}
         >
           <Text
             style={[
@@ -293,6 +338,9 @@ export const RoundsScreen: React.FC = () => {
             filterStatus === "verified" && styles.filterButtonActive,
           ]}
           onPress={() => handleFilterChange("verified")}
+          accessibilityRole="button"
+          accessibilityLabel="Show verified rounds"
+          accessibilityState={{ selected: filterStatus === "verified" }}
         >
           <Text
             style={[
@@ -308,7 +356,14 @@ export const RoundsScreen: React.FC = () => {
       {/* Rounds List */}
       <FlatList
         data={rounds}
-        renderItem={renderRoundItem}
+        renderItem={({ item }) => (
+          <RoundItem
+            item={item}
+            onPress={handleRoundPress}
+            colors={colors}
+            styles={styles}
+          />
+        )}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContent}
         onEndReached={handleLoadMore}
@@ -324,7 +379,11 @@ export const RoundsScreen: React.FC = () => {
         }
       />
 
-      <FloatingActionButton onPress={navigateToNewRound} />
+      <FloatingActionButton
+        onPress={navigateToNewRound}
+        accessibilityLabel="Start new round"
+        accessibilityHint="Navigate to course selection to start a new round"
+      />
     </View>
   );
 };
