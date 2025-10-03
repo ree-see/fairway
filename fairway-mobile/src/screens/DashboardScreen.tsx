@@ -114,6 +114,7 @@ export const DashboardScreen: React.FC = () => {
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
         }
@@ -149,5 +150,8 @@ const createStyles = (colors: any) => StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 120, // Extra space for floating tab bar (60px height + 20px margin + buffer)
   },
 });
