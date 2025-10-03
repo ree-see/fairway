@@ -394,7 +394,8 @@ test_users.each_with_index do |user, user_index|
   end
 
   # Recalculate handicaps for the user after all rounds are created
-  user.save!
+  # Force the before_save callback by touching updated_at
+  user.update!(updated_at: Time.current)
   puts "  ⛳ Updated handicaps for #{user.first_name}: Provisional=#{user.handicap_index&.round(1)}, Verified=#{user.verified_handicap&.round(1)}"
 end
 
