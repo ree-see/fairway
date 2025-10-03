@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -41,6 +41,30 @@ export const HoleCard: React.FC<HoleCardProps> = ({
   onUpdateMissDirection,
 }) => {
   const { colors } = useTheme();
+  const puttsInputRef = useRef<TextInput>(null);
+
+  const handleStrokesChange = (value: string) => {
+    // Only allow numbers 1-15
+    const numValue = parseInt(value);
+    if (value === "" || (numValue >= 1 && numValue <= 15)) {
+      onUpdateScore("strokes", value);
+
+      // Auto-focus putts input when a valid stroke is entered
+      if (value !== "" && numValue >= 1 && numValue <= 15) {
+        setTimeout(() => {
+          puttsInputRef.current?.focus();
+        }, 100);
+      }
+    }
+  };
+
+  const handlePuttsChange = (value: string) => {
+    // Only allow numbers 0-10
+    const numValue = parseInt(value);
+    if (value === "" || (numValue >= 0 && numValue <= 10)) {
+      onUpdateScore("putts", value);
+    }
+  };
 
   const getScoreToPar = () => {
     if (!hole.strokes) return null;
@@ -82,11 +106,13 @@ export const HoleCard: React.FC<HoleCardProps> = ({
           <TextInput
             style={styles.scoreInput}
             value={hole.strokes?.toString() || ""}
-            onChangeText={(value) => onUpdateScore("strokes", value)}
+            onChangeText={handleStrokesChange}
             keyboardType="numeric"
             maxLength={2}
             placeholder="-"
             placeholderTextColor="#CCCCCC"
+            returnKeyType="next"
+            onSubmitEditing={() => puttsInputRef.current?.focus()}
           />
         </View>
 
@@ -95,13 +121,15 @@ export const HoleCard: React.FC<HoleCardProps> = ({
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>PUTTS</Text>
           <TextInput
+            ref={puttsInputRef}
             style={styles.scoreInput}
             value={hole.putts?.toString() || ""}
-            onChangeText={(value) => onUpdateScore("putts", value)}
+            onChangeText={handlePuttsChange}
             keyboardType="numeric"
             maxLength={2}
             placeholder="-"
             placeholderTextColor="#CCCCCC"
+            returnKeyType="done"
           />
         </View>
       </View>
