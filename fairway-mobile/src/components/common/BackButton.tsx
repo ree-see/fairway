@@ -28,7 +28,7 @@ const createStyles = (colors: any) =>
     backButton: {
       position: "absolute",
       right: 0,
-      top: screenHeight * 0.78, // Balanced position for screens with/without navbar
+      top: screenHeight * 0.65, // Positioned higher to avoid tab bar
       width: 24,
       height: 60,
       borderTopLeftRadius: 10,
