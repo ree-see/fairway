@@ -279,16 +279,154 @@ class Api::V1::RoundsControllerTest < ActionController::TestCase
 
     assert_response :ok
     json = json_response
-    
+
     expected_keys = %w[
       total_strokes total_putts fairways_hit fairway_percentage
       greens_in_regulation gir_percentage average_putts_per_hole
       penalties score_to_par best_hole worst_hole
     ]
-    
+
     expected_keys.each do |key|
       assert_includes json['statistics'], key
     end
+  end
+
+  # Collection statistics endpoint tests
+  test "GET /statistics returns empty stats when user has no rounds" do
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+
+    assert json['success']
+    assert_includes json, 'data'
+    assert_includes json['data'], 'statistics'
+
+    stats = json['data']['statistics']
+
+    assert_equal 0, stats['total_rounds']
+    assert_equal 0, stats['verified_rounds']
+    assert_nil stats['average_score']
+    assert_nil stats['lowest_score']
+  end
+
+  test "GET /statistics returns comprehensive stats with multiple rounds" do
+    # Create 5 completed rounds with varying scores
+    5.times do |i|
+      create_completed_round(user: @user, course: @course, total_strokes: 80 + i * 2)
+    end
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    # Basic stats
+    assert_equal 5, stats['total_rounds']
+    assert stats['average_score'] > 0
+    assert_equal 80, stats['lowest_score']
+
+    # Performance stats
+    assert_not_nil stats['average_putts']
+    assert_not_nil stats['fairway_percentage']
+    assert_not_nil stats['gir_percentage']
+    assert_not_nil stats['scrambling_percentage']
+
+    # Handicap stats
+    assert_includes stats, 'handicap_index'
+    assert_includes stats, 'verified_handicap'
+
+    # Round averages
+    assert_includes stats, 'total_putts'
+    assert_includes stats, 'fairways_hit'
+    assert_includes stats, 'greens_in_regulation'
+  end
+
+  test "GET /statistics calculates correct averages" do
+    # Create 3 rounds with known values
+    create_completed_round(user: @user, course: @course, total_strokes: 90, total_putts: 36, fairways_hit: 6, greens_in_regulation: 8)
+    create_completed_round(user: @user, course: @course, total_strokes: 85, total_putts: 32, fairways_hit: 8, greens_in_regulation: 10)
+    create_completed_round(user: @user, course: @course, total_strokes: 88, total_putts: 34, fairways_hit: 7, greens_in_regulation: 9)
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    # Verify averages are calculated
+    assert_equal 3, stats['total_rounds']
+    assert_operator stats['average_score'].to_f, :>, 80
+    assert_operator stats['average_score'].to_f, :<, 95
+    assert_not_nil stats['total_putts']
+    assert_not_nil stats['fairways_hit']
+    assert_not_nil stats['greens_in_regulation']
+  end
+
+  test "GET /statistics includes recent trend" do
+    # Create rounds with improving trend
+    10.times do |i|
+      create_completed_round(user: @user, course: @course, total_strokes: 95 - i)
+    end
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    assert_includes stats, 'recent_trend'
+    assert_includes ['improving', 'stable', 'declining'], stats['recent_trend']
+  end
+
+  test "GET /statistics only includes completed rounds" do
+    # Create 3 completed rounds
+    3.times { create_completed_round(user: @user, course: @course) }
+
+    # Create 2 in-progress rounds (should not be counted)
+    2.times { create_test_round(user: @user, course: @course) }
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    assert_equal 3, stats['total_rounds']
+  end
+
+  test "GET /statistics separates verified and unverified rounds" do
+    # Create 3 verified rounds
+    3.times { create_completed_round(user: @user, course: @course).update!(is_verified: true) }
+
+    # Create 2 unverified rounds
+    2.times { create_completed_round(user: @user, course: @course).update!(is_verified: false) }
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    assert_equal 5, stats['total_rounds']
+    assert_equal 3, stats['verified_rounds']
+  end
+
+  test "GET /statistics handles user with no handicap gracefully" do
+    # Create rounds but don't calculate handicap
+    @user.update!(handicap_index: nil, verified_handicap: nil)
+    create_completed_round(user: @user, course: @course)
+
+    get :statistics
+
+    assert_response :ok
+    json = json_response
+    stats = json['data']['statistics']
+
+    # Should still return stats even without handicap
+    assert_equal 1, stats['total_rounds']
+    assert stats['average_score'] > 0
   end
 
   test "POST request_attestation sends attestation request" do

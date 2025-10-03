@@ -40,7 +40,7 @@ module ActiveSupport
         first_name: "Test",
         last_name: "User",
         date_of_birth: 25.years.ago.to_date,
-        phone_number: "555-0123"
+        phone: "555-0123"
       }.merge(attributes))
     end
 
@@ -50,16 +50,15 @@ module ActiveSupport
         address: "123 Golf Lane",
         city: "Test City",
         state: "CA",
-        zip_code: "90210",
-        country: "USA",
-        phone_number: "555-0124",
-        email: "info@testcourse.com",
+        postal_code: "90210",
+        country: "US",
+        phone: "555-0124",
         latitude: 34.0522,
         longitude: -118.2437,
         par: 72,
         course_rating: 71.2,
         slope_rating: 125,
-        yardage: 6500
+        total_yardage: 6500
       }.merge(attributes))
     end
 
@@ -77,28 +76,52 @@ module ActiveSupport
       }.merge(attributes))
     end
 
-    def create_completed_round(user: nil, course: nil, total_strokes: 85)
+    def create_completed_round(user: nil, course: nil, total_strokes: 85, total_putts: 32, fairways_hit: 8, greens_in_regulation: 9, started_at: 1.day.ago)
+      user ||= create_test_user
+      course ||= create_test_course
+
+      # Ensure course has holes
+      if course.holes.empty?
+        18.times do |i|
+          course.holes.create!(
+            number: i + 1,
+            par: (i % 3 == 0) ? 5 : ((i % 2 == 0) ? 4 : 3),
+            handicap: i + 1,
+            yardage_white: 350
+          )
+        end
+      end
+
       round = create_test_round(user: user, course: course, attributes: {
-        completed_at: 1.hour.ago,
+        started_at: started_at,
+        completed_at: started_at + 4.hours,
         total_strokes: total_strokes,
-        total_putts: 32,
-        fairways_hit: 8,
-        greens_in_regulation: 9,
+        total_putts: total_putts,
+        fairways_hit: fairways_hit,
+        greens_in_regulation: greens_in_regulation,
         total_penalties: 1
       })
-      
-      # Create some hole scores
-      (1..18).each do |hole_num|
+
+      # Create hole scores distributed to match total_strokes
+      holes = course.holes.to_a
+      strokes_per_hole = total_strokes / holes.length
+      remainder = total_strokes % holes.length
+
+      holes.each_with_index do |hole, index|
+        hole_strokes = strokes_per_hole + (index < remainder ? 1 : 0)
+        hole_putts = [total_putts / holes.length, 3].min
+
         round.hole_scores.create!(
-          hole_number: hole_num,
-          strokes: [3, 4, 5, 6].sample,
-          putts: [1, 2, 3].sample,
-          fairway_hit: [true, false].sample,
+          hole: hole,
+          hole_number: hole.number,
+          strokes: hole_strokes,
+          putts: hole_putts,
+          fairway_hit: hole.par >= 4 ? [true, false].sample : nil,
           green_in_regulation: [true, false].sample,
-          penalties: rand(0..1)
+          penalties: 0
         )
       end
-      
+
       round.reload
     end
 

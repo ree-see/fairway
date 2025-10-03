@@ -200,3 +200,4 @@ The app's unique value proposition centers on a multi-layered verification syste
 - Consider upgrading to Pro tier ($6.99/month) for faster initial course population
 - Set up monitoring for API rate limits and sync failures
 - frequently commit changes
+- when working on @fairway-mobile/ use the react native sub agent and when working on @fairway-api/ use the rails backend sub agent
