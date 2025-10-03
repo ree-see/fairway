@@ -42,7 +42,7 @@ export const AppNavigator: React.FC = () => {
                 name="FocusedRound"
                 component={ScorecardScreen}
                 options={{
-                  presentation: 'modal',
+                  presentation: 'fullScreenModal',
                   gestureEnabled: false, // Disable swipe to dismiss
                   headerShown: false,
                 }}
