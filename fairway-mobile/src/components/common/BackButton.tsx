@@ -28,7 +28,7 @@ const createStyles = (colors: any) =>
     backButton: {
       position: "absolute",
       right: 0,
-      top: screenHeight * 0.833, // 5/6 down the screen
+      top: screenHeight * 0.73, // Positioned to account for navbar height
       width: 24,
       height: 60,
       borderTopLeftRadius: 10,
