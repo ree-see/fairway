@@ -48,13 +48,6 @@ export const HoleCard: React.FC<HoleCardProps> = ({
     const numValue = parseInt(value);
     if (value === "" || (numValue >= 1 && numValue <= 15)) {
       onUpdateScore("strokes", value);
-
-      // Auto-focus putts input when a valid stroke is entered
-      if (value !== "" && numValue >= 1 && numValue <= 15) {
-        setTimeout(() => {
-          puttsInputRef.current?.focus();
-        }, 100);
-      }
     }
   };
 
