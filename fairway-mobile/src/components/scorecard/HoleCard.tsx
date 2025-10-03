@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -42,20 +42,44 @@ export const HoleCard: React.FC<HoleCardProps> = ({
 }) => {
   const { colors } = useTheme();
   const puttsInputRef = useRef<TextInput>(null);
+  const [strokesError, setStrokesError] = useState<string>("");
+  const [puttsError, setPuttsError] = useState<string>("");
 
   const handleStrokesChange = (value: string) => {
-    // Only allow numbers 1-15
-    const numValue = parseInt(value);
-    if (value === "" || (numValue >= 1 && numValue <= 15)) {
+    // Clear error if input is cleared
+    if (value === "") {
+      setStrokesError("");
       onUpdateScore("strokes", value);
+      return;
+    }
+
+    const numValue = parseInt(value);
+
+    // Check if valid range
+    if (numValue >= 1 && numValue <= 15) {
+      setStrokesError("");
+      onUpdateScore("strokes", value);
+    } else {
+      setStrokesError("Please enter 1-15");
     }
   };
 
   const handlePuttsChange = (value: string) => {
-    // Only allow numbers 0-10
-    const numValue = parseInt(value);
-    if (value === "" || (numValue >= 0 && numValue <= 10)) {
+    // Clear error if input is cleared
+    if (value === "") {
+      setPuttsError("");
       onUpdateScore("putts", value);
+      return;
+    }
+
+    const numValue = parseInt(value);
+
+    // Check if valid range
+    if (numValue >= 0 && numValue <= 10) {
+      setPuttsError("");
+      onUpdateScore("putts", value);
+    } else {
+      setPuttsError("Please enter 0-10");
     }
   };
 
@@ -97,7 +121,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>STROKES</Text>
           <TextInput
-            style={styles.scoreInput}
+            style={[styles.scoreInput, strokesError && styles.scoreInputError]}
             value={hole.strokes?.toString() || ""}
             onChangeText={handleStrokesChange}
             keyboardType="numeric"
@@ -107,6 +131,9 @@ export const HoleCard: React.FC<HoleCardProps> = ({
             returnKeyType="next"
             onSubmitEditing={() => puttsInputRef.current?.focus()}
           />
+          {strokesError ? (
+            <Text style={styles.errorText}>{strokesError}</Text>
+          ) : null}
         </View>
 
         <View style={styles.divider} />
@@ -115,7 +142,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
           <Text style={styles.inputLabel}>PUTTS</Text>
           <TextInput
             ref={puttsInputRef}
-            style={styles.scoreInput}
+            style={[styles.scoreInput, puttsError && styles.scoreInputError]}
             value={hole.putts?.toString() || ""}
             onChangeText={handlePuttsChange}
             keyboardType="numeric"
@@ -124,6 +151,9 @@ export const HoleCard: React.FC<HoleCardProps> = ({
             placeholderTextColor="#CCCCCC"
             returnKeyType="done"
           />
+          {puttsError ? (
+            <Text style={styles.errorText}>{puttsError}</Text>
+          ) : null}
         </View>
       </View>
 
@@ -432,6 +462,16 @@ const createStyles = (colors: any) =>
       color: colors.success,
       borderWidth: 2,
       borderColor: colors.ui.border,
+    },
+    scoreInputError: {
+      borderColor: colors.error,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 11,
+      marginTop: 6,
+      textAlign: "center",
+      fontWeight: "600",
     },
     divider: {
       width: 1,
