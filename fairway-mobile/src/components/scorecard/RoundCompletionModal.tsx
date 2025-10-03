@@ -88,7 +88,7 @@ export const RoundCompletionModal: React.FC<RoundCompletionModalProps> = ({
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={[styles.button, styles.saveButton]}
+              style={styles.button}
               onPress={onSave}
               disabled={isSubmitting}
               activeOpacity={0.7}
@@ -97,33 +97,28 @@ export const RoundCompletionModal: React.FC<RoundCompletionModalProps> = ({
               {isSubmitting ? (
                 <ActivityIndicator color={colors.text.inverse} size="small" />
               ) : (
-                <>
-                  <Ionicons name="checkmark-circle-outline" size={24} color={colors.text.inverse} />
-                  <Text style={styles.saveButtonText}>Save Round</Text>
-                </>
+                <Text style={styles.buttonText}>Save Round</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.editButton]}
+              style={styles.button}
               onPress={onEdit}
               disabled={isSubmitting}
               activeOpacity={0.7}
               accessibilityLabel="Edit round"
             >
-              <Ionicons name="create-outline" size={24} color={colors.primary} />
-              <Text style={styles.editButtonText}>Edit Scores</Text>
+              <Text style={styles.buttonText}>Edit Scores</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.button, styles.discardButton]}
+              style={styles.button}
               onPress={onDiscard}
               disabled={isSubmitting}
               activeOpacity={0.7}
               accessibilityLabel="Discard round"
             >
-              <Ionicons name="trash-outline" size={24} color={colors.error} />
-              <Text style={styles.discardButtonText}>Discard Round</Text>
+              <Text style={styles.buttonText}>Discard Round</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -230,37 +225,15 @@ const createStyles = (colors: any, isDarkMode: boolean) => StyleSheet.create({
     gap: 12,
   },
   button: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderRadius: 12,
-    gap: 8,
-  },
-  saveButton: {
     backgroundColor: colors.primary,
   },
-  saveButtonText: {
+  buttonText: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.text.inverse,
-  },
-  editButton: {
-    backgroundColor: colors.button.secondary,
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  editButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  discardButton: {
-    backgroundColor: colors.background.tertiary,
-  },
-  discardButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.error,
   },
 });
