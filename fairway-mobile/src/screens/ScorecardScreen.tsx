@@ -399,6 +399,10 @@ export const ScorecardScreen: React.FC = () => {
         useNativeDriver: true,
       }).start(() => {
         console.log('[NAV] Fade out complete, setting currentHoleIndex to:', newHoleIndex);
+
+        // IMMEDIATELY reset translateX to 0 (no animation)
+        translateX.setValue(0);
+
         // Switch hole (this triggers the useEffect to load data)
         setCurrentHoleIndex(newHoleIndex);
 
@@ -496,21 +500,13 @@ export const ScorecardScreen: React.FC = () => {
         console.log('[GESTURE] Swipe threshold not met');
       }
 
-      // Reset card position animation
-      // If navigating, delay reset until fade animation completes
+      // Reset card position
       if (shouldNavigate) {
-        console.log('[GESTURE] Delaying card reset for navigation animation');
-        setTimeout(() => {
-          Animated.spring(translateX, {
-            toValue: 0,
-            tension: 50,
-            friction: 8,
-            useNativeDriver: true,
-          }).start();
-        }, 150); // Match fade out duration
+        // If navigating, translateX will be reset in navigateToHole
+        console.log('[GESTURE] Navigation triggered - translateX will be reset in navigateToHole');
       } else {
-        console.log('[GESTURE] Springing card back immediately (no navigation)');
         // If not navigating, spring back immediately
+        console.log('[GESTURE] Springing card back immediately (no navigation)');
         Animated.spring(translateX, {
           toValue: 0,
           tension: 50,
