@@ -290,7 +290,7 @@ test_users.each_with_index do |user, user_index|
       
       # Fairway hit (only for par 4 and 5) with weather impact
       weather_impact = round.weather_conditions == 'windy' ? 0.8 : 1.0
-      
+
       fairway_hit = if hole.par >= 4
                      hit_rate = case user_skill
                                when :scratch then 0.75
@@ -303,6 +303,26 @@ test_users.each_with_index do |user, user_index|
                    else
                      false
                    end
+
+      # Fairway miss stats (only when fairway is missed on par 4/5)
+      fairway_miss_type = nil
+      fairway_miss_direction = nil
+
+      if hole.par >= 4 && !fairway_hit
+        # Determine miss type based on skill level
+        miss_type_rand = rand
+        fairway_miss_type = case user_skill
+                           when :scratch, :low_handicap
+                             miss_type_rand < 0.6 ? 'rough' : (miss_type_rand < 0.85 ? 'hazard' : 'out_of_bounds')
+                           when :average
+                             miss_type_rand < 0.5 ? 'rough' : (miss_type_rand < 0.8 ? 'hazard' : 'out_of_bounds')
+                           when :high_handicap, :beginner
+                             miss_type_rand < 0.4 ? 'rough' : (miss_type_rand < 0.75 ? 'hazard' : 'out_of_bounds')
+                           end
+
+        # Direction is random (slightly favoring right for right-handed players)
+        fairway_miss_direction = rand < 0.55 ? 'right' : 'left'
+      end
       
       # Green in regulation
       regulation_strokes = hole.par - 2
@@ -363,6 +383,8 @@ test_users.each_with_index do |user, user_index|
         strokes: strokes,
         putts: putts,
         fairway_hit: fairway_hit,
+        fairway_miss_type: fairway_miss_type,
+        fairway_miss_direction: fairway_miss_direction,
         green_in_regulation: green_in_regulation,
         up_and_down: up_and_down,
         penalties: penalties,
