@@ -114,6 +114,7 @@ export interface Round {
   course_id: string;
   course_name?: string; // Added course_name from Rails API
   course_par?: number; // Par for the course played
+  holes_played?: number; // Number of holes played (9 or 18)
   started_at: string;
   completed_at?: string;
   submitted_at?: string;
