@@ -164,6 +164,13 @@ export const RoundDetailScreen: React.FC = () => {
     setDisplayOptions(prev => ({ ...prev, [option]: !prev[option] }));
   };
 
+  // Determine which 9 holes were played based on hole scores
+  const holeNumbers = hole_scores.map(score => score.hole_number);
+  const hasHoles1to9 = holeNumbers.some(n => n >= 1 && n <= 9);
+  const hasHoles10to18 = holeNumbers.some(n => n >= 10 && n <= 18);
+  const showFrontNine = hasHoles1to9;
+  const showBackNine = hasHoles10to18;
+
   const coursePar = hole_scores.reduce((sum, s) => sum + s.par, 0);
   const scoreToPar = (round.total_strokes || 0) - coursePar;
 
@@ -224,21 +231,25 @@ export const RoundDetailScreen: React.FC = () => {
           <View style={styles.scorecardSection}>
             {hole_scores.length > 0 ? (
               <View style={styles.scorecardContainer}>
-                <ScorecardNine
-                  title="Front 9"
-                  holeScores={hole_scores.filter(score => score.hole_number <= 9)}
-                  totalLabel="Out"
-                  getScoreColor={getScoreColor}
-                  displayOptions={displayOptions}
-                />
+                {showFrontNine && (
+                  <ScorecardNine
+                    title="Front 9"
+                    holeScores={hole_scores.filter(score => score.hole_number <= 9)}
+                    totalLabel="Out"
+                    getScoreColor={getScoreColor}
+                    displayOptions={displayOptions}
+                  />
+                )}
 
-                <ScorecardNine
-                  title="Back 9"
-                  holeScores={hole_scores.filter(score => score.hole_number > 9)}
-                  totalLabel="In"
-                  getScoreColor={getScoreColor}
-                  displayOptions={displayOptions}
-                />
+                {showBackNine && (
+                  <ScorecardNine
+                    title="Back 9"
+                    holeScores={hole_scores.filter(score => score.hole_number > 9)}
+                    totalLabel="In"
+                    getScoreColor={getScoreColor}
+                    displayOptions={displayOptions}
+                  />
+                )}
               </View>
             ) : (
               <View style={styles.emptyScorecard}>
