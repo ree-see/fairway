@@ -87,7 +87,7 @@ export const MainNavigator: React.FC = () => {
         headerShown: false,
         tabBarStyle: {
           position: 'absolute',
-          backgroundColor: 'rgba(0, 0, 0, 0.3)',
+          backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
           shadowOpacity: 0,
@@ -99,7 +99,16 @@ export const MainNavigator: React.FC = () => {
           paddingTop: 5,
         },
         tabBarBackground: () => (
-          <BlurView intensity={10} tint="dark" style={{ flex: 1, borderRadius: 25, overflow: 'hidden' }} />
+          <BlurView
+            intensity={80}
+            tint="dark"
+            style={{
+              flex: 1,
+              borderRadius: 25,
+              overflow: 'hidden',
+              backgroundColor: 'rgba(0, 0, 0, 0.15)',
+            }}
+          />
         ),
       })}
     >
