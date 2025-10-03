@@ -69,6 +69,7 @@ export const ScorecardScreen: React.FC = () => {
   const translateX = useRef(new Animated.Value(0)).current;
   const cardOpacity = useRef(new Animated.Value(1)).current;
   const panRef = useRef<PanGestureHandler>(null);
+  const isGestureEnabled = !showCompletionModal && !showDiscardModal && !isSubmitting;
 
   useEffect(() => {
     initializeRound();
@@ -409,28 +410,50 @@ export const ScorecardScreen: React.FC = () => {
   );
 
   const onHandlerStateChange = (event: any) => {
-    const { translationX, velocityX } = event.nativeEvent;
+    const { translationX, velocityX, state } = event.nativeEvent;
 
-    if (event.nativeEvent.state === 5) {
-      // GESTURE_STATE_END
+    // State 5 = GESTURE_STATE_END
+    if (state === 5) {
+      const threshold = screenWidth * 0.25; // 25% of screen width
+      const velocityThreshold = 500;
       const shouldSwipe =
-        Math.abs(translationX) > screenWidth / 4 || Math.abs(velocityX) > 500;
+        Math.abs(translationX) > threshold || Math.abs(velocityX) > velocityThreshold;
+
+      let shouldNavigate = false;
 
       if (shouldSwipe) {
+        // Swipe right (positive translationX) = go to PREVIOUS hole
         if (translationX > 0 && currentHoleIndex > 0) {
-          // Swipe right - go to previous hole
+          shouldNavigate = true;
           goToPreviousHole();
-        } else if (translationX < 0 && currentHoleIndex < holes.length - 1) {
-          // Swipe left - go to next hole
+        }
+        // Swipe left (negative translationX) = go to NEXT hole
+        else if (translationX < 0 && currentHoleIndex < holes.length - 1) {
+          shouldNavigate = true;
           goToNextHole();
         }
       }
 
-      // Reset animation
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-      }).start();
+      // Reset card position animation
+      // If navigating, delay reset until fade animation completes
+      if (shouldNavigate) {
+        setTimeout(() => {
+          Animated.spring(translateX, {
+            toValue: 0,
+            tension: 50,
+            friction: 8,
+            useNativeDriver: true,
+          }).start();
+        }, 150); // Match fade out duration
+      } else {
+        // If not navigating, spring back immediately
+        Animated.spring(translateX, {
+          toValue: 0,
+          tension: 50,
+          friction: 8,
+          useNativeDriver: true,
+        }).start();
+      }
     }
   };
 
@@ -708,8 +731,11 @@ export const ScorecardScreen: React.FC = () => {
 
       <PanGestureHandler
         ref={panRef}
+        enabled={isGestureEnabled}
         onGestureEvent={onPanGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
+        activeOffsetX={[-10, 10]}
+        failOffsetY={[-20, 20]}
       >
         <Animated.View
           style={[
