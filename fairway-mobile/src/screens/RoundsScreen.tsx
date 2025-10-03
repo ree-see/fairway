@@ -122,7 +122,7 @@ export const RoundsScreen: React.FC = () => {
     } else if (round.status === "in_progress") {
       return (
         <View style={[styles.badge, styles.inProgressBadge]}>
-          <Ionicons name="time" size={14} color={colors.text.inverse} />
+          <Ionicons name="hourglass" size={14} color={colors.text.inverse} />
         </View>
       );
     } else {
