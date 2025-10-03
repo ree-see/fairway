@@ -184,16 +184,16 @@ class Api::V1::RoundsController < ApplicationController
       verified_rounds: rounds.verified.count,
       average_score: current_user.average_score,
       lowest_score: rounds.minimum(:total_strokes),
-      handicap_index: current_user.handicap_index,
-      verified_handicap: current_user.verified_handicap,
+      handicap_index: current_user.handicap_index&.to_f,
+      verified_handicap: current_user.verified_handicap&.to_f,
       recent_trend: calculate_recent_trend(rounds.limit(10)),
-      
+
       # Performance statistics
       average_putts: comprehensive_stats[:average_putts],
       fairway_percentage: comprehensive_stats[:fairway_percentage],
       gir_percentage: comprehensive_stats[:gir_percentage],
       scrambling_percentage: comprehensive_stats[:scrambling_percentage],
-      
+
       # Round averages
       total_putts: rounds.average(:total_putts)&.round(1),
       fairways_hit: rounds.average(:fairways_hit)&.round(1),
