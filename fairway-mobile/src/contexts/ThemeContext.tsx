@@ -57,7 +57,7 @@ const lightColors: ColorScheme = {
   },
   ui: {
     border: '#E0E0E0',
-    divider: '#E0E0E0',
+    divider: '#1B5E20',
   },
   card: {
     background: '#FFFFFF',
