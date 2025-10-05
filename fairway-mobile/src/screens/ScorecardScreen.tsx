@@ -642,7 +642,7 @@ export const ScorecardScreen: React.FC = () => {
 
         Alert.alert(
           "Round Submitted!",
-          `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? "+" : ""}${getScoreToPar()}\n\nFairways Hit: ${fairwaysHit}\nGreens in Regulation: ${greensInRegulation}`,
+          `Total Score: ${totalScore}\nScore to Par: ${getScoreToPar() > 0 ? "+" : ""}${getScoreToPar()}\n\nFIR: ${fairwaysHit}\nGIR: ${greensInRegulation}`,
           [{ text: "OK", onPress: () => navigation.goBack() }],
         );
       } else {

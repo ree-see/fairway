@@ -74,7 +74,7 @@ export const RoundCompletionModal: React.FC<RoundCompletionModalProps> = ({
             <View style={styles.statsRow}>
               <View style={styles.statItem}>
                 <Ionicons name="flag-outline" size={20} color={colors.text.secondary} />
-                <Text style={styles.statLabel}>Fairways</Text>
+                <Text style={styles.statLabel}>FIR</Text>
                 <Text style={styles.statValue}>{scoreData.fairways}</Text>
               </View>
               <View style={styles.statItem}>

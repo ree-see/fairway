@@ -225,7 +225,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
                     hole.fairway_hit && styles.statButtonTextActive,
                   ]}
                 >
-                  Fairway Hit
+                  FIR
                 </Text>
               </TouchableOpacity>
             )}
@@ -386,7 +386,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
               hole.green_in_regulation && styles.statButtonTextActive,
             ]}
           >
-            Green in Regulation
+            GIR
           </Text>
         </TouchableOpacity>
 
@@ -413,7 +413,7 @@ export const HoleCard: React.FC<HoleCardProps> = ({
                 hole.up_and_down && styles.statButtonTextActive,
               ]}
             >
-              Up & Down
+              U&D
             </Text>
           </TouchableOpacity>
         )}

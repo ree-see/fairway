@@ -26,12 +26,12 @@ export const RoundStatistics: React.FC<RoundStatisticsProps> = ({ round }) => {
         
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{round.fairways_hit || 0}</Text>
-          <Text style={styles.statLabel}>Fairways Hit</Text>
+          <Text style={styles.statLabel}>FIR</Text>
         </View>
-        
+
         <View style={styles.statCard}>
           <Text style={styles.statValue}>{round.greens_in_regulation || 0}</Text>
-          <Text style={styles.statLabel}>Greens in Reg</Text>
+          <Text style={styles.statLabel}>GIR</Text>
         </View>
       </View>
 
