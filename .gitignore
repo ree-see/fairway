@@ -7,3 +7,5 @@ fairway-api/log
 fairway-api/.env
 fairway-api/.env.example
 fairway-mobile/.env
+.DS_Store
+tmp/
